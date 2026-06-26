@@ -1,0 +1,186 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Play, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Garment } from '@/lib/garments';
+
+interface ProductGalleryModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  garment: Garment;
+}
+
+export default function ProductGalleryModal({ isOpen, onClose, garment }: ProductGalleryModalProps) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const isExclusive = !garment.brand || garment.brand !== 'Universe' ? garment.price >= 5000 : false;
+  
+  const mediaItems: any[] = [
+    { type: 'image', src: garment.image },
+    { type: 'image', src: garment.image, flip: true },
+    { type: 'image', src: garment.image, filter: 'grayscale opacity-80' }
+  ];
+
+  if (isExclusive) {
+    mediaItems.push({ type: 'video' });
+  }
+
+  const handleNext = () => setCurrentIndex((prev) => (prev + 1) % mediaItems.length);
+  const handlePrev = () => setCurrentIndex((prev) => (prev - 1 + mediaItems.length) % mediaItems.length);
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 md:p-12">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-black/80 backdrop-blur-xl"
+          />
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            className="relative w-full max-w-5xl max-h-[90vh] bg-[#0c0a10] border border-white/10 rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 z-50 p-2 bg-black/50 hover:bg-black/80 rounded-full text-white/50 hover:text-white transition-colors border border-white/10"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Media Section */}
+            <div className="w-full md:w-2/3 h-[50vh] md:h-[80vh] relative bg-black flex flex-col">
+              
+              {/* Media Content with Arrows */}
+              <div className="flex-1 w-full h-full relative overflow-hidden flex items-center justify-center p-4 group/carousel">
+                <AnimatePresence mode="wait">
+                  <motion.div 
+                    key={currentIndex}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 1.05 }}
+                    transition={{ duration: 0.3 }}
+                    className="w-full h-full flex items-center justify-center relative"
+                  >
+                    {mediaItems[currentIndex].type === 'image' ? (
+                      mediaItems[currentIndex].src ? (
+                        <img 
+                          src={mediaItems[currentIndex].src} 
+                          alt={`${garment.name} view ${currentIndex + 1}`} 
+                          className={`max-w-full max-h-full object-contain rounded-xl transition-all duration-500 ${mediaItems[currentIndex].flip ? 'scale-x-[-1]' : ''} ${mediaItems[currentIndex].filter || ''}`} 
+                        />
+                      ) : (
+                        <div className="w-64 h-64 border border-white/10 rounded-xl flex items-center justify-center">
+                          <ImageIcon className="w-12 h-12 text-white/20" />
+                        </div>
+                      )
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center relative bg-[#050505] rounded-xl border border-white/5">
+                        <div className="absolute inset-0 flex flex-col items-center justify-center text-[var(--theme-primary)]">
+                          <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ repeat: Infinity, duration: 2 }}>
+                            <Play className="w-16 h-16 opacity-30 mb-4" />
+                          </motion.div>
+                          <span className="font-mono text-sm tracking-widest font-bold opacity-50">EXCLUSIVE RUNWAY FOOTAGE</span>
+                          <span className="font-mono text-[10px] text-white/30 mt-2">SIMULATED PLAYBACK</span>
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+
+                {/* Left Arrow */}
+                <button 
+                  onClick={handlePrev} 
+                  className="absolute left-6 z-30 p-3 bg-black/40 hover:bg-black/80 rounded-full text-white/70 hover:text-white transition-all backdrop-blur-md border border-white/10 opacity-0 group-hover/carousel:opacity-100 hover:scale-110"
+                >
+                  <ChevronLeft className="w-6 h-6" />
+                </button>
+                
+                {/* Right Arrow */}
+                <button 
+                  onClick={handleNext} 
+                  className="absolute right-6 z-30 p-3 bg-black/40 hover:bg-black/80 rounded-full text-white/70 hover:text-white transition-all backdrop-blur-md border border-white/10 opacity-0 group-hover/carousel:opacity-100 hover:scale-110"
+                >
+                  <ChevronRight className="w-6 h-6" />
+                </button>
+
+                <div className="absolute bottom-6 z-30 flex items-center justify-center gap-2 px-4 py-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-full">
+                  <span className="font-mono text-[10px] text-white/50 tracking-widest font-bold">
+                    {mediaItems[currentIndex].type === 'image' ? 'GALLERY' : 'RUNWAY'} {currentIndex + 1}/{mediaItems.length}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Info Section */}
+            <div className="w-full md:w-1/3 p-6 md:p-8 flex flex-col border-t md:border-t-0 md:border-l border-white/10 bg-gradient-to-b from-[#110e18] to-[#0c0a10]">
+              <div className="mb-auto space-y-6">
+                <div>
+                  <span className="font-mono text-[10px] text-[var(--theme-primary)] tracking-widest font-bold uppercase mb-2 block">
+                    {garment.category} · {garment.gender}
+                  </span>
+                  <h2 className="text-2xl md:text-3xl font-sans font-black text-white leading-tight">
+                    {garment.name}
+                  </h2>
+                  <div className="text-xl font-mono text-white/80 mt-2">
+                    {garment.price.toLocaleString()} LKR
+                  </div>
+                </div>
+
+                <p className="text-sm text-white/60 font-sans leading-relaxed">
+                  {garment.description}
+                </p>
+
+                <div className="space-y-3 pt-6 border-t border-white/5">
+                  <div className="flex justify-between items-center text-xs font-mono text-white/40 border-b border-white/5 pb-2">
+                    <span>MATERIAL</span>
+                    <span className="text-white/80 text-right">Synthetic Cyber-Blend</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs font-mono text-white/40 border-b border-white/5 pb-2">
+                    <span>FIT</span>
+                    <span className="text-white/80 text-right">Ergonomic Tailored</span>
+                  </div>
+                  {isExclusive && (
+                    <div className="flex justify-between items-center text-xs font-mono text-amber-500/50 pb-2">
+                      <span>STATUS</span>
+                      <span className="text-amber-500 font-bold text-right flex items-center gap-1">
+                        EXCLUSIVE
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-8">
+                <button
+                  onClick={onClose}
+                  className="w-full py-3 rounded-xl font-mono text-[11px] font-bold tracking-wider bg-white/10 text-white hover:bg-white/20 transition-all cursor-pointer border border-white/5"
+                >
+                  RETURN TO CATALOGUE
+                </button>
+              </div>
+            </div>
+
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>,
+    document.body
+  );
+}

@@ -1,26 +1,245 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  --color-cyber-green: #00ffaa;
+  --color-cyber-blue: #00e5ff;
+  --color-cyber-purple: #d500f9;
+  --color-cyber-dark: #050508;
+  --color-cyber-darker: #020203;
+  --color-cyber-card: rgba(12, 12, 18, 0.65);
+  --color-cyber-border: rgba(255, 255, 255, 0.07);
+  
+  --animate-scan: scan 6s linear infinite;
+  --animate-laser: laser 3s ease-in-out infinite;
+  --animate-hologram: hologram 5s ease-in-out infinite;
+  --animate-glow-pulse: glow-pulse 2s infinite;
+  --animate-grid-drift: grid-drift 20s linear infinite;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  @keyframes scan {
+    0% { transform: translateY(-100%); }
+    50% { transform: translateY(100%); }
+    100% { transform: translateY(-100%); }
+  }
+  @keyframes laser {
+    0%, 100% { transform: translateY(0%); opacity: 0.3; }
+    50% { transform: translateY(350px); opacity: 0.9; }
+  }
+  @keyframes hologram {
+    0%, 100% { filter: brightness(1) contrast(1) saturate(1); }
+    50% { filter: brightness(1.1) contrast(1.05) saturate(1.2) hue-rotate(5deg); }
+  }
+  @keyframes glow-pulse {
+    0%, 100% { opacity: 0.3; transform: scale(0.98); }
+    50% { opacity: 0.7; transform: scale(1.02); }
+  }
+  @keyframes grid-drift {
+    0% { background-position: 0 0; }
+    100% { background-position: 0 40px; }
   }
 }
 
+/* ─── Base Design Tokens ──────────────────────────────────────────────────── */
+:root {
+  --theme-bg: #23151c;
+  --theme-foreground: #f0eef2;
+  --theme-primary: #ff8da1;
+  --theme-secondary: #ff4d6d;
+  --theme-border: rgba(255, 77, 109, 0.2);
+  --theme-card: rgba(35, 20, 28, 0.55);
+  --theme-glow: rgba(255, 77, 109, 0.3);
+  --theme-glow-rgb: 255, 77, 109;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+
+  /* Readable base sizes */
+  --text-label: 0.7rem;      /* 11.2px — replaces 9px micro labels */
+  --text-meta:  0.75rem;     /* 12px — replaces 10px meta text */
+  --text-body:  0.8125rem;   /* 13px — replaces 11-12px body */
+  --text-ui:    0.875rem;    /* 14px — standard UI text */
+}
+
+/* ─── Theme: Female Boutique ──────────────────────────────────────────────── */
+.theme-female {
+  --theme-bg: #23151c;
+  --theme-primary: #ff8da1;
+  --theme-secondary: #ff4d6d;
+  --theme-border: rgba(255, 77, 109, 0.22);
+  --theme-card: rgba(38, 18, 26, 0.52);
+  --theme-glow: rgba(255, 77, 109, 0.38);
+  --theme-glow-rgb: 255, 77, 109;
+}
+
+/* ─── Theme: Male Refined ─────────────────────────────────────────────────── */
+.theme-male {
+  --theme-bg: #161a25;
+  --theme-primary: #d97706;
+  --theme-secondary: #475569;
+  --theme-border: rgba(217, 119, 6, 0.18);
+  --theme-card: rgba(22, 26, 38, 0.50);
+  --theme-glow: rgba(217, 119, 6, 0.30);
+  --theme-glow-rgb: 217, 119, 6;
+}
+
+/* ─── Body Base ───────────────────────────────────────────────────────────── */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--theme-bg);
+  color: var(--theme-foreground);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  transition: background-color 0.5s ease;
+}
+
+/* ─── Monospace Utility ───────────────────────────────────────────────────── */
+.font-mono {
+  font-family: var(--font-mono) !important;
+  font-feature-settings: "liga" 0, "calt" 1;
+  letter-spacing: 0.02em;
+}
+
+/* ─── Readable Opacity Overrides ─────────────────────────────────────────── */
+/* Boost low-opacity text that was previously unreadable at white/20-white/30 */
+.text-white\/20 { color: rgba(255, 255, 255, 0.38) !important; }
+.text-white\/25 { color: rgba(255, 255, 255, 0.42) !important; }
+.text-white\/30 { color: rgba(255, 255, 255, 0.50) !important; }
+.text-white\/35 { color: rgba(255, 255, 255, 0.55) !important; }
+.text-white\/40 { color: rgba(255, 255, 255, 0.62) !important; }
+.text-white\/50 { color: rgba(255, 255, 255, 0.72) !important; }
+.text-white\/60 { color: rgba(255, 255, 255, 0.82) !important; }
+.text-white\/70 { color: rgba(255, 255, 255, 0.88) !important; }
+.text-white\/80 { color: rgba(255, 255, 255, 0.93) !important; }
+
+/* ─── Minimum Font Size Guard ────────────────────────────────────────────── */
+/* Prevent any text from going below 11px */
+[class*="text-[7px]"],
+[class*="text-[8px]"],
+[class*="text-[9px]"] {
+  font-size: 0.6875rem !important; /* 11px */
+  line-height: 1.5 !important;
+}
+[class*="text-[10px]"],
+[class*="text-[11px]"] {
+  font-size: 0.75rem !important;   /* 12px */
+  line-height: 1.5 !important;
+}
+
+/* ─── Glassmorphism Utilities ─────────────────────────────────────────────── */
+@utility glass {
+  background: var(--theme-card);
+  backdrop-filter: blur(28px) saturate(160%) brightness(1.08);
+  -webkit-backdrop-filter: blur(28px) saturate(160%) brightness(1.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 32px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease;
+}
+
+@utility glass-theme {
+  background: var(--theme-card);
+  backdrop-filter: blur(28px) saturate(160%) brightness(1.08);
+  -webkit-backdrop-filter: blur(28px) saturate(160%) brightness(1.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 0 25px rgba(var(--theme-glow-rgb), 0.06);
+}
+
+@utility theme-text-primary {
+  color: var(--theme-primary);
+}
+
+@utility theme-text-secondary {
+  color: var(--theme-secondary);
+}
+
+@utility theme-border-color {
+  border-color: var(--theme-border);
+}
+
+@utility theme-glow-text {
+  text-shadow: 0 0 10px var(--theme-glow), 0 0 20px rgba(var(--theme-glow-rgb), 0.15);
+}
+
+@utility theme-glow-box {
+  box-shadow: 0 0 20px var(--theme-glow);
+}
+
+/* ─── Background Particle Animations ─────────────────────────────────────── */
+@keyframes bg-petal-fall {
+  0%   { transform: translateY(-80px) translateX(0px) rotate(0deg); opacity: 0; }
+  10%  { opacity: var(--op, 0.25); }
+  90%  { opacity: var(--op, 0.25); }
+  100% { transform: translateY(108vh) translateX(var(--sw, 60px)) rotate(var(--sp, 480deg)); opacity: 0; }
+}
+
+@keyframes bg-rocket-glide {
+  0%   { transform: translateX(0px) translateY(0px); opacity: 0; }
+  8%   { opacity: var(--op, 0.15); }
+  50%  { transform: translateX(55vw) translateY(calc(var(--dr, 0px) / 2)); opacity: var(--op, 0.15); }
+  92%  { opacity: var(--op, 0.15); }
+  100% { transform: translateX(112vw) translateY(var(--dr, 0px)); opacity: 0; }
+}
+
+@keyframes bg-planet-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-18px); }
+}
+
+@keyframes bg-star-twinkle {
+  0%, 100% { opacity: var(--op, 0.25); transform: scale(1); }
+  50%       { opacity: calc(var(--op, 0.25) * 0.15); transform: scale(0.5); }
+}
+
+/* ─── Custom Scrollbars ───────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--theme-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-primary);
+  box-shadow: 0 0 8px var(--theme-primary);
+}
+
+/* ─── Slider Thumb ────────────────────────────────────────────────────────── */
+.custom-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--theme-primary);
+  cursor: pointer;
+  box-shadow: 0 0 8px var(--theme-primary);
+  transition: transform 0.1s ease;
+}
+
+.custom-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.custom-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--theme-primary);
+  cursor: pointer;
+  box-shadow: 0 0 8px var(--theme-primary);
+  border: none;
+  transition: transform 0.1s ease;
+}
+
+.custom-slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
 }
