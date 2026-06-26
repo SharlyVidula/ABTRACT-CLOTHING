@@ -34,6 +34,20 @@ export default function Home() {
   type Collection = 'ALL' | 'EXCLUSIVE' | 'UNIVERSE' | 'DELUX';
   const [activeCollection, setActiveCollection] = useState<Collection>('ALL');
 
+  const [isEnteringDelivery, setIsEnteringDelivery] = useState(false);
+  const [deliveryFullName, setDeliveryFullName] = useState('');
+  const [deliveryPhone, setDeliveryPhone] = useState('');
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [deliveryCity, setDeliveryCity] = useState('');
+  const [deliveryError, setDeliveryError] = useState('');
+
+  React.useEffect(() => {
+    if (!isCartOpen) {
+      setIsEnteringDelivery(false);
+      setDeliveryError('');
+    }
+  }, [isCartOpen]);
+
   const handleOpenCheckout = (garment: Garment) => {
     setSelectedCheckoutGarment(garment);
     setIsCheckoutOpen(true);
@@ -404,76 +418,136 @@ export default function Home() {
                   <ShoppingBag className="w-5 h-5 text-[var(--theme-primary)]" />
                   <div>
                     <h3 className="font-mono text-sm tracking-widest text-[var(--theme-primary)] font-semibold">
-                      SELECTED ITEMS
+                      {isEnteringDelivery ? 'DELIVERY DETAILS' : 'SELECTED ITEMS'}
                     </h3>
-                    <p className="text-[9px] text-white/30 uppercase tracking-wider font-mono">Total chosen units</p>
+                    <p className="text-[9px] text-white/30 uppercase tracking-wider font-mono">
+                      {isEnteringDelivery ? 'SHIPPING TELEMETRY MATRIX' : 'Total chosen units'}
+                    </p>
                   </div>
                 </div>
                 
                 <button
                   onClick={() => setCartOpen(false)}
-                  className="p-2 rounded-full border border-white/10 hover:border-white/20 text-white/50 hover:text-white transition-all bg-white/[0.01] focus:outline-none"
+                  className="p-2 rounded-full border border-white/10 hover:border-white/20 text-white/50 hover:text-white transition-all bg-white/[0.01] focus:outline-none cursor-pointer"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto py-6 space-y-4">
-                {cart.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center text-center text-white/20">
-                    <ShoppingBag className="w-8 h-8 mb-2 text-white/10" />
-                    <span className="font-mono text-xs tracking-wider">CART IS EMPTY</span>
-                    <span className="text-[9px] text-white/30 mt-1">Select items and sizes from catalogue</span>
+              {isEnteringDelivery ? (
+                /* Delivery details input form */
+                <div className="flex-1 overflow-y-auto py-6 space-y-4">
+                  <div className="space-y-4 pt-2">
+                    <div className="flex flex-col gap-2">
+                      <label className="font-mono text-[10px] tracking-wider text-white/50">FULL NAME</label>
+                      <input
+                        type="text"
+                        value={deliveryFullName}
+                        onChange={(e) => setDeliveryFullName(e.target.value)}
+                        placeholder="e.g. Sharly Vidula"
+                        className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-[var(--theme-primary)] transition-colors placeholder:text-white/20"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label className="font-mono text-[10px] tracking-wider text-white/50">PHONE NUMBER</label>
+                      <input
+                        type="text"
+                        value={deliveryPhone}
+                        onChange={(e) => setDeliveryPhone(e.target.value)}
+                        placeholder="e.g. +94 77 123 4567"
+                        className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-[var(--theme-primary)] transition-colors placeholder:text-white/20"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label className="font-mono text-[10px] tracking-wider text-white/50">SHIPPING ADDRESS</label>
+                      <input
+                        type="text"
+                        value={deliveryAddress}
+                        onChange={(e) => setDeliveryAddress(e.target.value)}
+                        placeholder="e.g. 123 Couture Lane"
+                        className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-[var(--theme-primary)] transition-colors placeholder:text-white/20"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label className="font-mono text-[10px] tracking-wider text-white/50">CITY</label>
+                      <input
+                        type="text"
+                        value={deliveryCity}
+                        onChange={(e) => setDeliveryCity(e.target.value)}
+                        placeholder="e.g. Colombo"
+                        className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:border-[var(--theme-primary)] transition-colors placeholder:text-white/20"
+                      />
+                    </div>
+
+                    {deliveryError && (
+                      <div className="text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 p-3 rounded-xl">
+                        {deliveryError}
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  cart.map((item, index) => {
-                    const primaryColor = item.garment.colorTheme.primary;
-                    return (
-                      <div
-                        key={index}
-                        className="p-4 rounded-2xl border border-white/5 bg-white/[0.01] flex items-center justify-between gap-4 transition-all hover:bg-white/[0.02]"
-                      >
-                        <div className="flex items-center gap-3.5 overflow-hidden">
-                          <div
-                            className="w-10 h-10 rounded-xl border flex items-center justify-center bg-black/40 shadow-inner shrink-0 relative overflow-hidden"
-                            style={{ borderColor: `${primaryColor}40` }}
-                          >
-                            {item.garment.image ? (
-                              <img src={item.garment.image} alt={item.garment.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <ShoppingBag className="w-4 h-4" style={{ color: primaryColor }} />
-                            )}
-                          </div>
-                          
-                          <div className="flex flex-col min-w-0">
-                            <span className="font-mono text-[11px] font-bold text-white truncate uppercase">
-                              {item.garment.name}
-                            </span>
-                            <div className="flex flex-wrap gap-x-2 text-[9px] text-white/40 font-mono mt-0.5">
-                              <span>SIZE: {item.size}</span>
-                              <span>QTY: {item.quantity}</span>
-                              <span style={{ color: primaryColor }}>{item.paymentMethod}</span>
+                </div>
+              ) : (
+                /* Item list review */
+                <div className="flex-1 overflow-y-auto py-6 space-y-4">
+                  {cart.length === 0 ? (
+                    <div className="h-full flex flex-col items-center justify-center text-center text-white/20">
+                      <ShoppingBag className="w-8 h-8 mb-2 text-white/10" />
+                      <span className="font-mono text-xs tracking-wider">CART IS EMPTY</span>
+                      <span className="text-[9px] text-white/30 mt-1">Select items and sizes from catalogue</span>
+                    </div>
+                  ) : (
+                    cart.map((item, index) => {
+                      const primaryColor = item.garment.colorTheme.primary;
+                      return (
+                        <div
+                          key={index}
+                          className="p-4 rounded-2xl border border-white/5 bg-white/[0.01] flex items-center justify-between gap-4 transition-all hover:bg-white/[0.02]"
+                        >
+                          <div className="flex items-center gap-3.5 overflow-hidden">
+                            <div
+                              className="w-10 h-10 rounded-xl border flex items-center justify-center bg-black/40 shadow-inner shrink-0 relative overflow-hidden"
+                              style={{ borderColor: `${primaryColor}40` }}
+                            >
+                              {item.garment.image ? (
+                                <img src={item.garment.image} alt={item.garment.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <ShoppingBag className="w-4 h-4" style={{ color: primaryColor }} />
+                              )}
+                            </div>
+                            
+                            <div className="flex flex-col min-w-0">
+                              <span className="font-mono text-[11px] font-bold text-white truncate uppercase">
+                                {item.garment.name}
+                              </span>
+                              <div className="flex flex-wrap gap-x-2 text-[9px] text-white/40 font-mono mt-0.5">
+                                <span>SIZE: {item.size}</span>
+                                <span>QTY: {item.quantity}</span>
+                                <span style={{ color: primaryColor }}>{item.paymentMethod}</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        <div className="flex items-center gap-3.5 shrink-0">
-                          <span className="font-mono text-xs font-semibold text-white/80">
-                            {item.garment.price * item.quantity} LKR
-                          </span>
-                          
-                          <button
-                            onClick={() => removeFromCart(index)}
-                            className="p-2 rounded-lg border border-white/5 hover:border-red-500/20 bg-white/[0.01] hover:bg-red-500/5 text-white/40 hover:text-red-400 transition-all cursor-pointer"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          <div className="flex items-center gap-3.5 shrink-0">
+                            <span className="font-mono text-xs font-semibold text-white/80">
+                              {item.garment.price * item.quantity} LKR
+                            </span>
+                            
+                            <button
+                              onClick={() => removeFromCart(index)}
+                              className="p-2 rounded-lg border border-white/5 hover:border-red-500/20 bg-white/[0.01] hover:bg-red-500/5 text-white/40 hover:text-red-400 transition-all cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
+                      );
+                    })
+                  )}
+                </div>
+              )}
 
               {/* Checkout CTA */}
               {cart.length > 0 && (
@@ -489,16 +563,60 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => {
-                      checkout();
-                      alert('TRANSACTION COMPLETED successfully.');
-                    }}
-                    className="w-full py-4 rounded-xl font-mono text-sm tracking-wider font-semibold bg-white text-black hover:bg-white/90 active:scale-98 transition-all flex items-center justify-center gap-2 border border-white/20 cursor-pointer shadow-lg"
-                  >
-                    CHECKOUT ORDER
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
+                  {isEnteringDelivery ? (
+                    <div className="flex flex-col gap-2.5">
+                      <button
+                        onClick={() => {
+                          if (!deliveryFullName.trim() || !deliveryPhone.trim() || !deliveryAddress.trim() || !deliveryCity.trim()) {
+                            setDeliveryError('ALL TELEMETRY FIELDS MUST BE FULLY RESOLVED');
+                            return;
+                          }
+
+                          checkout({
+                            fullName: deliveryFullName.trim(),
+                            phone: deliveryPhone.trim(),
+                            address: deliveryAddress.trim(),
+                            city: deliveryCity.trim()
+                          });
+
+                          alert('ORDER PLACED SUCCESSFULLY.');
+                          
+                          // Clean fields
+                          setDeliveryFullName('');
+                          setDeliveryPhone('');
+                          setDeliveryAddress('');
+                          setDeliveryCity('');
+                          setIsEnteringDelivery(false);
+                          setDeliveryError('');
+                        }}
+                        className="w-full py-4 rounded-xl font-mono text-sm tracking-wider font-semibold bg-white text-black hover:bg-white/90 active:scale-98 transition-all flex items-center justify-center gap-2 border border-white/20 cursor-pointer shadow-lg"
+                      >
+                        CONFIRM & PLACE ORDER
+                        <Check className="w-4 h-4" />
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setIsEnteringDelivery(false);
+                          setDeliveryError('');
+                        }}
+                        className="w-full py-3.5 rounded-xl font-mono text-xs tracking-wider font-semibold border border-white/10 hover:border-white/20 hover:bg-white/[0.02] active:scale-98 transition-all flex items-center justify-center gap-2 text-white/60 hover:text-white bg-black/35 cursor-pointer"
+                      >
+                        BACK TO CART
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setIsEnteringDelivery(true);
+                        setDeliveryError('');
+                      }}
+                      className="w-full py-4 rounded-xl font-mono text-sm tracking-wider font-semibold bg-white text-black hover:bg-white/90 active:scale-98 transition-all flex items-center justify-center gap-2 border border-white/20 cursor-pointer shadow-lg"
+                    >
+                      PROCEED TO CHECKOUT
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               )}
 

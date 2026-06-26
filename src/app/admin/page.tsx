@@ -697,6 +697,27 @@ export default function AdminPage() {
                       <span className="text-white/50 truncate max-w-[130px]">{order.email}</span>
                     </div>
                   )}
+                  {order.deliveryDetails && (
+                    <div className="mt-1.5 pt-1.5 border-t border-white/5 space-y-1 text-white/50 bg-white/[0.01] p-2 rounded-lg">
+                      <div className="text-[8px] text-cyber-purple font-bold tracking-wider mb-1 uppercase">DELIVERY TELEMETRY</div>
+                      <div className="flex justify-between">
+                        <span>RECIPIENT:</span>
+                        <span className="text-white/70">{order.deliveryDetails.fullName}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>PHONE:</span>
+                        <span className="text-white/70">{order.deliveryDetails.phone}</span>
+                      </div>
+                      <div className="flex justify-between items-start gap-2">
+                        <span>ADDRESS:</span>
+                        <span className="text-white/70 text-right break-all max-w-[130px]">{order.deliveryDetails.address}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>CITY:</span>
+                        <span className="text-white/70">{order.deliveryDetails.city}</span>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="space-y-1 my-1 border-y border-white/5 py-2">
                     {order.items.map((item, idx) => (

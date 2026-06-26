@@ -20,6 +20,13 @@ export interface CartItem {
   paymentMethod: string;
 }
 
+export interface DeliveryDetails {
+  fullName: string;
+  phone: string;
+  address: string;
+  city: string;
+}
+
 export interface Order {
   id: string;
   items: CartItem[];
@@ -30,6 +37,7 @@ export interface Order {
   email?: string;
   status: 'Pending Approval' | 'Pending Delivery' | 'Dispatched' | 'Discarded';
   declineReason?: string;
+  deliveryDetails?: DeliveryDetails;
 }
 
 export interface UserSession {
@@ -41,13 +49,7 @@ export interface UserSession {
 
 export type AuthResult = { success: boolean; error?: string };
 
-// ─── Default seed admin (always present) ─────────────────────────────────────
-const DEFAULT_ADMIN: StoredUser = {
-  username: 'admin',
-  password: 'admin123',
-  role: 'Admin',
-  gender: 'Male',
-};
+
 
 // ─── Context Shape ────────────────────────────────────────────────────────────
 interface StoreContextType {
@@ -66,7 +68,7 @@ interface StoreContextType {
   logout: () => void;
   addToCart: (garment: Garment, size: 'S' | 'M' | 'L' | 'XL', quantity: number, paymentMethod: string) => void;
   removeFromCart: (index: number) => void;
-  checkout: () => void;
+  checkout: (deliveryDetails?: DeliveryDetails) => void;
   updateOrderStatus: (orderId: string, status: Order['status'], declineReason?: string) => void;
   addProduct: (garment: Garment) => void;
   setCartOpen: (open: boolean) => void;
@@ -82,22 +84,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = useState<Garment[]>(GARMENTS);
   const [isCartOpen, setCartOpen] = useState(false);
   const [genderMode, setGenderMode] = useState<'Male' | 'Female'>('Female');
-  const [registeredUsers, setRegisteredUsers] = useState<StoredUser[]>([DEFAULT_ADMIN]);
+  const [registeredUsers, setRegisteredUsers] = useState<StoredUser[]>([]);
 
   // ── Hydrate from localStorage ──────────────────────────────────────────────
   useEffect(() => {
-    // Users list — always ensure default admin exists
+    // Users list
     const savedUsers = localStorage.getItem('abstract_users');
     if (savedUsers) {
       const parsed: StoredUser[] = JSON.parse(savedUsers);
-      const hasAdmin = parsed.some((u) => u.username === DEFAULT_ADMIN.username);
-      const finalUsers = hasAdmin ? parsed : [DEFAULT_ADMIN, ...parsed];
-      setTimeout(() => setRegisteredUsers(finalUsers), 0);
-      if (!hasAdmin) localStorage.setItem('abstract_users', JSON.stringify(finalUsers));
+      setTimeout(() => setRegisteredUsers(parsed), 0);
     } else {
-      const initial = [DEFAULT_ADMIN];
-      setTimeout(() => setRegisteredUsers(initial), 0);
-      localStorage.setItem('abstract_users', JSON.stringify(initial));
+      setTimeout(() => setRegisteredUsers([]), 0);
+      localStorage.setItem('abstract_users', JSON.stringify([]));
     }
 
     // Active session
@@ -121,7 +119,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   // ── Auth helpers ───────────────────────────────────────────────────────────
   const getUsers = (): StoredUser[] => {
     const raw = localStorage.getItem('abstract_users');
-    return raw ? JSON.parse(raw) : [DEFAULT_ADMIN];
+    return raw ? JSON.parse(raw) : [];
   };
 
   const saveUsers = (users: StoredUser[]) => {
@@ -199,7 +197,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (!user || user.role !== 'Admin') {
       return { success: false, error: 'Unauthorized — admin privileges required.' };
     }
-    if (username === DEFAULT_ADMIN.username) {
+    if (username === 'admin') {
       return { success: false, error: 'Cannot remove the default system administrator.' };
     }
     try {
@@ -234,7 +232,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('abstract_cart', JSON.stringify(updated));
   };
 
-  const checkout = () => {
+  const checkout = (deliveryDetails?: DeliveryDetails) => {
     if (cart.length === 0) return;
     const total = cart.reduce((sum, item) => sum + item.garment.price * item.quantity, 0);
     const newOrder: Order = {
@@ -246,6 +244,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       user: user?.username || 'Guest',
       email: user?.email || undefined,
       status: 'Pending Approval',
+      deliveryDetails,
     };
     const updatedOrders = [newOrder, ...orders];
     setOrders(updatedOrders);

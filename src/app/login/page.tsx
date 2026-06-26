@@ -199,10 +199,7 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Default admin hint */}
-              <p className="text-[11px] text-white/25 text-center">
-                Default admin: <span className="text-white/40 font-mono">admin</span> / <span className="text-white/40 font-mono">admin123</span>
-              </p>
+
 
               {error && (
                 <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/8 border border-red-500/20 text-red-400 text-xs">

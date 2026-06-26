@@ -3,7 +3,7 @@
 import React from 'react';
 import { useAtelier } from '@/context/AtelierContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, RefreshCw, Cpu, Sparkles, ShoppingBag, Award } from 'lucide-react';
+import { X, RefreshCw, Cpu, Sparkles, ShoppingBag, Award, Coins, CreditCard, Database, Banknote, ShieldCheck } from 'lucide-react';
 import MeasurementForm from './MeasurementForm';
 import { useStore } from '@/context/StoreContext';
 
@@ -22,6 +22,9 @@ export default function AtelierModal() {
   } = useAtelier();
 
   const { addToCart, setCartOpen } = useStore();
+  const [showStudioCheckout, setShowStudioCheckout] = React.useState(false);
+  const [quantity, setQuantity] = React.useState(1);
+  const [paymentMethod, setPaymentMethod] = React.useState('Cyber-Credits');
 
   if (!isAtelierOpen) return null;
 
@@ -49,14 +52,14 @@ export default function AtelierModal() {
           <div className="absolute top-6 right-6 z-40 flex items-center gap-3">
             <button
               onClick={resetAtelier}
-              className="p-3 rounded-full border border-white/10 hover:border-white/20 text-white/50 hover:text-white transition-all bg-white/[0.02]"
+              className="p-3 rounded-full border border-white/10 hover:border-white/20 text-white/50 hover:text-white transition-all bg-white/[0.02] cursor-pointer"
               title="Reset Calibrator"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
             <button
               onClick={() => setIsAtelierOpen(false)}
-              className="p-3 rounded-full border border-white/10 hover:border-white/20 text-white/50 hover:text-white transition-all bg-white/[0.02]"
+              className="p-3 rounded-full border border-white/10 hover:border-white/20 text-white/50 hover:text-white transition-all bg-white/[0.02] cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -87,7 +90,7 @@ export default function AtelierModal() {
                       <button
                         key={size}
                         onClick={() => setSelectedSize(size)}
-                        className={`py-2.5 rounded-lg font-mono text-xs font-bold border transition-all duration-300 focus:outline-none ${
+                        className={`py-2.5 rounded-lg font-mono text-xs font-bold border transition-all duration-300 focus:outline-none cursor-pointer ${
                           isSelected
                             ? 'bg-white text-black border-white shadow-[0_0_12px_rgba(255,255,255,0.25)]'
                             : 'border-white/10 hover:border-white/20 text-white/70 hover:text-white bg-white/[0.01]'
@@ -234,9 +237,9 @@ export default function AtelierModal() {
 
               <button
                 onClick={() => {
-                  addToCart(selectedGarment, selectedSize, 1, 'Cyber-Credits');
-                  setCartOpen(true);
-                  setIsAtelierOpen(false);
+                  setQuantity(1);
+                  setPaymentMethod('Cyber-Credits');
+                  setShowStudioCheckout(true);
                 }}
                 className="py-4 px-6 rounded-xl font-mono text-sm tracking-wider font-semibold border border-white/10 hover:border-[var(--theme-primary)] hover:bg-white/[0.02] active:scale-98 transition-all flex items-center justify-center gap-2 text-white/80 hover:text-white bg-black/35 cursor-pointer"
               >
@@ -245,6 +248,137 @@ export default function AtelierModal() {
               </button>
             </div>
           </div>
+
+          {/* Studio Checkout Overlay Card */}
+          <AnimatePresence>
+            {showStudioCheckout && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-6"
+              >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 15 }}
+                  transition={{ type: 'spring', damping: 25, stiffness: 220 }}
+                  className="w-full max-w-md glass rounded-[24px] border border-white/10 shadow-2xl p-6 md:p-8 text-white relative flex flex-col gap-5 max-h-[90%] overflow-y-auto"
+                >
+                  {/* Close button */}
+                  <button
+                    onClick={() => setShowStudioCheckout(false)}
+                    className="absolute top-6 right-6 p-2 rounded-full border border-white/10 hover:border-white/20 text-white/50 hover:text-white transition-all bg-white/[0.01] focus:outline-none cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+
+                  {/* Header */}
+                  <div className="flex flex-col gap-1 border-b border-white/10 pb-4">
+                    <span className="font-mono text-[9px] text-[var(--theme-primary)] tracking-widest font-semibold uppercase">
+                      STUDIO PARAMETERS SELECTOR
+                    </span>
+                    <h3 className="text-xl font-bold tracking-tight uppercase" style={{ color: selectedGarment.colorTheme.primary }}>
+                      {selectedGarment.name}
+                    </h3>
+                    <div className="flex items-center justify-between mt-1">
+                      <span className="font-mono text-sm font-semibold text-white/80">
+                        {selectedGarment.price * quantity} LKR
+                      </span>
+                      <span className="font-mono text-[10px] bg-white/15 px-2 py-0.5 rounded text-white/90">
+                        CALIBRATED SIZE: {selectedSize}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Quantity Selector */}
+                  <div className="flex flex-col gap-2">
+                    <span className="font-mono text-xs tracking-wider text-white/60">QUANTITY</span>
+                    <div className="flex items-center gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        className="w-10 h-10 rounded-xl border border-white/10 hover:border-white/20 bg-white/[0.01] flex items-center justify-center font-bold text-white transition-all focus:outline-none cursor-pointer"
+                      >
+                        -
+                      </button>
+                      <span className="font-mono text-base font-bold w-6 text-center">{quantity}</span>
+                      <button
+                        type="button"
+                        onClick={() => setQuantity(Math.min(10, quantity + 1))}
+                        className="w-10 h-10 rounded-xl border border-white/10 hover:border-white/20 bg-white/[0.01] flex items-center justify-center font-bold text-white transition-all focus:outline-none cursor-pointer"
+                      >
+                        +
+                      </button>
+                      <span className="text-[10px] text-white/30 font-mono self-center">MAXIMUM: 10 UNITS</span>
+                    </div>
+                  </div>
+
+                  {/* Payment Method Selector */}
+                  <div className="flex flex-col gap-2">
+                    <span className="font-mono text-xs tracking-wider text-white/60">PAYMENT ROUTE</span>
+                    <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                      {[
+                        { name: 'Cyber-Credits', icon: Coins, desc: 'Store digital credits' },
+                        { name: 'Credit Card', icon: CreditCard, desc: 'Visa/MC Secure Auth' },
+                        { name: 'Solana Network', icon: Database, desc: 'Web3 transaction matrix' },
+                        { name: 'Cash on Delivery', icon: Banknote, desc: 'Pay with cash upon package arrival' },
+                      ].map((opt) => {
+                        const isSelected = paymentMethod === opt.name;
+                        const Icon = opt.icon;
+                        return (
+                          <button
+                            key={opt.name}
+                            type="button"
+                            onClick={() => setPaymentMethod(opt.name)}
+                            className={`w-full p-3 rounded-xl border flex items-center justify-between transition-all duration-300 text-left focus:outline-none cursor-pointer ${
+                              isSelected
+                                ? 'border-white bg-white/[0.04] shadow-[0_0_10px_rgba(255,255,255,0.05)]'
+                                : 'border-white/5 hover:border-white/10 text-white/60 hover:text-white bg-white/[0.01]'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <Icon className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-white/40'}`} />
+                              <div className="flex flex-col">
+                                <span className="font-mono text-xs font-semibold">{opt.name}</span>
+                                <span className="text-[9px] text-white/30">{opt.desc}</span>
+                              </div>
+                            </div>
+                            <div 
+                              className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
+                                isSelected ? 'border-white' : 'border-white/20'
+                              }`}
+                            >
+                              {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Confirm CTA */}
+                  <button
+                    onClick={() => {
+                      addToCart(selectedGarment, selectedSize, quantity, paymentMethod);
+                      setCartOpen(true);
+                      setIsAtelierOpen(false);
+                      setShowStudioCheckout(false);
+                    }}
+                    className="w-full py-4 mt-2 rounded-xl font-mono text-sm tracking-wider font-semibold bg-white text-black hover:bg-white/95 active:scale-98 transition-all flex items-center justify-center gap-2 border border-white/20 cursor-pointer"
+                  >
+                    <ShoppingBag className="w-4 h-4" />
+                    CONFIRM CART INGESTION
+                  </button>
+
+                  <div className="flex items-center justify-center gap-1.5 text-[9px] font-mono text-white/20">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>TRANSACTIONS ROUTED THROUGH SECURE CORE PROTOCOL</span>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       </div>
     </AnimatePresence>

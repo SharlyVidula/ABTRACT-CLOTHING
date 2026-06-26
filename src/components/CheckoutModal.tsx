@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Garment } from '@/lib/garments';
 import { useStore } from '@/context/StoreContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ShoppingBag, CreditCard, ShieldCheck, Coins, Database } from 'lucide-react';
+import { X, ShoppingBag, CreditCard, ShieldCheck, Coins, Database, Banknote } from 'lucide-react';
 
 interface CheckoutModalProps {
   garment: Garment | null;
@@ -45,6 +45,7 @@ export default function CheckoutModal({ garment, isOpen, onClose }: CheckoutModa
     { name: 'Cyber-Credits', icon: Coins, desc: 'Store digital credits' },
     { name: 'Credit Card', icon: CreditCard, desc: 'Visa/MC Secure Auth' },
     { name: 'Solana Network', icon: Database, desc: 'Web3 transaction matrix' },
+    { name: 'Cash on Delivery', icon: Banknote, desc: 'Pay with cash upon package arrival' },
   ];
 
   const glowColor = garment.colorTheme.primary;
