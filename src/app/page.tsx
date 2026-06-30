@@ -92,18 +92,39 @@ export default function Home() {
 
 
       {/* Boutique Header Nav */}
-      <header className="relative z-30 w-full px-6 md:px-10 lg:px-16 py-6 border-b border-white/5 bg-black/20 backdrop-blur-md flex items-center justify-between">
-        <div className="flex items-center gap-8">
-          <div className="flex items-center gap-4">
-            <img src="/logo.png" alt="Abstract Logo" className="w-16 h-16 object-contain rounded-2xl border border-white/15 shadow-[0_0_25px_rgba(var(--theme-glow-rgb),0.2)] hover:scale-105 transition-transform duration-300" />
+      <header className="relative z-30 w-full px-4 md:px-10 lg:px-16 py-4 md:py-6 border-b border-white/5 bg-black/20 backdrop-blur-md flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-center justify-between w-full md:w-auto gap-4">
+          <div className="flex items-center gap-3 md:gap-4">
+            <img src="/logo.png" alt="Abstract Logo" className="w-10 h-10 md:w-16 md:h-16 object-contain rounded-xl md:rounded-2xl border border-white/15 shadow-[0_0_25px_rgba(var(--theme-glow-rgb),0.2)] hover:scale-105 transition-transform duration-300" />
             <div className="flex flex-col">
-              <span className="font-sans text-3xl font-black tracking-[0.25em] text-[var(--theme-primary)] theme-glow-text cursor-pointer" onClick={() => setActiveCollection('ALL')}>
+              <span className="font-sans text-xl md:text-3xl font-black tracking-[0.2em] md:tracking-[0.25em] text-[var(--theme-primary)] theme-glow-text cursor-pointer" onClick={() => setActiveCollection('ALL')}>
                 ABSTRACT
               </span>
-              <span className="font-mono text-[8px] text-white/40 tracking-widest uppercase">
+              <span className="font-mono text-[7px] md:text-[8px] text-white/40 tracking-widest uppercase">
                 PREMIUM COUTURE STUDIO
               </span>
             </div>
+          </div>
+
+          {/* Mobile Cart and Connect/Logout for compact layout on mobile */}
+          <div className="flex md:hidden items-center gap-2">
+            <button
+              onClick={() => setCartOpen(true)}
+              className="relative p-2 rounded-full border border-white/10 bg-white/[0.02] text-white/70 hover:text-white transition-all cursor-pointer focus:outline-none"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              {cartItemsCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[var(--theme-primary)] text-black font-mono text-[9px] font-extrabold flex items-center justify-center border border-black shadow-[0_0_8px_var(--theme-glow)]">
+                  {cartItemsCount}
+                </span>
+              )}
+            </button>
+            <Link 
+              href="/our-story"
+              className="font-mono text-[9px] tracking-wider border border-white/10 px-2 py-1 rounded-lg bg-white/[0.01] text-white/60 hover:text-white"
+            >
+              STORY
+            </Link>
           </div>
 
           {/* Global navigation menu */}
@@ -121,13 +142,13 @@ export default function Home() {
         </div>
 
         {/* Dynamic Gender Filter Toggles & Cart Connect Widgets */}
-        <div className="flex items-center gap-5">
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto justify-between md:justify-end">
           
           {/* Dashboard Gender Filter Toggles */}
-          <div className="flex gap-1 p-0.5 rounded-xl border border-white/10 bg-white/[0.02]">
+          <div className="flex w-full sm:w-auto justify-center gap-1 p-0.5 rounded-xl border border-white/10 bg-white/[0.02]">
             <button
               onClick={() => setGenderMode('Female')}
-              className={`px-3 py-1.5 rounded-lg text-[9px] font-mono font-bold tracking-wider transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none ${
+              className={`flex-1 sm:flex-initial justify-center px-3 py-1.5 rounded-lg text-[9px] font-mono font-bold tracking-wider transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none ${
                 genderMode === 'Female'
                   ? 'bg-rose-400 text-black font-extrabold shadow-md'
                   : 'text-white/40 hover:text-white/80'
@@ -137,7 +158,7 @@ export default function Home() {
             </button>
             <button
               onClick={() => setGenderMode('Male')}
-              className={`px-3 py-1.5 rounded-lg text-[9px] font-mono font-bold tracking-wider transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none ${
+              className={`flex-1 sm:flex-initial justify-center px-3 py-1.5 rounded-lg text-[9px] font-mono font-bold tracking-wider transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none ${
                 genderMode === 'Male'
                   ? 'bg-amber-500 text-black font-extrabold shadow-md'
                   : 'text-white/40 hover:text-white/80'
@@ -147,46 +168,48 @@ export default function Home() {
             </button>
           </div>
 
-          {user ? (
-            <div className="flex items-center gap-3 border-r border-white/10 pr-4">
-              <div className="flex flex-col text-right">
-                <span className="font-mono text-[10px] text-white/80 font-bold uppercase">{user.username}</span>
-                <span className="text-[8px] text-white/30 font-mono tracking-widest uppercase">{user.role}</span>
+          <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto border-t sm:border-t-0 border-white/5 pt-3 sm:pt-0">
+            {user ? (
+              <div className="flex items-center gap-3 border-r border-white/10 pr-4">
+                <div className="flex flex-col text-right">
+                  <span className="font-mono text-[10px] text-white/80 font-bold uppercase">{user.username}</span>
+                  <span className="text-[8px] text-white/30 font-mono tracking-widest uppercase">{user.role}</span>
+                </div>
+                {user.role === 'Admin' && (
+                  <Link href="/admin" className="p-2 border border-white/10 hover:border-[var(--theme-primary)] rounded-lg bg-white/[0.01] text-white/50 hover:text-[var(--theme-primary)] transition-all" title="Admin Control">
+                    <Shield className="w-3.5 h-3.5" />
+                  </Link>
+                )}
+                <button 
+                  onClick={logout} 
+                  className="p-2 border border-white/5 hover:border-red-500/30 rounded-lg bg-white/[0.01] hover:bg-red-500/5 text-white/50 hover:text-red-400 transition-all cursor-pointer"
+                  title="Disconnect Profile"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
               </div>
-              {user.role === 'Admin' && (
-                <Link href="/admin" className="p-2 border border-white/10 hover:border-[var(--theme-primary)] rounded-lg bg-white/[0.01] text-white/50 hover:text-[var(--theme-primary)] transition-all" title="Admin Control">
-                  <Shield className="w-3.5 h-3.5" />
-                </Link>
-              )}
-              <button 
-                onClick={logout} 
-                className="p-2 border border-white/5 hover:border-red-500/30 rounded-lg bg-white/[0.01] hover:bg-red-500/5 text-white/50 hover:text-red-400 transition-all cursor-pointer"
-                title="Disconnect Profile"
+            ) : (
+              <Link 
+                href="/login" 
+                className="flex items-center gap-1.5 font-mono text-[10px] tracking-wider border border-white/10 hover:border-[var(--theme-primary)] px-3 py-1.5 rounded-lg bg-white/[0.01] transition-all text-white/70 hover:text-white"
               >
-                <LogOut className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ) : (
-            <Link 
-              href="/login" 
-              className="flex items-center gap-1.5 font-mono text-[10px] tracking-wider border border-white/10 hover:border-[var(--theme-primary)] px-3 py-1.5 rounded-lg bg-white/[0.01] transition-all text-white/70 hover:text-white"
-            >
-              <LogIn className="w-3.5 h-3.5" />
-              CONNECT
-            </Link>
-          )}
-
-          <button
-            onClick={() => setCartOpen(true)}
-            className="relative p-2.5 rounded-full border border-white/10 hover:border-[var(--theme-primary)] bg-white/[0.02] text-white/70 hover:text-white transition-all cursor-pointer focus:outline-none"
-          >
-            <ShoppingBag className="w-4 h-4" />
-            {cartItemsCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4.5 h-4.5 rounded-full bg-[var(--theme-primary)] text-black font-mono text-[9px] font-extrabold flex items-center justify-center border border-black shadow-[0_0_8px_var(--theme-glow)]">
-                {cartItemsCount}
-              </span>
+                <LogIn className="w-3.5 h-3.5" />
+                CONNECT
+              </Link>
             )}
-          </button>
+
+            <button
+              onClick={() => setCartOpen(true)}
+              className="hidden md:block relative p-2.5 rounded-full border border-white/10 hover:border-[var(--theme-primary)] bg-white/[0.02] text-white/70 hover:text-white transition-all cursor-pointer focus:outline-none"
+            >
+              <ShoppingBag className="w-4 h-4" />
+              {cartItemsCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-4.5 h-4.5 rounded-full bg-[var(--theme-primary)] text-black font-mono text-[9px] font-extrabold flex items-center justify-center border border-black shadow-[0_0_8px_var(--theme-glow)]">
+                  {cartItemsCount}
+                </span>
+              )}
+            </button>
+          </div>
 
         </div>
       </header>
@@ -245,14 +268,14 @@ export default function Home() {
           
           {/* ── Collection Line Tabs ─────────────────────────────────────────── */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-white/8 pb-5">
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5 md:gap-2">
               {COLLECTIONS.map((col) => {
                 const isActive = activeCollection === col.id;
                 return (
                   <button
                     key={col.id}
                     onClick={() => setActiveCollection(col.id)}
-                    className={`flex items-center gap-2.5 py-2.5 px-4 rounded-2xl border transition-all focus:outline-none cursor-pointer ${
+                    className={`flex items-center gap-2 py-2 px-3 md:py-2.5 md:px-4 rounded-xl md:rounded-2xl border transition-all focus:outline-none cursor-pointer ${
                       isActive
                         ? 'bg-white/[0.07] border-white/25 shadow-inner'
                         : 'border-white/6 hover:border-white/18 bg-white/[0.01]'
@@ -323,7 +346,7 @@ export default function Home() {
 
             <button
               onClick={() => setIsCustomDesignOpen(true)}
-              className="relative z-10 flex items-center gap-2.5 px-6 py-3.5 rounded-2xl font-mono text-xs font-bold tracking-wider transition-all cursor-pointer focus:outline-none border whitespace-nowrap"
+              className="relative z-10 flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl font-mono text-xs font-bold tracking-wider transition-all cursor-pointer focus:outline-none border whitespace-nowrap w-full md:w-auto"
               style={{
                 background: 'rgba(var(--theme-glow-rgb), 0.12)',
                 borderColor: 'rgba(var(--theme-glow-rgb), 0.35)',

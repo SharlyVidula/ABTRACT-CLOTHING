@@ -21,18 +21,18 @@ export default function OurStoryPage() {
       <div className="absolute bottom-0 left-0 w-[50vw] h-[50vw] rounded-full bg-[rgba(var(--theme-glow-rgb),0.08)] blur-[140px] pointer-events-none z-0" />
 
       {/* Header */}
-      <header className="relative z-30 w-full px-6 md:px-10 lg:px-16 py-6 border-b border-white/5 bg-black/20 backdrop-blur-md flex items-center justify-between">
+      <header className="relative z-30 w-full px-4 md:px-10 lg:px-16 py-4 md:py-6 border-b border-white/5 bg-black/20 backdrop-blur-md flex flex-col sm:flex-row gap-3 sm:gap-0 items-center justify-between">
         <Link href="/" className="flex items-center gap-3 text-white/50 hover:text-white transition-colors cursor-pointer group">
           <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
           <span className="font-mono text-[10px] tracking-widest uppercase font-bold">BACK TO STUDIO</span>
         </Link>
-        <div className="flex items-center gap-4">
-          <img src="/logo.png" alt="Abstract Logo" className="w-14 h-14 object-contain rounded-2xl border border-white/15 shadow-[0_0_20px_rgba(var(--theme-glow-rgb),0.15)]" />
+        <div className="flex items-center gap-3 md:gap-4">
+          <img src="/logo.png" alt="Abstract Logo" className="w-10 h-10 md:w-14 md:h-14 object-contain rounded-xl md:rounded-2xl border border-white/15 shadow-[0_0_20px_rgba(var(--theme-glow-rgb),0.15)]" />
           <div className="flex flex-col text-left">
-            <span className="font-sans text-2xl font-black tracking-[0.2em] text-[var(--theme-primary)] theme-glow-text">
+            <span className="font-sans text-xl md:text-2xl font-black tracking-[0.2em] text-[var(--theme-primary)] theme-glow-text">
               ABSTRACT
             </span>
-            <span className="font-mono text-[8px] text-white/40 tracking-widest uppercase">
+            <span className="font-mono text-[7px] md:text-[8px] text-white/40 tracking-widest uppercase">
               OUR STORY
             </span>
           </div>

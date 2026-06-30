@@ -53,7 +53,7 @@ export default function ProductGalleryModal({ isOpen, onClose, garment }: Produc
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative w-full max-w-5xl max-h-[90vh] bg-[#0c0a10] border border-white/10 rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden"
+            className="relative w-full max-w-5xl h-auto max-h-[90vh] md:max-h-none bg-[#0c0a10] border border-white/10 rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-y-auto md:overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button */}
@@ -65,7 +65,7 @@ export default function ProductGalleryModal({ isOpen, onClose, garment }: Produc
             </button>
 
             {/* Media Section */}
-            <div className="w-full md:w-2/3 h-[50vh] md:h-[80vh] relative bg-black flex flex-col">
+            <div className="w-full md:w-2/3 h-[35vh] md:h-[80vh] relative bg-black flex flex-col shrink-0">
               
               {/* Media Content with Arrows */}
               <div className="flex-1 w-full h-full relative overflow-hidden flex items-center justify-center p-4 group/carousel">

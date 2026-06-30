@@ -46,7 +46,7 @@ export default function AtelierModal() {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
           transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-          className="relative w-full max-w-5xl glass rounded-[36px] overflow-hidden border border-white/10 shadow-2xl flex flex-col md:flex-row h-[90vh] md:h-[80vh] text-white"
+          className="relative w-full max-w-5xl glass rounded-[24px] md:rounded-[36px] overflow-y-auto md:overflow-hidden border border-white/10 shadow-2xl flex flex-col md:flex-row h-auto max-h-[90vh] md:h-[80vh] text-white"
         >
           {/* Close & Reset Controls */}
           <div className="absolute top-6 right-6 z-40 flex items-center gap-3">
@@ -66,9 +66,9 @@ export default function AtelierModal() {
           </div>
 
           {/* Left Column: Biometrics Input & Size Selection (40% width) */}
-          <div className="w-full md:w-[40%] border-r border-white/5 p-8 flex flex-col justify-between overflow-y-auto">
+          <div className="w-full md:w-[40%] border-b md:border-b-0 md:border-r border-white/5 p-6 md:p-8 flex flex-col justify-between md:overflow-y-auto">
             <div className="flex flex-col gap-6">
-              <div>
+              <div className="pr-20 md:pr-0">
                 <span className="font-mono text-[10px] tracking-widest text-[var(--theme-primary)] uppercase font-semibold">
                   STUDIO ATELIER V2.0
                 </span>
@@ -106,7 +106,7 @@ export default function AtelierModal() {
           </div>
 
           {/* Right Column: AI Advisory Report (60% width) */}
-          <div className="w-full md:w-[60%] p-8 flex flex-col justify-between overflow-y-auto bg-black/20 relative">
+          <div className="w-full md:w-[60%] p-6 md:p-8 flex flex-col justify-between md:overflow-y-auto bg-black/20 relative">
             
             <div className="flex flex-col gap-6">
               {/* Garment Title and Spec */}
@@ -256,7 +256,7 @@ export default function AtelierModal() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="absolute inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-6"
+                className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 md:p-6"
               >
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95, y: 15 }}
