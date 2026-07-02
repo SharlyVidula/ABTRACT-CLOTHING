@@ -18,6 +18,14 @@ export default function CheckoutModal({ garment, isOpen, onClose }: CheckoutModa
   const [quantity, setQuantity] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState('Cyber-Credits');
 
+  React.useEffect(() => {
+    if (garment) {
+      const available = (['S', 'M', 'L', 'XL'] as const).filter(sz => !garment.disabledSizes?.includes(sz));
+      setSize(available[0] || 'M');
+      setQuantity(1);
+    }
+  }, [garment]);
+
   if (!isOpen || !garment) return null;
 
   const handleConfirm = async () => {
@@ -89,13 +97,17 @@ export default function CheckoutModal({ garment, isOpen, onClose }: CheckoutModa
               <div className="grid grid-cols-4 gap-2">
                 {(['S', 'M', 'L', 'XL'] as const).map((sz) => {
                   const isSelected = size === sz;
+                  const isDisabled = garment.disabledSizes?.includes(sz);
                   return (
                     <button
                       key={sz}
                       type="button"
+                      disabled={isDisabled}
                       onClick={() => setSize(sz)}
                       className={`py-2.5 rounded-xl font-mono text-xs font-bold border transition-all duration-300 focus:outline-none cursor-pointer ${
-                        isSelected
+                        isDisabled
+                          ? 'border-transparent text-white/20 bg-white/[0.005] cursor-not-allowed line-through'
+                          : isSelected
                           ? 'bg-white text-black border-white shadow-[0_0_10px_rgba(255,255,255,0.2)]'
                           : 'border-white/10 hover:border-white/20 text-white/60 hover:text-white bg-white/[0.01]'
                       }`}

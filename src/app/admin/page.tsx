@@ -23,6 +23,51 @@ export default function AdminPage() {
   // Active dashboard tab state
   const [activeTab, setActiveTab] = useState<'diagnostics' | 'inventory' | 'injector' | 'orders' | 'inquiries' | 'security'>('diagnostics');
 
+  // Custom themed Modal Alert/Confirm state
+  const [modalAlert, setModalAlert] = useState<{
+    type: 'alert' | 'confirm';
+    title: string;
+    message: string;
+    severity?: 'info' | 'success' | 'warning' | 'error';
+    onConfirm: () => void;
+    onCancel?: () => void;
+  } | null>(null);
+
+  // Modal alert/confirm helpers (async)
+  const showAlert = (title: string, message: string, severity: 'info' | 'success' | 'warning' | 'error' = 'info') => {
+    return new Promise<void>((resolve) => {
+      setModalAlert({
+        type: 'alert',
+        title,
+        message,
+        severity,
+        onConfirm: () => {
+          setModalAlert(null);
+          resolve();
+        }
+      });
+    });
+  };
+
+  const showConfirm = (title: string, message: string, severity: 'info' | 'success' | 'warning' | 'error' = 'warning') => {
+    return new Promise<boolean>((resolve) => {
+      setModalAlert({
+        type: 'confirm',
+        title,
+        message,
+        severity,
+        onConfirm: () => {
+          setModalAlert(null);
+          resolve(true);
+        },
+        onCancel: () => {
+          setModalAlert(null);
+          resolve(false);
+        }
+      });
+    });
+  };
+
   // Inventory filters
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState<'All' | 'Top' | 'Bottom' | 'Outerwear'>('All');
@@ -43,6 +88,12 @@ export default function AdminPage() {
   const [editGender, setEditGender] = useState<'Male' | 'Female' | 'Unisex'>('Female');
   const [editImagePath, setEditImagePath] = useState('/aurelia_silk_frock.png');
 
+  // Edit sizing availability states
+  const [editAvailS, setEditAvailS] = useState(true);
+  const [editAvailM, setEditAvailM] = useState(true);
+  const [editAvailL, setEditAvailL] = useState(true);
+  const [editAvailXL, setEditAvailXL] = useState(true);
+
   // Edit sizing states
   const [editChestS, setEditChestS] = useState(90);
   const [editChestM, setEditChestM] = useState(98);
@@ -56,6 +107,12 @@ export default function AdminPage() {
   const [editHipsM, setEditHipsM] = useState(98);
   const [editHipsL, setEditHipsL] = useState(106);
   const [editHipsXL, setEditHipsXL] = useState(114);
+
+  // Product creator availability states
+  const [availS, setAvailS] = useState(true);
+  const [availM, setAvailM] = useState(true);
+  const [availL, setAvailL] = useState(true);
+  const [availXL, setAvailXL] = useState(true);
 
   // Product creator states
   const [name, setName] = useState('');
@@ -148,15 +205,16 @@ export default function AdminPage() {
     const emailRes = await sendInquiryEmail(inquiry, 'accepted');
     if (emailRes.success || !inquiry.contact.includes('@')) {
       updateInquiryStatus(inquiry.id, 'accepted');
+      await showAlert('INQUIRY ACCEPTED', `Bespoke studio request "${inquiry.id}" accepted successfully. Notice sent.`, 'success');
     } else {
-      alert('Failed to send email: ' + (emailRes.error || 'Unknown error'));
+      await showAlert('TRANSACTION FAILURE', 'Failed to send acceptance notification: ' + (emailRes.error || 'Unknown network error'), 'error');
     }
     setProcessingInquiry(null);
   };
 
   const handleDeclineInquiry = async (inquiry: any) => {
     if (!declineReason.trim()) {
-      alert('Please provide a reason for declining.');
+      await showAlert('INPUT REQUIREMENT', 'Please provide a valid reason for declining this request.', 'warning');
       return;
     }
     setProcessingInquiry(inquiry.id);
@@ -165,8 +223,9 @@ export default function AdminPage() {
       updateInquiryStatus(inquiry.id, 'declined');
       setDeclineReasonFor(null);
       setDeclineReason('');
+      await showAlert('INQUIRY DECLINED', `Request "${inquiry.id}" declined. System log updated.`, 'info');
     } else {
-      alert('Failed to send email: ' + (emailRes.error || 'Unknown error'));
+      await showAlert('TRANSACTION FAILURE', 'Failed to send rejection notification: ' + (emailRes.error || 'Unknown network error'), 'error');
     }
     setProcessingInquiry(null);
   };
@@ -198,15 +257,16 @@ export default function AdminPage() {
     const emailRes = await sendOrderStatusEmail(order, 'accept');
     if (emailRes.success || !order.email) {
       updateOrderStatus(order.id, 'Pending Delivery');
+      await showAlert('ORDER ACCEPTED', `Receipt details generated. Order "${order.id}" is pending delivery.`, 'success');
     } else {
-      alert('Failed to send acceptance email: ' + (emailRes.error || 'Unknown error'));
+      await showAlert('TRANSACTION FAILURE', 'Failed to dispatch acceptance email: ' + (emailRes.error || 'Unknown network error'), 'error');
     }
     setProcessingOrder(null);
   };
 
   const handleDeclineOrder = async (order: any) => {
     if (!declineOrderReasonText.trim()) {
-      alert('Please provide a reason for declining.');
+      await showAlert('INPUT REQUIREMENT', 'Please specify a valid reason for declining this order.', 'warning');
       return;
     }
     setProcessingOrder(order.id);
@@ -215,8 +275,9 @@ export default function AdminPage() {
       updateOrderStatus(order.id, 'Discarded', declineOrderReasonText);
       setDeclineReasonForOrder(null);
       setDeclineOrderReasonText('');
+      await showAlert('ORDER DISCARDED', `Order "${order.id}" has been flagged as discarded.`, 'info');
     } else {
-      alert('Failed to send decline email: ' + (emailRes.error || 'Unknown error'));
+      await showAlert('TRANSACTION FAILURE', 'Failed to dispatch decline notification: ' + (emailRes.error || 'Unknown network error'), 'error');
     }
     setProcessingOrder(null);
   };
@@ -293,13 +354,13 @@ export default function AdminPage() {
           <div className="flex gap-4 w-full mt-2">
             <button
               onClick={() => router.push('/login')}
-              className="flex-1 py-3 rounded-xl font-mono text-xs font-bold border border-cyber-purple/30 bg-cyber-purple/5 hover:bg-cyber-purple/10 text-cyber-purple transition-all"
+              className="flex-1 py-3 rounded-xl font-mono text-xs font-bold border border-cyber-purple/30 bg-cyber-purple/5 hover:bg-cyber-purple/10 text-cyber-purple transition-all cursor-pointer"
             >
               IDENTITY LOGIN
             </button>
             <button
               onClick={() => router.push('/')}
-              className="flex-1 py-3 rounded-xl font-mono text-xs font-bold border border-white/10 hover:border-white/20 text-white/50 hover:text-white transition-all bg-white/[0.01]"
+              className="flex-1 py-3 rounded-xl font-mono text-xs font-bold border border-white/10 hover:border-white/20 text-white/50 hover:text-white transition-all bg-white/[0.01] cursor-pointer"
             >
               HOME GRID
             </button>
@@ -323,6 +384,13 @@ export default function AdminPage() {
       XL: { chest: chestXL, waist: waistXL, hips: hipsXL, height: 185, inseam: category === 'Bottom' ? 82 : undefined },
     };
 
+    // Compile disabled sizes list
+    const disabledSizes: ('S' | 'M' | 'L' | 'XL')[] = [];
+    if (!availS) disabledSizes.push('S');
+    if (!availM) disabledSizes.push('M');
+    if (!availL) disabledSizes.push('L');
+    if (!availXL) disabledSizes.push('XL');
+
     const newGarment: Garment = {
       id,
       name: name.toUpperCase(),
@@ -332,7 +400,12 @@ export default function AdminPage() {
       description,
       technicalDetails: details.split(',').map((d) => d.trim()).filter(Boolean),
       sizes,
-      inventory: { S: 10, M: 10, L: 10, XL: 10 },
+      inventory: { 
+        S: availS ? 10 : 0, 
+        M: availM ? 10 : 0, 
+        L: availL ? 10 : 0, 
+        XL: availXL ? 10 : 0 
+      },
       colorTheme: {
         primary: primaryGlow,
         secondary: secondaryGlow,
@@ -347,6 +420,7 @@ export default function AdminPage() {
       },
       gender,
       image: imagePath,
+      disabledSizes,
     };
 
     addProduct(newGarment);
@@ -358,6 +432,10 @@ export default function AdminPage() {
     setDetails('');
     setCost(180);
     setPrice(250);
+    setAvailS(true);
+    setAvailM(true);
+    setAvailL(true);
+    setAvailXL(true);
     
     setTimeout(() => {
       setIsSuccess(false);
@@ -379,6 +457,12 @@ export default function AdminPage() {
     setEditGender(p.gender);
     setEditImagePath(p.image);
 
+    // Set size availability toggles
+    setEditAvailS(!p.disabledSizes?.includes('S'));
+    setEditAvailM(!p.disabledSizes?.includes('M'));
+    setEditAvailL(!p.disabledSizes?.includes('L'));
+    setEditAvailXL(!p.disabledSizes?.includes('XL'));
+
     setEditChestS(p.sizes.S.chest || 90);
     setEditChestM(p.sizes.M.chest || 98);
     setEditChestL(p.sizes.L.chest || 106);
@@ -396,9 +480,16 @@ export default function AdminPage() {
   };
 
   // Save Edits Handler
-  const handleSaveEdit = (e: React.FormEvent) => {
+  const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingGarment) return;
+
+    // Compile disabled sizes list
+    const disabledSizes: ('S' | 'M' | 'L' | 'XL')[] = [];
+    if (!editAvailS) disabledSizes.push('S');
+    if (!editAvailM) disabledSizes.push('M');
+    if (!editAvailL) disabledSizes.push('L');
+    if (!editAvailXL) disabledSizes.push('XL');
 
     const updated: Garment = {
       ...editingGarment,
@@ -414,6 +505,12 @@ export default function AdminPage() {
         L: { chest: editChestL, waist: editWaistL, hips: editHipsL, height: editingGarment.sizes.L.height || 175 },
         XL: { chest: editChestXL, waist: editWaistXL, hips: editHipsXL, height: editingGarment.sizes.XL.height || 180 },
       },
+      inventory: {
+        S: editAvailS ? (editingGarment.inventory.S || 0) : 0,
+        M: editAvailM ? (editingGarment.inventory.M || 0) : 0,
+        L: editAvailL ? (editingGarment.inventory.L || 0) : 0,
+        XL: editAvailXL ? (editingGarment.inventory.XL || 0) : 0,
+      },
       colorTheme: {
         primary: editPrimaryGlow,
         secondary: editSecondaryGlow,
@@ -428,18 +525,24 @@ export default function AdminPage() {
       },
       gender: editGender,
       image: editImagePath,
+      disabledSizes,
     };
 
     updateProduct(updated);
     setEditingGarment(null);
-    alert(`Garment "${updated.name}" updated successfully!`);
+    await showAlert('DATABASE SYNCHRONIZATION', `Garment "${updated.name}" specifications updated successfully!`, 'success');
   };
 
   // Delete Product Handler
-  const handleDeleteProduct = (p: Garment) => {
-    if (window.confirm(`Are you absolutely sure you want to delete "${p.name}"? This action is irreversible.`)) {
+  const handleDeleteProduct = async (p: Garment) => {
+    const confirmed = await showConfirm(
+      'DELETE GARMENT MODULE',
+      `Are you absolutely sure you want to delete "${p.name}"? This action is irreversible.`,
+      'error'
+    );
+    if (confirmed) {
       deleteProduct(p.id);
-      alert(`Garment "${p.name}" removed from catalogue.`);
+      await showAlert('DATABASE STATUS', `Garment "${p.name}" removed from catalogue.`, 'success');
     }
   };
 
@@ -459,27 +562,39 @@ export default function AdminPage() {
   // Global Valuation Calculations
   const revenue = orders.reduce((sum, order) => sum + order.total, 0);
 
-  const totalStockUnits = products.reduce((sum, p) => 
-    sum + (p.inventory?.S || 0) + (p.inventory?.M || 0) + (p.inventory?.L || 0) + (p.inventory?.XL || 0), 0
-  );
+  const totalStockUnits = products.reduce((sum, p) => {
+    const qtyS = p.disabledSizes?.includes('S') ? 0 : (p.inventory?.S || 0);
+    const qtyM = p.disabledSizes?.includes('M') ? 0 : (p.inventory?.M || 0);
+    const qtyL = p.disabledSizes?.includes('L') ? 0 : (p.inventory?.L || 0);
+    const qtyXL = p.disabledSizes?.includes('XL') ? 0 : (p.inventory?.XL || 0);
+    return sum + qtyS + qtyM + qtyL + qtyXL;
+  }, 0);
 
   const inventoryRetailValuation = products.reduce((sum, p) => {
-    const qty = (p.inventory?.S || 0) + (p.inventory?.M || 0) + (p.inventory?.L || 0) + (p.inventory?.XL || 0);
+    const qtyS = p.disabledSizes?.includes('S') ? 0 : (p.inventory?.S || 0);
+    const qtyM = p.disabledSizes?.includes('M') ? 0 : (p.inventory?.M || 0);
+    const qtyL = p.disabledSizes?.includes('L') ? 0 : (p.inventory?.L || 0);
+    const qtyXL = p.disabledSizes?.includes('XL') ? 0 : (p.inventory?.XL || 0);
+    const qty = qtyS + qtyM + qtyL + qtyXL;
     return sum + (p.price * qty);
   }, 0);
 
   const projectedProfitMargin = products.reduce((sum, p) => {
-    const qty = (p.inventory?.S || 0) + (p.inventory?.M || 0) + (p.inventory?.L || 0) + (p.inventory?.XL || 0);
+    const qtyS = p.disabledSizes?.includes('S') ? 0 : (p.inventory?.S || 0);
+    const qtyM = p.disabledSizes?.includes('M') ? 0 : (p.inventory?.M || 0);
+    const qtyL = p.disabledSizes?.includes('L') ? 0 : (p.inventory?.L || 0);
+    const qtyXL = p.disabledSizes?.includes('XL') ? 0 : (p.inventory?.XL || 0);
+    const qty = qtyS + qtyM + qtyL + qtyXL;
     const manufacturingCost = p.cost !== undefined ? p.cost : Math.round(p.price * 0.7);
     return sum + ((p.price - manufacturingCost) * qty);
   }, 0);
 
-  // Find Low Stock Alerts (Stock Level <= 3)
+  // Find Low Stock Alerts (Stock Level <= 3, ignoring disabled sizes)
   const lowStockItems = products.filter(p => 
-    (p.inventory?.S <= 3) ||
-    (p.inventory?.M <= 3) ||
-    (p.inventory?.L <= 3) ||
-    (p.inventory?.XL <= 3)
+    (!p.disabledSizes?.includes('S') && p.inventory?.S <= 3) ||
+    (!p.disabledSizes?.includes('M') && p.inventory?.M <= 3) ||
+    (!p.disabledSizes?.includes('L') && p.inventory?.L <= 3) ||
+    (!p.disabledSizes?.includes('XL') && p.inventory?.XL <= 3)
   );
 
   // Filter products for the Inventory Tab
@@ -490,7 +605,10 @@ export default function AdminPage() {
     const matchesCategory = filterCategory === 'All' || p.category === filterCategory;
     const matchesGender = filterGender === 'All' || p.gender === filterGender;
     const matchesLowStock = !showLowStock || (
-      (p.inventory?.S <= 3) || (p.inventory?.M <= 3) || (p.inventory?.L <= 3) || (p.inventory?.XL <= 3)
+      (!p.disabledSizes?.includes('S') && p.inventory?.S <= 3) || 
+      (!p.disabledSizes?.includes('M') && p.inventory?.M <= 3) || 
+      (!p.disabledSizes?.includes('L') && p.inventory?.L <= 3) || 
+      (!p.disabledSizes?.includes('XL') && p.inventory?.XL <= 3)
     );
     return matchesSearch && matchesCategory && matchesGender && matchesLowStock;
   });
@@ -634,10 +752,10 @@ export default function AdminPage() {
                       ) : (
                         lowStockItems.map((p) => {
                           const lowSizes: string[] = [];
-                          if (p.inventory.S <= 3) lowSizes.push(`S (${p.inventory.S})`);
-                          if (p.inventory.M <= 3) lowSizes.push(`M (${p.inventory.M})`);
-                          if (p.inventory.L <= 3) lowSizes.push(`L (${p.inventory.L})`);
-                          if (p.inventory.XL <= 3) lowSizes.push(`XL (${p.inventory.XL})`);
+                          if (!p.disabledSizes?.includes('S') && p.inventory.S <= 3) lowSizes.push(`S (${p.inventory.S})`);
+                          if (!p.disabledSizes?.includes('M') && p.inventory.M <= 3) lowSizes.push(`M (${p.inventory.M})`);
+                          if (!p.disabledSizes?.includes('L') && p.inventory.L <= 3) lowSizes.push(`L (${p.inventory.L})`);
+                          if (!p.disabledSizes?.includes('XL') && p.inventory.XL <= 3) lowSizes.push(`XL (${p.inventory.XL})`);
                           return (
                             <div key={p.id} className="flex justify-between items-center p-3 rounded-xl border border-amber-500/20 bg-amber-500/5 font-mono text-xs">
                               <div className="flex items-center gap-3">
@@ -774,8 +892,14 @@ export default function AdminPage() {
                           </tr>
                         ) : (
                           filteredProducts.map((p) => {
-                            const totalStock = (p.inventory?.S || 0) + (p.inventory?.M || 0) + (p.inventory?.L || 0) + (p.inventory?.XL || 0);
-                            const isLowStock = p.inventory?.S <= 3 || p.inventory?.M <= 3 || p.inventory?.L <= 3 || p.inventory?.XL <= 3;
+                            const totalStock = (p.disabledSizes?.includes('S') ? 0 : (p.inventory?.S || 0)) +
+                                               (p.disabledSizes?.includes('M') ? 0 : (p.inventory?.M || 0)) +
+                                               (p.disabledSizes?.includes('L') ? 0 : (p.inventory?.L || 0)) +
+                                               (p.disabledSizes?.includes('XL') ? 0 : (p.inventory?.XL || 0));
+                            const isLowStock = (!p.disabledSizes?.includes('S') && p.inventory?.S <= 3) ||
+                                               (!p.disabledSizes?.includes('M') && p.inventory?.M <= 3) ||
+                                               (!p.disabledSizes?.includes('L') && p.inventory?.L <= 3) ||
+                                               (!p.disabledSizes?.includes('XL') && p.inventory?.XL <= 3);
                             return (
                               <tr key={p.id} className="hover:bg-white/[0.01] transition-colors">
                                 <td className="py-4 px-6">
@@ -800,7 +924,18 @@ export default function AdminPage() {
                                 <td className="py-4 px-6">
                                   <div className="flex justify-center gap-2">
                                     {(['S', 'M', 'L', 'XL'] as const).map((size) => {
+                                      const isDisabled = p.disabledSizes?.includes(size);
                                       const stockVal = p.inventory?.[size] ?? 0;
+                                      
+                                      if (isDisabled) {
+                                        return (
+                                          <div key={size} className="flex flex-col items-center border border-dashed border-white/10 rounded-lg px-1.5 py-0.5 min-w-[50px] bg-white/[0.01] opacity-35 select-none" title="Size is not available for this cloth">
+                                            <span className="text-[8px] font-bold text-white/20">{size}</span>
+                                            <span className="text-[9px] font-mono font-bold text-white/30 mt-0.5">N/A</span>
+                                          </div>
+                                        );
+                                      }
+
                                       return (
                                         <div key={size} className={`flex flex-col items-center border rounded-lg px-1.5 py-0.5 min-w-[50px] bg-black/30 ${stockVal <= 3 ? 'border-amber-500/30' : 'border-white/5'}`}>
                                           <span className={`text-[8px] font-bold ${stockVal <= 3 ? 'text-amber-500' : 'text-white/30'}`}>{size}</span>
@@ -1031,93 +1166,161 @@ export default function AdminPage() {
 
                       {/* Sizing Guides Grid */}
                       <div className="grid grid-cols-4 gap-4 text-center">
-                        <span className="font-mono text-[10px] text-white/30 self-center">SIZE</span>
+                        <span className="font-mono text-[10px] text-white/30 self-center">AVAIL SIZE</span>
                         <span className="font-mono text-[10px] text-white/50 font-bold">CHEST</span>
                         <span className="font-mono text-[10px] text-white/50 font-bold">WAIST</span>
                         <span className="font-mono text-[10px] text-white/50 font-bold">HIPS</span>
 
                         {/* Size S */}
-                        <span className="font-mono text-xs text-cyber-purple self-center font-bold">S</span>
+                        <div className="flex items-center gap-1.5 justify-center">
+                          <input
+                            type="checkbox"
+                            checked={availS}
+                            onChange={(e) => setAvailS(e.target.checked)}
+                            className="w-3.5 h-3.5 accent-cyber-green cursor-pointer"
+                          />
+                          <span className={`font-mono text-xs font-bold self-center ${availS ? 'text-cyber-purple' : 'text-white/25'}`}>S</span>
+                        </div>
                         <input
                           type="number"
                           value={chestS}
+                          disabled={!availS}
                           onChange={(e) => setChestS(parseInt(e.target.value))}
-                          className="bg-white/[0.02] border border-white/10 py-1.5 px-1 rounded font-mono text-xs text-center text-white"
+                          className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
+                            availS ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                          }`}
                         />
                         <input
                           type="number"
                           value={waistS}
+                          disabled={!availS}
                           onChange={(e) => setWaistS(parseInt(e.target.value))}
-                          className="bg-white/[0.02] border border-white/10 py-1.5 px-1 rounded font-mono text-xs text-center text-white"
+                          className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
+                            availS ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                          }`}
                         />
                         <input
                           type="number"
                           value={hipsS}
+                          disabled={!availS}
                           onChange={(e) => setHipsS(parseInt(e.target.value))}
-                          className="bg-white/[0.02] border border-white/10 py-1.5 px-1 rounded font-mono text-xs text-center text-white"
+                          className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
+                            availS ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                          }`}
                         />
 
                         {/* Size M */}
-                        <span className="font-mono text-xs text-cyber-purple self-center font-bold">M</span>
+                        <div className="flex items-center gap-1.5 justify-center">
+                          <input
+                            type="checkbox"
+                            checked={availM}
+                            onChange={(e) => setAvailM(e.target.checked)}
+                            className="w-3.5 h-3.5 accent-cyber-green cursor-pointer"
+                          />
+                          <span className={`font-mono text-xs font-bold self-center ${availM ? 'text-cyber-purple' : 'text-white/25'}`}>M</span>
+                        </div>
                         <input
                           type="number"
                           value={chestM}
+                          disabled={!availM}
                           onChange={(e) => setChestM(parseInt(e.target.value))}
-                          className="bg-white/[0.02] border border-white/10 py-1.5 px-1 rounded font-mono text-xs text-center text-white"
+                          className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
+                            availM ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                          }`}
                         />
                         <input
                           type="number"
                           value={waistM}
+                          disabled={!availM}
                           onChange={(e) => setWaistM(parseInt(e.target.value))}
-                          className="bg-white/[0.02] border border-white/10 py-1.5 px-1 rounded font-mono text-xs text-center text-white"
+                          className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
+                            availM ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                          }`}
                         />
                         <input
                           type="number"
                           value={hipsM}
+                          disabled={!availM}
                           onChange={(e) => setHipsM(parseInt(e.target.value))}
-                          className="bg-white/[0.02] border border-white/10 py-1.5 px-1 rounded font-mono text-xs text-center text-white"
+                          className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
+                            availM ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                          }`}
                         />
 
                         {/* Size L */}
-                        <span className="font-mono text-xs text-cyber-purple self-center font-bold">L</span>
+                        <div className="flex items-center gap-1.5 justify-center">
+                          <input
+                            type="checkbox"
+                            checked={availL}
+                            onChange={(e) => setAvailL(e.target.checked)}
+                            className="w-3.5 h-3.5 accent-cyber-green cursor-pointer"
+                          />
+                          <span className={`font-mono text-xs font-bold self-center ${availL ? 'text-cyber-purple' : 'text-white/25'}`}>L</span>
+                        </div>
                         <input
                           type="number"
                           value={chestL}
+                          disabled={!availL}
                           onChange={(e) => setChestL(parseInt(e.target.value))}
-                          className="bg-white/[0.02] border border-white/10 py-1.5 px-1 rounded font-mono text-xs text-center text-white"
+                          className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
+                            availL ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                          }`}
                         />
                         <input
                           type="number"
                           value={waistL}
+                          disabled={!availL}
                           onChange={(e) => setWaistL(parseInt(e.target.value))}
-                          className="bg-white/[0.02] border border-white/10 py-1.5 px-1 rounded font-mono text-xs text-center text-white"
+                          className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
+                            availL ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                          }`}
                         />
                         <input
                           type="number"
                           value={hipsL}
+                          disabled={!availL}
                           onChange={(e) => setHipsL(parseInt(e.target.value))}
-                          className="bg-white/[0.02] border border-white/10 py-1.5 px-1 rounded font-mono text-xs text-center text-white"
+                          className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
+                            availL ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                          }`}
                         />
 
                         {/* Size XL */}
-                        <span className="font-mono text-xs text-cyber-purple self-center font-bold">XL</span>
+                        <div className="flex items-center gap-1.5 justify-center">
+                          <input
+                            type="checkbox"
+                            checked={availXL}
+                            onChange={(e) => setAvailXL(e.target.checked)}
+                            className="w-3.5 h-3.5 accent-cyber-green cursor-pointer"
+                          />
+                          <span className={`font-mono text-xs font-bold self-center ${availXL ? 'text-cyber-purple' : 'text-white/25'}`}>XL</span>
+                        </div>
                         <input
                           type="number"
                           value={chestXL}
+                          disabled={!availXL}
                           onChange={(e) => setChestXL(parseInt(e.target.value))}
-                          className="bg-white/[0.02] border border-white/10 py-1.5 px-1 rounded font-mono text-xs text-center text-white"
+                          className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
+                            availXL ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                          }`}
                         />
                         <input
                           type="number"
                           value={waistXL}
+                          disabled={!availXL}
                           onChange={(e) => setWaistXL(parseInt(e.target.value))}
-                          className="bg-white/[0.02] border border-white/10 py-1.5 px-1 rounded font-mono text-xs text-center text-white"
+                          className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
+                            availXL ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                          }`}
                         />
                         <input
                           type="number"
                           value={hipsXL}
+                          disabled={!availXL}
                           onChange={(e) => setHipsXL(parseInt(e.target.value))}
-                          className="bg-white/[0.02] border border-white/10 py-1.5 px-1 rounded font-mono text-xs text-center text-white"
+                          className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
+                            availXL ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                          }`}
                         />
                       </div>
                     </div>
@@ -1556,14 +1759,21 @@ export default function AdminPage() {
                             {u.username !== 'admin' && (
                               <button
                                 onClick={async () => {
-                                  if (window.confirm(`Are you sure you want to remove ${u.username}?`)) {
+                                  const confirmed = await showConfirm(
+                                    'IDENTITY REMOVAL',
+                                    `Are you sure you want to remove administrator "${u.username}"?`,
+                                    'error'
+                                  );
+                                  if (confirmed) {
                                     setAdminError('');
                                     setAdminSuccess('');
                                     const res = await removeAdminUser(u.username);
                                     if (res.success) {
                                       setAdminSuccess(`Admin account "${u.username}" removed.`);
+                                      await showAlert('SECURITY PROTOCOL', `Administrator "${u.username}" credentials invalidated.`, 'info');
                                     } else {
                                       setAdminError(res.error || 'Failed to remove admin.');
+                                      await showAlert('SECURITY REJECTION', res.error || 'Failed to remove admin.', 'error');
                                     }
                                   }
                                 }}
@@ -1754,93 +1964,161 @@ export default function AdminPage() {
 
                     {/* Sizing Guides Grid */}
                     <div className="grid grid-cols-4 gap-4 text-center">
-                      <span className="text-white/30 self-center">SIZE</span>
+                      <span className="text-white/30 self-center font-bold">AVAIL SIZE</span>
                       <span className="text-white/50 font-bold">CHEST</span>
                       <span className="text-white/50 font-bold">WAIST</span>
                       <span className="text-white/50 font-bold">HIPS</span>
 
                       {/* Size S */}
-                      <span className="font-bold text-cyber-blue self-center">S</span>
+                      <div className="flex items-center gap-1.5 justify-center">
+                        <input
+                          type="checkbox"
+                          checked={editAvailS}
+                          onChange={(e) => setEditAvailS(e.target.checked)}
+                          className="w-3.5 h-3.5 accent-cyber-blue cursor-pointer"
+                        />
+                        <span className={`font-bold self-center ${editAvailS ? 'text-cyber-blue' : 'text-white/25'}`}>S</span>
+                      </div>
                       <input
                         type="number"
                         value={editChestS}
+                        disabled={!editAvailS}
                         onChange={(e) => setEditChestS(parseInt(e.target.value))}
-                        className="bg-white/[0.02] border border-white/10 py-2 px-1 rounded text-center text-white"
+                        className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
+                          editAvailS ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                        }`}
                       />
                       <input
                         type="number"
                         value={editWaistS}
+                        disabled={!editAvailS}
                         onChange={(e) => setEditWaistS(parseInt(e.target.value))}
-                        className="bg-white/[0.02] border border-white/10 py-2 px-1 rounded text-center text-white"
+                        className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
+                          editAvailS ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                        }`}
                       />
                       <input
                         type="number"
                         value={editHipsS}
+                        disabled={!editAvailS}
                         onChange={(e) => setEditHipsS(parseInt(e.target.value))}
-                        className="bg-white/[0.02] border border-white/10 py-2 px-1 rounded text-center text-white"
+                        className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
+                          editAvailS ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                        }`}
                       />
 
                       {/* Size M */}
-                      <span className="font-bold text-cyber-blue self-center">M</span>
+                      <div className="flex items-center gap-1.5 justify-center">
+                        <input
+                          type="checkbox"
+                          checked={editAvailM}
+                          onChange={(e) => setEditAvailM(e.target.checked)}
+                          className="w-3.5 h-3.5 accent-cyber-blue cursor-pointer"
+                        />
+                        <span className={`font-bold self-center ${editAvailM ? 'text-cyber-blue' : 'text-white/25'}`}>M</span>
+                      </div>
                       <input
                         type="number"
                         value={editChestM}
+                        disabled={!editAvailM}
                         onChange={(e) => setEditChestM(parseInt(e.target.value))}
-                        className="bg-white/[0.02] border border-white/10 py-2 px-1 rounded text-center text-white"
+                        className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
+                          editAvailM ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                        }`}
                       />
                       <input
                         type="number"
                         value={editWaistM}
+                        disabled={!editAvailM}
                         onChange={(e) => setEditWaistM(parseInt(e.target.value))}
-                        className="bg-white/[0.02] border border-white/10 py-2 px-1 rounded text-center text-white"
+                        className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
+                          editAvailM ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                        }`}
                       />
                       <input
                         type="number"
                         value={editHipsM}
+                        disabled={!editAvailM}
                         onChange={(e) => setEditHipsM(parseInt(e.target.value))}
-                        className="bg-white/[0.02] border border-white/10 py-2 px-1 rounded text-center text-white"
+                        className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
+                          editAvailM ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                        }`}
                       />
 
                       {/* Size L */}
-                      <span className="font-bold text-cyber-blue self-center">L</span>
+                      <div className="flex items-center gap-1.5 justify-center">
+                        <input
+                          type="checkbox"
+                          checked={editAvailL}
+                          onChange={(e) => setEditAvailL(e.target.checked)}
+                          className="w-3.5 h-3.5 accent-cyber-blue cursor-pointer"
+                        />
+                        <span className={`font-bold self-center ${editAvailL ? 'text-cyber-blue' : 'text-white/25'}`}>L</span>
+                      </div>
                       <input
                         type="number"
                         value={editChestL}
+                        disabled={!editAvailL}
                         onChange={(e) => setEditChestL(parseInt(e.target.value))}
-                        className="bg-white/[0.02] border border-white/10 py-2 px-1 rounded text-center text-white"
+                        className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
+                          editAvailL ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                        }`}
                       />
                       <input
                         type="number"
                         value={editWaistL}
+                        disabled={!editAvailL}
                         onChange={(e) => setEditWaistL(parseInt(e.target.value))}
-                        className="bg-white/[0.02] border border-white/10 py-2 px-1 rounded text-center text-white"
+                        className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
+                          editAvailL ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                        }`}
                       />
                       <input
                         type="number"
                         value={editHipsL}
+                        disabled={!editAvailL}
                         onChange={(e) => setEditHipsL(parseInt(e.target.value))}
-                        className="bg-white/[0.02] border border-white/10 py-2 px-1 rounded text-center text-white"
+                        className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
+                          editAvailL ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                        }`}
                       />
 
                       {/* Size XL */}
-                      <span className="font-bold text-cyber-blue self-center">XL</span>
+                      <div className="flex items-center gap-1.5 justify-center">
+                        <input
+                          type="checkbox"
+                          checked={editAvailXL}
+                          onChange={(e) => setEditAvailXL(e.target.checked)}
+                          className="w-3.5 h-3.5 accent-cyber-blue cursor-pointer"
+                        />
+                        <span className={`font-bold self-center ${editAvailXL ? 'text-cyber-blue' : 'text-white/25'}`}>XL</span>
+                      </div>
                       <input
                         type="number"
                         value={editChestXL}
+                        disabled={!editAvailXL}
                         onChange={(e) => setEditChestXL(parseInt(e.target.value))}
-                        className="bg-white/[0.02] border border-white/10 py-2 px-1 rounded text-center text-white"
+                        className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
+                          editAvailXL ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                        }`}
                       />
                       <input
                         type="number"
                         value={editWaistXL}
+                        disabled={!editAvailXL}
                         onChange={(e) => setEditWaistXL(parseInt(e.target.value))}
-                        className="bg-white/[0.02] border border-white/10 py-2 px-1 rounded text-center text-white"
+                        className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
+                          editAvailXL ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                        }`}
                       />
                       <input
                         type="number"
                         value={editHipsXL}
+                        disabled={!editAvailXL}
                         onChange={(e) => setEditHipsXL(parseInt(e.target.value))}
-                        className="bg-white/[0.02] border border-white/10 py-2 px-1 rounded text-center text-white"
+                        className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
+                          editAvailXL ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                        }`}
                       />
                     </div>
                   </div>
@@ -1864,6 +2142,82 @@ export default function AdminPage() {
                 </div>
 
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ─────────────── CUSTOM DIALOG MODAL (Alert/Confirm) ─────────────── */}
+      <AnimatePresence>
+        {modalAlert && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ type: 'spring', duration: 0.3 }}
+              className={`glass max-w-md w-full rounded-3xl p-6 border flex flex-col gap-5 text-white ${
+                modalAlert.severity === 'error'
+                  ? 'border-red-500/30 bg-red-950/20 shadow-[0_0_40px_rgba(239,68,68,0.15)]'
+                  : modalAlert.severity === 'warning'
+                  ? 'border-amber-500/30 bg-amber-950/20 shadow-[0_0_40px_rgba(245,158,11,0.15)]'
+                  : modalAlert.severity === 'success'
+                  ? 'border-cyber-green/30 bg-emerald-950/20 shadow-[0_0_40px_rgba(0,255,170,0.15)]'
+                  : 'border-cyber-blue/30 bg-sky-950/20 shadow-[0_0_40px_rgba(0,229,255,0.15)]'
+              }`}
+            >
+              {/* Header */}
+              <div className="flex items-center gap-3 border-b border-white/5 pb-3">
+                <div className={`p-2 rounded-xl border ${
+                  modalAlert.severity === 'error'
+                    ? 'border-red-500/30 bg-red-500/10 text-red-400'
+                    : modalAlert.severity === 'warning'
+                    ? 'border-amber-500/30 bg-amber-500/10 text-amber-400'
+                    : modalAlert.severity === 'success'
+                    ? 'border-cyber-green/30 bg-cyber-green/10 text-cyber-green'
+                    : 'border-cyber-blue/30 bg-cyber-blue/10 text-cyber-blue'
+                }`}>
+                  {modalAlert.severity === 'error' && <ShieldAlert className="w-5 h-5 animate-pulse" />}
+                  {modalAlert.severity === 'warning' && <AlertTriangle className="w-5 h-5" />}
+                  {modalAlert.severity === 'success' && <CheckCircle2 className="w-5 h-5" />}
+                  {(modalAlert.severity === 'info' || !modalAlert.severity) && <Terminal className="w-5 h-5" />}
+                </div>
+                <h4 className="font-mono text-xs tracking-widest font-bold uppercase">
+                  {modalAlert.title}
+                </h4>
+              </div>
+
+              {/* Message Content */}
+              <p className="font-mono text-xs text-white/70 leading-relaxed font-semibold">
+                {modalAlert.message}
+              </p>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 justify-end mt-1.5 border-t border-white/5 pt-3">
+                {modalAlert.type === 'confirm' && (
+                  <button
+                    onClick={modalAlert.onCancel}
+                    className="px-4 py-2 rounded-xl border border-white/10 text-white/50 hover:text-white bg-white/[0.01] hover:bg-white/[0.03] transition-all cursor-pointer font-bold font-mono text-[10px] uppercase focus:outline-none"
+                  >
+                    Cancel
+                  </button>
+                )}
+                <button
+                  onClick={modalAlert.onConfirm}
+                  className={`px-5 py-2 rounded-xl font-mono text-[10px] tracking-wider font-bold transition-all cursor-pointer flex items-center gap-1.5 focus:outline-none ${
+                    modalAlert.severity === 'error'
+                      ? 'bg-red-500 hover:bg-red-600 text-white shadow-[0_0_15px_rgba(239,68,68,0.3)]'
+                      : modalAlert.severity === 'warning'
+                      ? 'bg-amber-500 hover:bg-amber-600 text-black shadow-[0_0_15px_rgba(245,158,11,0.3)]'
+                      : modalAlert.severity === 'success'
+                      ? 'bg-cyber-green hover:brightness-110 text-black shadow-[0_0_15px_rgba(0,255,170,0.3)]'
+                      : 'bg-cyber-blue hover:brightness-110 text-black shadow-[0_0_15px_rgba(0,229,255,0.3)]'
+                  }`}
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  {modalAlert.type === 'confirm' ? 'Confirm' : 'Acknowledge'}
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
