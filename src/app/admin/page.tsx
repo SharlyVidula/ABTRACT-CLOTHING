@@ -13,6 +13,30 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Defined list of everyday clothing categories and their corresponding technical configs
+interface ClothingCategoryConfig {
+  name: string;
+  category: 'Top' | 'Bottom' | 'Outerwear';
+  visualType: 'blazer' | 'parka' | 'trousers' | 'frock' | 'skirt';
+  needsChest: boolean;
+  needsWaist: boolean;
+  needsHips: boolean;
+}
+
+const CLOTHING_CATEGORIES: ClothingCategoryConfig[] = [
+  { name: 'T-Shirt', category: 'Top', visualType: 'parka', needsChest: true, needsWaist: true, needsHips: false },
+  { name: 'Shirt', category: 'Top', visualType: 'parka', needsChest: true, needsWaist: true, needsHips: false },
+  { name: 'Hoodie', category: 'Top', visualType: 'parka', needsChest: true, needsWaist: true, needsHips: false },
+  { name: 'Jacket', category: 'Outerwear', visualType: 'blazer', needsChest: true, needsWaist: true, needsHips: false },
+  { name: 'Blazer', category: 'Outerwear', visualType: 'blazer', needsChest: true, needsWaist: true, needsHips: false },
+  { name: 'Trousers', category: 'Bottom', visualType: 'trousers', needsChest: false, needsWaist: true, needsHips: true },
+  { name: 'Cargo Pants', category: 'Bottom', visualType: 'trousers', needsChest: false, needsWaist: true, needsHips: true },
+  { name: 'Shorts', category: 'Bottom', visualType: 'trousers', needsChest: false, needsWaist: true, needsHips: true },
+  { name: 'Skirt', category: 'Bottom', visualType: 'skirt', needsChest: false, needsWaist: true, needsHips: true },
+  { name: 'Frock', category: 'Outerwear', visualType: 'frock', needsChest: true, needsWaist: true, needsHips: true },
+  { name: 'Dress', category: 'Outerwear', visualType: 'frock', needsChest: true, needsWaist: true, needsHips: true }
+];
+
 export default function AdminPage() {
   const { 
     user, products, orders, addProduct, updateProduct, deleteProduct,
@@ -77,16 +101,19 @@ export default function AdminPage() {
   // Edit Garment State
   const [editingGarment, setEditingGarment] = useState<Garment | null>(null);
   const [editName, setEditName] = useState('');
-  const [editCategory, setEditCategory] = useState<'Top' | 'Bottom' | 'Outerwear'>('Outerwear');
+  const [editSelectedCatName, setEditSelectedCatName] = useState('T-Shirt');
   const [editPrice, setEditPrice] = useState(0);
   const [editCost, setEditCost] = useState(0);
   const [editDescription, setEditDescription] = useState('');
   const [editDetails, setEditDetails] = useState('');
-  const [editVisualType, setEditVisualType] = useState<'blazer' | 'parka' | 'trousers' | 'frock' | 'skirt'>('frock');
   const [editPrimaryGlow, setEditPrimaryGlow] = useState('#d500f9');
   const [editSecondaryGlow, setEditSecondaryGlow] = useState('#00ffaa');
   const [editGender, setEditGender] = useState<'Male' | 'Female' | 'Unisex'>('Female');
   const [editImagePath, setEditImagePath] = useState('/aurelia_silk_frock.png');
+
+  // Search/Dropdown States for Category selector inside Edit Modal
+  const [editCatSearch, setEditCatSearch] = useState('');
+  const [isEditCatDropdownOpen, setIsEditCatDropdownOpen] = useState(false);
 
   // Edit sizing availability states
   const [editAvailS, setEditAvailS] = useState(true);
@@ -108,25 +135,28 @@ export default function AdminPage() {
   const [editHipsL, setEditHipsL] = useState(106);
   const [editHipsXL, setEditHipsXL] = useState(114);
 
-  // Product creator availability states
-  const [availS, setAvailS] = useState(true);
-  const [availM, setAvailM] = useState(true);
-  const [availL, setAvailL] = useState(true);
-  const [availXL, setAvailXL] = useState(true);
-
   // Product creator states
   const [name, setName] = useState('');
-  const [category, setCategory] = useState<'Top' | 'Bottom' | 'Outerwear'>('Outerwear');
+  const [selectedCatName, setSelectedCatName] = useState('T-Shirt');
   const [price, setPrice] = useState(250);
   const [cost, setCost] = useState(180);
   const [description, setDescription] = useState('');
   const [details, setDetails] = useState('');
-  const [visualType, setVisualType] = useState<'blazer' | 'parka' | 'trousers' | 'frock' | 'skirt'>('frock');
   const [primaryGlow, setPrimaryGlow] = useState('#d500f9');
   const [secondaryGlow, setSecondaryGlow] = useState('#00ffaa');
   const [gender, setGender] = useState<'Male' | 'Female' | 'Unisex'>('Female');
   const [imagePath, setImagePath] = useState('/aurelia_silk_frock.png');
   const [isSuccess, setIsSuccess] = useState(false);
+
+  // Search/Dropdown States for Category selector inside Catalog Injector
+  const [catSearch, setCatSearch] = useState('');
+  const [isCatDropdownOpen, setIsCatDropdownOpen] = useState(false);
+
+  // Product creator availability states
+  const [availS, setAvailS] = useState(true);
+  const [availM, setAvailM] = useState(true);
+  const [availL, setAvailL] = useState(true);
+  const [availXL, setAvailXL] = useState(true);
 
   // Creator sizing inputs
   const [chestS, setChestS] = useState(90);
@@ -376,12 +406,37 @@ export default function AdminPage() {
     if (!name.trim()) return;
 
     const id = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const catConfig = CLOTHING_CATEGORIES.find(c => c.name === selectedCatName) || CLOTHING_CATEGORIES[0];
     
     const sizes: GarmentSizeGuide = {
-      S: { chest: chestS, waist: waistS, hips: hipsS, height: 170, inseam: category === 'Bottom' ? 76 : undefined },
-      M: { chest: chestM, waist: waistM, hips: hipsM, height: 175, inseam: category === 'Bottom' ? 78 : undefined },
-      L: { chest: chestL, waist: waistL, hips: hipsL, height: 180, inseam: category === 'Bottom' ? 80 : undefined },
-      XL: { chest: chestXL, waist: waistXL, hips: hipsXL, height: 185, inseam: category === 'Bottom' ? 82 : undefined },
+      S: { 
+        chest: catConfig.needsChest ? chestS : undefined, 
+        waist: catConfig.needsWaist ? waistS : undefined, 
+        hips: catConfig.needsHips ? hipsS : undefined, 
+        height: 170, 
+        inseam: catConfig.category === 'Bottom' ? 76 : undefined 
+      },
+      M: { 
+        chest: catConfig.needsChest ? chestM : undefined, 
+        waist: catConfig.needsWaist ? waistM : undefined, 
+        hips: catConfig.needsHips ? hipsM : undefined, 
+        height: 175, 
+        inseam: catConfig.category === 'Bottom' ? 78 : undefined 
+      },
+      L: { 
+        chest: catConfig.needsChest ? chestL : undefined, 
+        waist: catConfig.needsWaist ? waistL : undefined, 
+        hips: catConfig.needsHips ? hipsL : undefined, 
+        height: 180, 
+        inseam: catConfig.category === 'Bottom' ? 80 : undefined 
+      },
+      XL: { 
+        chest: catConfig.needsChest ? chestXL : undefined, 
+        waist: catConfig.needsWaist ? waistXL : undefined, 
+        hips: catConfig.needsHips ? hipsXL : undefined, 
+        height: 185, 
+        inseam: catConfig.category === 'Bottom' ? 82 : undefined 
+      },
     };
 
     // Compile disabled sizes list
@@ -394,7 +449,8 @@ export default function AdminPage() {
     const newGarment: Garment = {
       id,
       name: name.toUpperCase(),
-      category,
+      category: catConfig.category,
+      categoryName: selectedCatName,
       price,
       cost,
       description,
@@ -413,7 +469,7 @@ export default function AdminPage() {
         glowRgb: '213, 0, 249',
       },
       visualStyle: {
-        type: visualType,
+        type: catConfig.visualType,
         primaryColor: '#12121e',
         accentColor: primaryGlow,
         glowingLines: true,
@@ -436,6 +492,8 @@ export default function AdminPage() {
     setAvailM(true);
     setAvailL(true);
     setAvailXL(true);
+    setSelectedCatName('T-Shirt');
+    setCatSearch('');
     
     setTimeout(() => {
       setIsSuccess(false);
@@ -446,16 +504,28 @@ export default function AdminPage() {
   const handleOpenEditModal = (p: Garment) => {
     setEditingGarment(p);
     setEditName(p.name);
-    setEditCategory(p.category);
     setEditPrice(p.price);
     setEditCost(p.cost !== undefined ? p.cost : Math.round(p.price * 0.7));
     setEditDescription(p.description);
     setEditDetails(p.technicalDetails.join(', '));
-    setEditVisualType(p.visualStyle.type);
     setEditPrimaryGlow(p.colorTheme.primary);
     setEditSecondaryGlow(p.colorTheme.secondary);
     setEditGender(p.gender);
     setEditImagePath(p.image);
+
+    // Resolve Category Name
+    let catName = 'T-Shirt';
+    if (p.categoryName) {
+      catName = p.categoryName;
+    } else {
+      if (p.visualStyle.type === 'trousers') catName = 'Trousers';
+      else if (p.visualStyle.type === 'skirt') catName = 'Skirt';
+      else if (p.visualStyle.type === 'blazer') catName = 'Blazer';
+      else if (p.visualStyle.type === 'parka') catName = 'T-Shirt';
+      else if (p.visualStyle.type === 'frock') catName = 'Frock';
+    }
+    setEditSelectedCatName(catName);
+    setEditCatSearch(catName);
 
     // Set size availability toggles
     setEditAvailS(!p.disabledSizes?.includes('S'));
@@ -484,6 +554,8 @@ export default function AdminPage() {
     e.preventDefault();
     if (!editingGarment) return;
 
+    const editCatConfig = CLOTHING_CATEGORIES.find(c => c.name === editSelectedCatName) || CLOTHING_CATEGORIES[0];
+
     // Compile disabled sizes list
     const disabledSizes: ('S' | 'M' | 'L' | 'XL')[] = [];
     if (!editAvailS) disabledSizes.push('S');
@@ -494,16 +566,41 @@ export default function AdminPage() {
     const updated: Garment = {
       ...editingGarment,
       name: editName.toUpperCase(),
-      category: editCategory,
+      category: editCatConfig.category,
+      categoryName: editSelectedCatName,
       price: editPrice,
       cost: editCost,
       description: editDescription,
       technicalDetails: editDetails.split(',').map((d) => d.trim()).filter(Boolean),
       sizes: {
-        S: { chest: editChestS, waist: editWaistS, hips: editHipsS, height: editingGarment.sizes.S.height || 165 },
-        M: { chest: editChestM, waist: editWaistM, hips: editHipsM, height: editingGarment.sizes.M.height || 170 },
-        L: { chest: editChestL, waist: editWaistL, hips: editHipsL, height: editingGarment.sizes.L.height || 175 },
-        XL: { chest: editChestXL, waist: editWaistXL, hips: editHipsXL, height: editingGarment.sizes.XL.height || 180 },
+        S: { 
+          chest: editCatConfig.needsChest ? editChestS : undefined, 
+          waist: editCatConfig.needsWaist ? editWaistS : undefined, 
+          hips: editCatConfig.needsHips ? editHipsS : undefined, 
+          height: editingGarment.sizes.S.height || 165,
+          inseam: editCatConfig.category === 'Bottom' ? 76 : undefined
+        },
+        M: { 
+          chest: editCatConfig.needsChest ? editChestM : undefined, 
+          waist: editCatConfig.needsWaist ? editWaistM : undefined, 
+          hips: editCatConfig.needsHips ? editHipsM : undefined, 
+          height: editingGarment.sizes.M.height || 170,
+          inseam: editCatConfig.category === 'Bottom' ? 78 : undefined
+        },
+        L: { 
+          chest: editCatConfig.needsChest ? editChestL : undefined, 
+          waist: editCatConfig.needsWaist ? editWaistL : undefined, 
+          hips: editCatConfig.needsHips ? editHipsL : undefined, 
+          height: editingGarment.sizes.L.height || 175,
+          inseam: editCatConfig.category === 'Bottom' ? 80 : undefined
+        },
+        XL: { 
+          chest: editCatConfig.needsChest ? editChestXL : undefined, 
+          waist: editCatConfig.needsWaist ? editWaistXL : undefined, 
+          hips: editCatConfig.needsHips ? editHipsXL : undefined, 
+          height: editingGarment.sizes.XL.height || 180,
+          inseam: editCatConfig.category === 'Bottom' ? 82 : undefined
+        },
       },
       inventory: {
         S: editAvailS ? (editingGarment.inventory.S || 0) : 0,
@@ -518,7 +615,7 @@ export default function AdminPage() {
         glowRgb: '213, 0, 249',
       },
       visualStyle: {
-        type: editVisualType,
+        type: editCatConfig.visualType,
         primaryColor: '#12121e',
         accentColor: editPrimaryGlow,
         glowingLines: true,
@@ -612,6 +709,18 @@ export default function AdminPage() {
     );
     return matchesSearch && matchesCategory && matchesGender && matchesLowStock;
   });
+
+  // Filter categories for Creator custom searchable dropdown
+  const filteredCatOptions = CLOTHING_CATEGORIES.filter(c => 
+    c.name.toLowerCase().includes(catSearch.toLowerCase())
+  );
+  const catConfig = CLOTHING_CATEGORIES.find(c => c.name === selectedCatName) || CLOTHING_CATEGORIES[0];
+
+  // Filter categories for Editor custom searchable dropdown
+  const filteredEditCatOptions = CLOTHING_CATEGORIES.filter(c => 
+    c.name.toLowerCase().includes(editCatSearch.toLowerCase())
+  );
+  const editCatConfig = CLOTHING_CATEGORIES.find(c => c.name === editSelectedCatName) || CLOTHING_CATEGORIES[0];
 
   return (
     <div className="min-h-screen bg-cyber-dark text-white relative flex flex-col justify-between font-sans selection:bg-cyber-purple/30 selection:text-white">
@@ -762,7 +871,7 @@ export default function AdminPage() {
                                 <img src={p.image} className="w-8 h-8 rounded object-cover border border-white/10 bg-black/40" />
                                 <div>
                                   <span className="font-bold text-white uppercase">{p.name}</span>
-                                  <div className="text-[10px] text-white/50">{p.category} &middot; {p.gender}</div>
+                                  <div className="text-[10px] text-white/50">{p.categoryName || p.category} &middot; {p.gender}</div>
                                 </div>
                               </div>
                               <div className="text-right">
@@ -909,7 +1018,7 @@ export default function AdminPage() {
                                       <p className="font-bold text-white uppercase text-glow-purple">{p.name}</p>
                                       <p className="text-[10px] text-white/30 break-all">{p.id}</p>
                                       <div className="flex gap-1.5 mt-1">
-                                        <span className="text-[9px] bg-cyber-purple/10 border border-cyber-purple/20 text-cyber-purple px-1.5 py-0.5 rounded uppercase">{p.category}</span>
+                                        <span className="text-[9px] bg-cyber-purple/10 border border-cyber-purple/20 text-cyber-purple px-1.5 py-0.5 rounded uppercase">{p.categoryName || p.category}</span>
                                         <span className="text-[9px] bg-cyber-blue/10 border border-cyber-blue/20 text-cyber-blue px-1.5 py-0.5 rounded uppercase">{p.gender}</span>
                                       </div>
                                     </div>
@@ -1038,18 +1147,44 @@ export default function AdminPage() {
                     </div>
 
                     <div className="grid grid-cols-3 gap-4">
-                      <div className="flex flex-col gap-1.5">
+                      {/* Searchable Custom Category select */}
+                      <div className="flex flex-col gap-1.5 col-span-1 relative">
                         <label className="font-mono text-[10px] text-white/50 tracking-wider">CATEGORY</label>
-                        <select
-                          value={category}
-                          onChange={(e) => setCategory(e.target.value as 'Outerwear' | 'Top' | 'Bottom')}
-                          className="bg-cyber-dark border border-white/10 hover:border-white/20 focus:border-cyber-green py-2.5 px-4 rounded-xl text-xs font-mono text-white outline-none"
-                        >
-                          <option value="Outerwear">Outerwear</option>
-                          <option value="Top">Top</option>
-                          <option value="Bottom">Bottom</option>
-                        </select>
+                        <input
+                          type="text"
+                          placeholder="Search Category..."
+                          value={isCatDropdownOpen ? catSearch : selectedCatName}
+                          onFocus={() => { setIsCatDropdownOpen(true); setCatSearch(''); }}
+                          onChange={(e) => { setCatSearch(e.target.value); setIsCatDropdownOpen(true); }}
+                          onBlur={() => {
+                            setTimeout(() => setIsCatDropdownOpen(false), 200);
+                          }}
+                          className="w-full bg-white/[0.02] border border-white/10 hover:border-white/20 focus:border-cyber-green py-2.5 px-3 rounded-xl text-xs font-mono text-white outline-none"
+                        />
+                        {isCatDropdownOpen && (
+                          <div className="absolute left-0 right-0 top-full mt-1 z-40 max-h-48 overflow-y-auto glass border border-white/10 rounded-xl py-1 shadow-2xl bg-black">
+                            {filteredCatOptions.length === 0 ? (
+                              <div className="px-3 py-2 text-[10px] text-white/30 font-mono">No matches found</div>
+                            ) : (
+                              filteredCatOptions.map((opt) => (
+                                <button
+                                  key={opt.name}
+                                  type="button"
+                                  onMouseDown={() => {
+                                    setSelectedCatName(opt.name);
+                                    setCatSearch(opt.name);
+                                    setIsCatDropdownOpen(false);
+                                  }}
+                                  className="w-full text-left px-3 py-2 text-xs font-mono text-white/70 hover:text-white hover:bg-white/5 transition-all focus:outline-none"
+                                >
+                                  {opt.name.toUpperCase()}
+                                </button>
+                              ))
+                            )}
+                          </div>
+                        )}
                       </div>
+                      
                       <div className="flex flex-col gap-1.5">
                         <label className="font-mono text-[10px] text-white/50 tracking-wider">PRICE (LKR)</label>
                         <input
@@ -1096,18 +1231,16 @@ export default function AdminPage() {
                     </div>
 
                     <div className="grid grid-cols-3 gap-2">
-                      <div className="flex flex-col gap-1.5">
-                        <label className="font-mono text-[10px] text-white/50 tracking-wider">DRAW SHAPE</label>
+                      <div className="flex flex-col gap-1.5 col-span-1">
+                        <label className="font-mono text-[10px] text-white/50 tracking-wider">GENDER TARGET</label>
                         <select
-                          value={visualType}
-                          onChange={(e) => setVisualType(e.target.value as 'blazer' | 'parka' | 'trousers' | 'frock' | 'skirt')}
-                          className="bg-cyber-dark border border-white/10 hover:border-white/20 focus:border-cyber-green py-2.5 px-2 rounded-xl text-xs font-mono text-white outline-none"
+                          value={gender}
+                          onChange={(e) => setGender(e.target.value as 'Male' | 'Female' | 'Unisex')}
+                          className="bg-cyber-dark border border-white/10 hover:border-white/20 focus:border-cyber-green py-2.5 px-4 rounded-xl text-xs font-mono text-white outline-none"
                         >
-                          <option value="blazer">Blazer</option>
-                          <option value="parka">Parka</option>
-                          <option value="trousers">Trousers</option>
-                          <option value="frock">Frock</option>
-                          <option value="skirt">Skirt</option>
+                          <option value="Female">Female</option>
+                          <option value="Male">Male</option>
+                          <option value="Unisex">Unisex</option>
                         </select>
                       </div>
                       <div className="flex flex-col gap-1.5">
@@ -1130,30 +1263,16 @@ export default function AdminPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="flex flex-col gap-1.5">
-                        <label className="font-mono text-[10px] text-white/50 tracking-wider">GENDER TARGET</label>
-                        <select
-                          value={gender}
-                          onChange={(e) => setGender(e.target.value as 'Male' | 'Female' | 'Unisex')}
-                          className="bg-cyber-dark border border-white/10 hover:border-white/20 focus:border-cyber-green py-2.5 px-4 rounded-xl text-xs font-mono text-white outline-none"
-                        >
-                          <option value="Female">Female</option>
-                          <option value="Male">Male</option>
-                          <option value="Unisex">Unisex</option>
-                        </select>
-                      </div>
-                      <div className="flex flex-col gap-1.5">
-                        <label className="font-mono text-[10px] text-white/50 tracking-wider">IMAGE PATH</label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="e.g. /aurelia_silk_frock.png"
-                          value={imagePath}
-                          onChange={(e) => setImagePath(e.target.value)}
-                          className="bg-white/[0.02] border border-white/10 hover:border-white/20 focus:border-cyber-green py-2.5 px-4 rounded-xl text-xs font-mono text-white outline-none"
-                        />
-                      </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="font-mono text-[10px] text-white/50 tracking-wider">IMAGE PATH</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. /aurelia_silk_frock.png"
+                        value={imagePath}
+                        onChange={(e) => setImagePath(e.target.value)}
+                        className="bg-white/[0.02] border border-white/10 hover:border-white/20 focus:border-cyber-green py-2.5 px-4 rounded-xl text-xs font-mono text-white outline-none"
+                      />
                     </div>
                   </div>
 
@@ -1183,30 +1302,45 @@ export default function AdminPage() {
                         </div>
                         <input
                           type="number"
-                          value={chestS}
-                          disabled={!availS}
+                          value={catConfig.needsChest ? chestS : 0}
+                          disabled={!availS || !catConfig.needsChest}
                           onChange={(e) => setChestS(parseInt(e.target.value))}
                           className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
-                            availS ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                            !catConfig.needsChest
+                              ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                              : availS
+                              ? 'border-white/10 focus:border-cyber-green'
+                              : 'border-transparent text-white/15 bg-transparent'
                           }`}
+                          placeholder={!catConfig.needsChest ? 'N/A' : ''}
                         />
                         <input
                           type="number"
-                          value={waistS}
-                          disabled={!availS}
+                          value={catConfig.needsWaist ? waistS : 0}
+                          disabled={!availS || !catConfig.needsWaist}
                           onChange={(e) => setWaistS(parseInt(e.target.value))}
                           className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
-                            availS ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                            !catConfig.needsWaist
+                              ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                              : availS
+                              ? 'border-white/10 focus:border-cyber-green'
+                              : 'border-transparent text-white/15 bg-transparent'
                           }`}
+                          placeholder={!catConfig.needsWaist ? 'N/A' : ''}
                         />
                         <input
                           type="number"
-                          value={hipsS}
-                          disabled={!availS}
+                          value={catConfig.needsHips ? hipsS : 0}
+                          disabled={!availS || !catConfig.needsHips}
                           onChange={(e) => setHipsS(parseInt(e.target.value))}
                           className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
-                            availS ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                            !catConfig.needsHips
+                              ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                              : availS
+                              ? 'border-white/10 focus:border-cyber-green'
+                              : 'border-transparent text-white/15 bg-transparent'
                           }`}
+                          placeholder={!catConfig.needsHips ? 'N/A' : ''}
                         />
 
                         {/* Size M */}
@@ -1221,30 +1355,45 @@ export default function AdminPage() {
                         </div>
                         <input
                           type="number"
-                          value={chestM}
-                          disabled={!availM}
+                          value={catConfig.needsChest ? chestM : 0}
+                          disabled={!availM || !catConfig.needsChest}
                           onChange={(e) => setChestM(parseInt(e.target.value))}
                           className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
-                            availM ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                            !catConfig.needsChest
+                              ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                              : availM
+                              ? 'border-white/10 focus:border-cyber-green'
+                              : 'border-transparent text-white/15 bg-transparent'
                           }`}
+                          placeholder={!catConfig.needsChest ? 'N/A' : ''}
                         />
                         <input
                           type="number"
-                          value={waistM}
-                          disabled={!availM}
+                          value={catConfig.needsWaist ? waistM : 0}
+                          disabled={!availM || !catConfig.needsWaist}
                           onChange={(e) => setWaistM(parseInt(e.target.value))}
                           className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
-                            availM ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                            !catConfig.needsWaist
+                              ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                              : availM
+                              ? 'border-white/10 focus:border-cyber-green'
+                              : 'border-transparent text-white/15 bg-transparent'
                           }`}
+                          placeholder={!catConfig.needsWaist ? 'N/A' : ''}
                         />
                         <input
                           type="number"
-                          value={hipsM}
-                          disabled={!availM}
+                          value={catConfig.needsHips ? hipsM : 0}
+                          disabled={!availM || !catConfig.needsHips}
                           onChange={(e) => setHipsM(parseInt(e.target.value))}
                           className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
-                            availM ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                            !catConfig.needsHips
+                              ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                              : availM
+                              ? 'border-white/10 focus:border-cyber-green'
+                              : 'border-transparent text-white/15 bg-transparent'
                           }`}
+                          placeholder={!catConfig.needsHips ? 'N/A' : ''}
                         />
 
                         {/* Size L */}
@@ -1259,30 +1408,45 @@ export default function AdminPage() {
                         </div>
                         <input
                           type="number"
-                          value={chestL}
-                          disabled={!availL}
+                          value={catConfig.needsChest ? chestL : 0}
+                          disabled={!availL || !catConfig.needsChest}
                           onChange={(e) => setChestL(parseInt(e.target.value))}
                           className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
-                            availL ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                            !catConfig.needsChest
+                              ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                              : availL
+                              ? 'border-white/10 focus:border-cyber-green'
+                              : 'border-transparent text-white/15 bg-transparent'
                           }`}
+                          placeholder={!catConfig.needsChest ? 'N/A' : ''}
                         />
                         <input
                           type="number"
-                          value={waistL}
-                          disabled={!availL}
+                          value={catConfig.needsWaist ? waistL : 0}
+                          disabled={!availL || !catConfig.needsWaist}
                           onChange={(e) => setWaistL(parseInt(e.target.value))}
                           className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
-                            availL ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                            !catConfig.needsWaist
+                              ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                              : availL
+                              ? 'border-white/10 focus:border-cyber-green'
+                              : 'border-transparent text-white/15 bg-transparent'
                           }`}
+                          placeholder={!catConfig.needsWaist ? 'N/A' : ''}
                         />
                         <input
                           type="number"
-                          value={hipsL}
-                          disabled={!availL}
+                          value={catConfig.needsHips ? hipsL : 0}
+                          disabled={!availL || !catConfig.needsHips}
                           onChange={(e) => setHipsL(parseInt(e.target.value))}
                           className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
-                            availL ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                            !catConfig.needsHips
+                              ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                              : availL
+                              ? 'border-white/10 focus:border-cyber-green'
+                              : 'border-transparent text-white/15 bg-transparent'
                           }`}
+                          placeholder={!catConfig.needsHips ? 'N/A' : ''}
                         />
 
                         {/* Size XL */}
@@ -1297,30 +1461,45 @@ export default function AdminPage() {
                         </div>
                         <input
                           type="number"
-                          value={chestXL}
-                          disabled={!availXL}
+                          value={catConfig.needsChest ? chestXL : 0}
+                          disabled={!availXL || !catConfig.needsChest}
                           onChange={(e) => setChestXL(parseInt(e.target.value))}
                           className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
-                            availXL ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                            !catConfig.needsChest
+                              ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                              : availXL
+                              ? 'border-white/10 focus:border-cyber-green'
+                              : 'border-transparent text-white/15 bg-transparent'
                           }`}
+                          placeholder={!catConfig.needsChest ? 'N/A' : ''}
                         />
                         <input
                           type="number"
-                          value={waistXL}
-                          disabled={!availXL}
+                          value={catConfig.needsWaist ? waistXL : 0}
+                          disabled={!availXL || !catConfig.needsWaist}
                           onChange={(e) => setWaistXL(parseInt(e.target.value))}
                           className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
-                            availXL ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                            !catConfig.needsWaist
+                              ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                              : availXL
+                              ? 'border-white/10 focus:border-cyber-green'
+                              : 'border-transparent text-white/15 bg-transparent'
                           }`}
+                          placeholder={!catConfig.needsWaist ? 'N/A' : ''}
                         />
                         <input
                           type="number"
-                          value={hipsXL}
-                          disabled={!availXL}
+                          value={catConfig.needsHips ? hipsXL : 0}
+                          disabled={!availXL || !catConfig.needsHips}
                           onChange={(e) => setHipsXL(parseInt(e.target.value))}
                           className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
-                            availXL ? 'border-white/10 focus:border-cyber-green' : 'border-transparent text-white/15 bg-transparent'
+                            !catConfig.needsHips
+                              ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                              : availXL
+                              ? 'border-white/10 focus:border-cyber-green'
+                              : 'border-transparent text-white/15 bg-transparent'
                           }`}
+                          placeholder={!catConfig.needsHips ? 'N/A' : ''}
                         />
                       </div>
                     </div>
@@ -1839,18 +2018,44 @@ export default function AdminPage() {
                   </div>
 
                   <div className="grid grid-cols-3 gap-4">
-                    <div className="flex flex-col gap-1.5">
+                    {/* Searchable custom category select for Edit Modal */}
+                    <div className="flex flex-col gap-1.5 col-span-1 relative">
                       <label className="text-white/50 tracking-wider">CATEGORY</label>
-                      <select
-                        value={editCategory}
-                        onChange={(e) => setEditCategory(e.target.value as any)}
-                        className="bg-cyber-dark border border-white/10 py-2.5 px-4 rounded-xl text-white outline-none"
-                      >
-                        <option value="Outerwear">Outerwear</option>
-                        <option value="Top">Top</option>
-                        <option value="Bottom">Bottom</option>
-                      </select>
+                      <input
+                        type="text"
+                        placeholder="Search..."
+                        value={isEditCatDropdownOpen ? editCatSearch : editSelectedCatName}
+                        onFocus={() => { setIsEditCatDropdownOpen(true); setEditCatSearch(''); }}
+                        onChange={(e) => { setEditCatSearch(e.target.value); setIsEditCatDropdownOpen(true); }}
+                        onBlur={() => {
+                          setTimeout(() => setIsEditCatDropdownOpen(false), 200);
+                        }}
+                        className="w-full bg-white/[0.02] border border-white/10 focus:border-cyber-blue py-2.5 px-3 rounded-xl text-white outline-none font-mono"
+                      />
+                      {isEditCatDropdownOpen && (
+                        <div className="absolute left-0 right-0 top-full mt-1 z-40 max-h-48 overflow-y-auto glass border border-white/10 rounded-xl py-1 shadow-2xl bg-black">
+                          {filteredEditCatOptions.length === 0 ? (
+                            <div className="px-3 py-2 text-[10px] text-white/30 font-mono">No matches</div>
+                          ) : (
+                            filteredEditCatOptions.map((opt) => (
+                              <button
+                                key={opt.name}
+                                type="button"
+                                onMouseDown={() => {
+                                  setEditSelectedCatName(opt.name);
+                                  setEditCatSearch(opt.name);
+                                  setIsEditCatDropdownOpen(false);
+                                }}
+                                className="w-full text-left px-3 py-2 text-xs font-mono text-white/70 hover:text-white hover:bg-white/5 transition-all focus:outline-none"
+                              >
+                                {opt.name.toUpperCase()}
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      )}
                     </div>
+                    
                     <div className="flex flex-col gap-1.5">
                       <label className="text-white/50 tracking-wider">PRICE (LKR)</label>
                       <input
@@ -1895,18 +2100,16 @@ export default function AdminPage() {
                   </div>
 
                   <div className="grid grid-cols-3 gap-2">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-white/50 tracking-wider">VISUAL MODEL</label>
+                    <div className="flex flex-col gap-1.5 col-span-1">
+                      <label className="text-white/50 tracking-wider">GENDER TARGET</label>
                       <select
-                        value={editVisualType}
-                        onChange={(e) => setEditVisualType(e.target.value as any)}
-                        className="bg-cyber-dark border border-white/10 py-2.5 px-2 rounded-xl text-white outline-none"
+                        value={editGender}
+                        onChange={(e) => setEditGender(e.target.value as any)}
+                        className="bg-cyber-dark border border-white/10 py-2.5 px-4 rounded-xl text-white outline-none"
                       >
-                        <option value="blazer">Blazer</option>
-                        <option value="parka">Parka</option>
-                        <option value="trousers">Trousers</option>
-                        <option value="frock">Frock</option>
-                        <option value="skirt">Skirt</option>
+                        <option value="Female">Female</option>
+                        <option value="Male">Male</option>
+                        <option value="Unisex">Unisex</option>
                       </select>
                     </div>
                     <div className="flex flex-col gap-1.5">
@@ -1929,29 +2132,15 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-white/50 tracking-wider">GENDER TARGET</label>
-                      <select
-                        value={editGender}
-                        onChange={(e) => setEditGender(e.target.value as any)}
-                        className="bg-cyber-dark border border-white/10 py-2.5 px-4 rounded-xl text-white outline-none"
-                      >
-                        <option value="Female">Female</option>
-                        <option value="Male">Male</option>
-                        <option value="Unisex">Unisex</option>
-                      </select>
-                    </div>
-                    <div className="flex flex-col gap-1.5">
-                      <label className="text-white/50 tracking-wider">IMAGE PATH</label>
-                      <input
-                        type="text"
-                        required
-                        value={editImagePath}
-                        onChange={(e) => setEditImagePath(e.target.value)}
-                        className="bg-white/[0.02] border border-white/10 focus:border-cyber-blue py-2.5 px-4 rounded-xl text-white outline-none"
-                      />
-                    </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-white/50 tracking-wider">IMAGE PATH</label>
+                    <input
+                      type="text"
+                      required
+                      value={editImagePath}
+                      onChange={(e) => setEditImagePath(e.target.value)}
+                      className="bg-white/[0.02] border border-white/10 focus:border-cyber-blue py-2.5 px-4 rounded-xl text-white outline-none"
+                    />
                   </div>
                 </div>
 
@@ -1981,30 +2170,45 @@ export default function AdminPage() {
                       </div>
                       <input
                         type="number"
-                        value={editChestS}
-                        disabled={!editAvailS}
+                        value={editCatConfig.needsChest ? editChestS : 0}
+                        disabled={!editAvailS || !editCatConfig.needsChest}
                         onChange={(e) => setEditChestS(parseInt(e.target.value))}
                         className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
-                          editAvailS ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                          !editCatConfig.needsChest
+                            ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                            : editAvailS
+                            ? 'border-white/10 focus:border-cyber-blue'
+                            : 'border-transparent text-white/10 bg-transparent'
                         }`}
+                        placeholder={!editCatConfig.needsChest ? 'N/A' : ''}
                       />
                       <input
                         type="number"
-                        value={editWaistS}
-                        disabled={!editAvailS}
+                        value={editCatConfig.needsWaist ? editWaistS : 0}
+                        disabled={!editAvailS || !editCatConfig.needsWaist}
                         onChange={(e) => setEditWaistS(parseInt(e.target.value))}
                         className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
-                          editAvailS ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                          !editCatConfig.needsWaist
+                            ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                            : editAvailS
+                            ? 'border-white/10 focus:border-cyber-blue'
+                            : 'border-transparent text-white/10 bg-transparent'
                         }`}
+                        placeholder={!editCatConfig.needsWaist ? 'N/A' : ''}
                       />
                       <input
                         type="number"
-                        value={editHipsS}
-                        disabled={!editAvailS}
+                        value={editCatConfig.needsHips ? editHipsS : 0}
+                        disabled={!editAvailS || !editCatConfig.needsHips}
                         onChange={(e) => setEditHipsS(parseInt(e.target.value))}
                         className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
-                          editAvailS ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                          !editCatConfig.needsHips
+                            ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                            : editAvailS
+                            ? 'border-white/10 focus:border-cyber-blue'
+                            : 'border-transparent text-white/10 bg-transparent'
                         }`}
+                        placeholder={!editCatConfig.needsHips ? 'N/A' : ''}
                       />
 
                       {/* Size M */}
@@ -2019,30 +2223,45 @@ export default function AdminPage() {
                       </div>
                       <input
                         type="number"
-                        value={editChestM}
-                        disabled={!editAvailM}
+                        value={editCatConfig.needsChest ? editChestM : 0}
+                        disabled={!editAvailM || !editCatConfig.needsChest}
                         onChange={(e) => setEditChestM(parseInt(e.target.value))}
                         className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
-                          editAvailM ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                          !editCatConfig.needsChest
+                            ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                            : editAvailM
+                            ? 'border-white/10 focus:border-cyber-blue'
+                            : 'border-transparent text-white/10 bg-transparent'
                         }`}
+                        placeholder={!editCatConfig.needsChest ? 'N/A' : ''}
                       />
                       <input
                         type="number"
-                        value={editWaistM}
-                        disabled={!editAvailM}
+                        value={editCatConfig.needsWaist ? editWaistM : 0}
+                        disabled={!editAvailM || !editCatConfig.needsWaist}
                         onChange={(e) => setEditWaistM(parseInt(e.target.value))}
                         className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
-                          editAvailM ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                          !editCatConfig.needsWaist
+                            ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                            : editAvailM
+                            ? 'border-white/10 focus:border-cyber-blue'
+                            : 'border-transparent text-white/10 bg-transparent'
                         }`}
+                        placeholder={!editCatConfig.needsWaist ? 'N/A' : ''}
                       />
                       <input
                         type="number"
-                        value={editHipsM}
-                        disabled={!editAvailM}
+                        value={editCatConfig.needsHips ? editHipsM : 0}
+                        disabled={!editAvailM || !editCatConfig.needsHips}
                         onChange={(e) => setEditHipsM(parseInt(e.target.value))}
                         className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
-                          editAvailM ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                          !editCatConfig.needsHips
+                            ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                            : editAvailM
+                            ? 'border-white/10 focus:border-cyber-blue'
+                            : 'border-transparent text-white/10 bg-transparent'
                         }`}
+                        placeholder={!editCatConfig.needsHips ? 'N/A' : ''}
                       />
 
                       {/* Size L */}
@@ -2057,30 +2276,45 @@ export default function AdminPage() {
                       </div>
                       <input
                         type="number"
-                        value={editChestL}
-                        disabled={!editAvailL}
+                        value={editCatConfig.needsChest ? editChestL : 0}
+                        disabled={!editAvailL || !editCatConfig.needsChest}
                         onChange={(e) => setEditChestL(parseInt(e.target.value))}
                         className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
-                          editAvailL ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                          !editCatConfig.needsChest
+                            ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                            : editAvailL
+                            ? 'border-white/10 focus:border-cyber-blue'
+                            : 'border-transparent text-white/10 bg-transparent'
                         }`}
+                        placeholder={!editCatConfig.needsChest ? 'N/A' : ''}
                       />
                       <input
                         type="number"
-                        value={editWaistL}
-                        disabled={!editAvailL}
+                        value={editCatConfig.needsWaist ? editWaistL : 0}
+                        disabled={!editAvailL || !editCatConfig.needsWaist}
                         onChange={(e) => setEditWaistL(parseInt(e.target.value))}
                         className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
-                          editAvailL ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                          !editCatConfig.needsWaist
+                            ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                            : editAvailL
+                            ? 'border-white/10 focus:border-cyber-blue'
+                            : 'border-transparent text-white/10 bg-transparent'
                         }`}
+                        placeholder={!editCatConfig.needsWaist ? 'N/A' : ''}
                       />
                       <input
                         type="number"
-                        value={editHipsL}
-                        disabled={!editAvailL}
+                        value={editCatConfig.needsHips ? editHipsL : 0}
+                        disabled={!editAvailL || !editCatConfig.needsHips}
                         onChange={(e) => setEditHipsL(parseInt(e.target.value))}
                         className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
-                          editAvailL ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                          !editCatConfig.needsHips
+                            ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                            : editAvailL
+                            ? 'border-white/10 focus:border-cyber-blue'
+                            : 'border-transparent text-white/10 bg-transparent'
                         }`}
+                        placeholder={!editCatConfig.needsHips ? 'N/A' : ''}
                       />
 
                       {/* Size XL */}
@@ -2095,30 +2329,45 @@ export default function AdminPage() {
                       </div>
                       <input
                         type="number"
-                        value={editChestXL}
-                        disabled={!editAvailXL}
+                        value={editCatConfig.needsChest ? editChestXL : 0}
+                        disabled={!editAvailXL || !editCatConfig.needsChest}
                         onChange={(e) => setEditChestXL(parseInt(e.target.value))}
                         className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
-                          editAvailXL ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                          !editCatConfig.needsChest
+                            ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                            : editAvailXL
+                            ? 'border-white/10 focus:border-cyber-blue'
+                            : 'border-transparent text-white/10 bg-transparent'
                         }`}
+                        placeholder={!editCatConfig.needsChest ? 'N/A' : ''}
                       />
                       <input
                         type="number"
-                        value={editWaistXL}
-                        disabled={!editAvailXL}
+                        value={editCatConfig.needsWaist ? editWaistXL : 0}
+                        disabled={!editAvailXL || !editCatConfig.needsWaist}
                         onChange={(e) => setEditWaistXL(parseInt(e.target.value))}
                         className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
-                          editAvailXL ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                          !editCatConfig.needsWaist
+                            ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                            : editAvailXL
+                            ? 'border-white/10 focus:border-cyber-blue'
+                            : 'border-transparent text-white/10 bg-transparent'
                         }`}
+                        placeholder={!editCatConfig.needsWaist ? 'N/A' : ''}
                       />
                       <input
                         type="number"
-                        value={editHipsXL}
-                        disabled={!editAvailXL}
+                        value={editCatConfig.needsHips ? editHipsXL : 0}
+                        disabled={!editAvailXL || !editCatConfig.needsHips}
                         onChange={(e) => setEditHipsXL(parseInt(e.target.value))}
                         className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
-                          editAvailXL ? 'border-white/10 focus:border-cyber-blue' : 'border-transparent text-white/10 bg-transparent'
+                          !editCatConfig.needsHips
+                            ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                            : editAvailXL
+                            ? 'border-white/10 focus:border-cyber-blue'
+                            : 'border-transparent text-white/10 bg-transparent'
                         }`}
+                        placeholder={!editCatConfig.needsHips ? 'N/A' : ''}
                       />
                     </div>
                   </div>

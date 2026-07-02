@@ -86,12 +86,16 @@ export default function AtelierModal() {
                 <div className="grid grid-cols-4 gap-2">
                   {(['S', 'M', 'L', 'XL'] as const).map((size) => {
                     const isSelected = selectedSize === size;
+                    const isDisabled = selectedGarment?.disabledSizes?.includes(size);
                     return (
                       <button
                         key={size}
+                        disabled={isDisabled}
                         onClick={() => setSelectedSize(size)}
                         className={`py-2.5 rounded-lg font-mono text-xs font-bold border transition-all duration-300 focus:outline-none cursor-pointer ${
-                          isSelected
+                          isDisabled
+                            ? 'border-transparent text-white/20 bg-white/[0.005] cursor-not-allowed line-through'
+                            : isSelected
                             ? 'bg-white text-black border-white shadow-[0_0_12px_rgba(255,255,255,0.25)]'
                             : 'border-white/10 hover:border-white/20 text-white/70 hover:text-white bg-white/[0.01]'
                         }`}

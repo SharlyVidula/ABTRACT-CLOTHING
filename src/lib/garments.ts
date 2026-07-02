@@ -52,6 +52,7 @@ export interface Garment {
   brand?: string; // e.g. 'Universe' for collab brand garments
   image: string; // relative path under /public e.g. "/aurelia_silk_frock.png"
   disabledSizes?: ('S' | 'M' | 'L' | 'XL')[];
+  categoryName?: string;
 }
 
 export const GARMENTS: Garment[] = [

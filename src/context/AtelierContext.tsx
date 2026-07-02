@@ -75,6 +75,14 @@ export function AtelierProvider({ children }: { children: React.ReactNode }) {
       else recommendedSize = 'XL';
     }
 
+    // Ensure recommendation respects size availability
+    if (selectedGarment.disabledSizes?.includes(recommendedSize)) {
+      const available = (['S', 'M', 'L', 'XL'] as const).filter(sz => !selectedGarment.disabledSizes?.includes(sz));
+      if (available.length > 0) {
+        recommendedSize = available.includes('M') ? 'M' : available[0];
+      }
+    }
+
     setTimeout(() => setSelectedSize(recommendedSize), 0);
   }, [measurements, selectedGarment.category]);
 
