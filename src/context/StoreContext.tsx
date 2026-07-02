@@ -71,6 +71,8 @@ interface StoreContextType {
   checkout: (deliveryDetails?: DeliveryDetails) => void;
   updateOrderStatus: (orderId: string, status: Order['status'], declineReason?: string) => void;
   addProduct: (garment: Garment) => void;
+  updateProduct: (garment: Garment) => void;
+  deleteProduct: (id: string) => void;
   setCartOpen: (open: boolean) => void;
 }
 
@@ -269,6 +271,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('abstract_products', JSON.stringify(updated));
   };
 
+  const updateProduct = (garment: Garment) => {
+    const updated = products.map((p) => (p.id === garment.id ? garment : p));
+    setProducts(updated);
+    localStorage.setItem('abstract_products', JSON.stringify(updated));
+  };
+
+  const deleteProduct = (id: string) => {
+    const updated = products.filter((p) => p.id !== id);
+    setProducts(updated);
+    localStorage.setItem('abstract_products', JSON.stringify(updated));
+  };
+
   return (
     <StoreContext.Provider
       value={{
@@ -290,6 +304,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         checkout,
         updateOrderStatus,
         addProduct,
+        updateProduct,
+        deleteProduct,
         setCartOpen,
       }}
     >
