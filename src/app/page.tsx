@@ -248,7 +248,7 @@ export default function Home() {
                 COUTURE PARADISE
               </h1>
               <p className="text-xs md:text-sm text-rose-200/50 leading-relaxed font-light font-sans max-w-2xl">
-                Explore our sweet, high-fashion collection of wholesale frocks, elegant pleated skirts, and signature unisex garments. Use the Fit-On Studio to calibrate your dimensions for optimal draped silhouette results.
+                Discover beautiful frocks, elegant office skirts, and smart casual wear tailored for everyday comfort. Designed with modern Sri Lankan styles in mind, select your favorite piece and calibrate your dimensions in our Fit-On Studio for a perfect, custom-tailored look.
               </p>
             </>
           ) : (
@@ -257,7 +257,7 @@ export default function Home() {
                 ESSENTIAL TAILORING
               </h1>
               <p className="text-xs md:text-sm text-white/50 leading-relaxed font-light font-sans max-w-2xl">
-                A highly refined collection of executive tailored blazers, heavy wool parkas, slim cargo trousers, and drop-shoulder street t-shirts. Move biometric telemetry sliders to inspect garment sizing clearances.
+                Upgrade your wardrobe with premium office shirts, smart trousers, sharp blazers, and trendy drop-shoulder tees designed for the Sri Lankan climate. Experience exceptional comfort and fit—slide the selectors to calibrate your sizing profile for a tailormade look.
               </p>
             </>
           )}
