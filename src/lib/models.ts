@@ -21,5 +21,48 @@ const UserSchema = new Schema<IUser>({
 
 export const User = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
 
-// Additional schemas like Order, CustomInquiry, Product can be added here
-// as the migration continues to other entities.
+// ─── Product Model ──────────────────────────────────────────────────────────
+const ProductSchema = new Schema({
+  id: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
+  category: { type: String, required: true },
+  price: { type: Number, required: true },
+  cost: { type: Number },
+  description: { type: String, required: true },
+  technicalDetails: [{ type: String }],
+  sizes: {
+    S: { chest: Number, waist: Number, hips: Number, height: Number, inseam: Number },
+    M: { chest: Number, waist: Number, hips: Number, height: Number, inseam: Number },
+    L: { chest: Number, waist: Number, hips: Number, height: Number, inseam: Number },
+    XL: { chest: Number, waist: Number, hips: Number, height: Number, inseam: Number },
+    '2XL': { chest: Number, waist: Number, hips: Number, height: Number, inseam: Number },
+  },
+  inventory: {
+    S: { type: Number, default: 0 },
+    M: { type: Number, default: 0 },
+    L: { type: Number, default: 0 },
+    XL: { type: Number, default: 0 },
+    '2XL': { type: Number, default: 0 },
+  },
+  colorTheme: {
+    primary: String,
+    secondary: String,
+    glow: String,
+    glowRgb: String,
+  },
+  visualStyle: {
+    type: { type: String }, // 'type' is a reserved mongoose word
+    primaryColor: String,
+    accentColor: String,
+    glowingLines: Boolean,
+  },
+  gender: { type: String, required: true },
+  brand: String,
+  image: { type: String, required: true },
+  images: [{ type: String }],
+  video: String,
+  disabledSizes: [{ type: String }],
+  categoryName: String,
+});
+
+export const Product = mongoose.models.Product || mongoose.model('Product', ProductSchema);

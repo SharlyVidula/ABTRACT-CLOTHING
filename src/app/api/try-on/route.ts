@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GARMENTS } from '@/lib/garments';
+import connectToDatabase from '@/lib/db';
+import { Product } from '@/lib/models';
 
 // Helper to calculate fit checkpoint details
 function calculateCheckpoint(userVal: number, garmentVal: number): {
@@ -44,7 +46,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const garment = GARMENTS.find((g) => g.id === garmentId);
+    let garment = null;
+    try {
+      await connectToDatabase();
+      garment = await Product.findOne({ id: garmentId }).lean();
+    } catch (dbError) {
+      console.warn('DB lookup failed in try-on route, falling back to static GARMENTS:', dbError);
+    }
+
+    if (!garment) {
+      garment = GARMENTS.find((g) => g.id === garmentId);
+    }
+
     if (!garment) {
       return NextResponse.json(
         { error: 'Garment not found' },

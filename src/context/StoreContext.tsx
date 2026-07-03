@@ -116,6 +116,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
     const savedProducts = localStorage.getItem('abstract_products');
     if (savedProducts) setProducts(JSON.parse(savedProducts));
+
+    const loadProducts = async () => {
+      try {
+        const res = await fetch('/api/products');
+        const data = await res.json();
+        if (data.success && data.products) {
+          setProducts(data.products);
+          localStorage.setItem('abstract_products', JSON.stringify(data.products));
+        }
+      } catch (err) {
+        console.error('Failed to load products from database API, using cache:', err);
+      }
+    };
+    loadProducts();
   }, []);
 
   // ── Auth helpers ───────────────────────────────────────────────────────────
@@ -265,22 +279,52 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   // ── Products ───────────────────────────────────────────────────────────────
-  const addProduct = (garment: Garment) => {
+  const addProduct = async (garment: Garment) => {
     const updated = [garment, ...products];
     setProducts(updated);
     localStorage.setItem('abstract_products', JSON.stringify(updated));
+
+    try {
+      await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'add', product: garment }),
+      });
+    } catch (err) {
+      console.error('Failed to save product to database:', err);
+    }
   };
 
-  const updateProduct = (garment: Garment) => {
+  const updateProduct = async (garment: Garment) => {
     const updated = products.map((p) => (p.id === garment.id ? garment : p));
     setProducts(updated);
     localStorage.setItem('abstract_products', JSON.stringify(updated));
+
+    try {
+      await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update', product: garment }),
+      });
+    } catch (err) {
+      console.error('Failed to update product in database:', err);
+    }
   };
 
-  const deleteProduct = (id: string) => {
+  const deleteProduct = async (id: string) => {
     const updated = products.filter((p) => p.id !== id);
     setProducts(updated);
     localStorage.setItem('abstract_products', JSON.stringify(updated));
+
+    try {
+      await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', id }),
+      });
+    } catch (err) {
+      console.error('Failed to delete product from database:', err);
+    }
   };
 
   return (
