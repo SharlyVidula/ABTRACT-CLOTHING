@@ -21,6 +21,11 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "ABSTRACT // Premium Couture Studio",
   description: "Premium fashion boutique with virtual Fit-On Atelier studio for next-gen apparel.",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({
