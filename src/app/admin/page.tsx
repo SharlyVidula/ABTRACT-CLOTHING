@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { Garment, GarmentSizeGuide } from '@/lib/garments';
 import { useRouter } from 'next/navigation';
@@ -9,7 +9,8 @@ import {
   TrendingUp, UserCog, Eye, EyeOff, AlertCircle, CheckCircle2, 
   Heart, Sparkles, Palette, Download, Check, X, Search, 
   SlidersHorizontal, Trash2, Edit3, AlertTriangle, Coins, 
-  Package, BarChart3, ChevronRight, Settings 
+  Package, BarChart3, ChevronRight, Settings, ChevronDown, Image as ImageIcon,
+  UploadCloud, Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -35,6 +36,18 @@ const CLOTHING_CATEGORIES: ClothingCategoryConfig[] = [
   { name: 'Skirt', category: 'Bottom', visualType: 'skirt', needsChest: false, needsWaist: true, needsHips: true },
   { name: 'Frock', category: 'Outerwear', visualType: 'frock', needsChest: true, needsWaist: true, needsHips: true },
   { name: 'Dress', category: 'Outerwear', visualType: 'frock', needsChest: true, needsWaist: true, needsHips: true }
+];
+
+const AVAILABLE_IMAGES = [
+  '/aurelia_silk_frock.png',
+  '/celeste_lace_frock.png',
+  '/executive_blazer.png',
+  '/lumina_pleated_dress.png',
+  '/nova_georgette_dress.png',
+  '/quantum_wool_parka.png',
+  '/seraphina_velvet_wrap.png',
+  '/signature_oversized_tee.png',
+  '/steel_cargo_pants.png'
 ];
 
 export default function AdminPage() {
@@ -114,6 +127,13 @@ export default function AdminPage() {
   // Search/Dropdown States for Category selector inside Edit Modal
   const [editCatSearch, setEditCatSearch] = useState('');
   const [isEditCatDropdownOpen, setIsEditCatDropdownOpen] = useState(false);
+  const [isEditImageDropdownOpen, setIsEditImageDropdownOpen] = useState(false);
+
+  // File Upload states for edit modal uploader
+  const [isEditUploading, setIsEditUploading] = useState(false);
+  const [editUploadError, setEditUploadError] = useState('');
+  const [isEditDragActive, setIsEditDragActive] = useState(false);
+  const editFileInputRef = useRef<HTMLInputElement>(null);
 
   // Edit sizing availability states
   const [editAvailS, setEditAvailS] = useState(true);
@@ -151,6 +171,13 @@ export default function AdminPage() {
   // Search/Dropdown States for Category selector inside Catalog Injector
   const [catSearch, setCatSearch] = useState('');
   const [isCatDropdownOpen, setIsCatDropdownOpen] = useState(false);
+  const [isImageDropdownOpen, setIsImageDropdownOpen] = useState(false);
+
+  // File Upload states for creator uploader
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [isDragActive, setIsDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Product creator availability states
   const [availS, setAvailS] = useState(true);
@@ -399,6 +426,89 @@ export default function AdminPage() {
       </div>
     );
   }
+
+  // File Uploader & Drag and Drop event handlers
+  const uploadImageFile = async (file: File, isEdit: boolean) => {
+    const setError = isEdit ? setEditUploadError : setUploadError;
+    const setUploading = isEdit ? setIsEditUploading : setIsUploading;
+    const setImage = isEdit ? setEditImagePath : setImagePath;
+
+    setError('');
+    setUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error('Upload failed on server');
+      }
+
+      const data = await res.json();
+      if (data.success && data.path) {
+        setImage(data.path);
+      } else {
+        throw new Error(data.error || 'Invalid upload response');
+      }
+    } catch (err: any) {
+      console.error(err);
+      // Fallback: Read as base64 data URL
+      try {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          if (e.target?.result) {
+            setImage(e.target.result as string);
+          }
+        };
+        reader.readAsDataURL(file);
+      } catch (fallbackErr) {
+        setError('Failed to upload image. Please try again.');
+      }
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDragEnter = (e: React.DragEvent, isEdit: boolean) => {
+    e.preventDefault();
+    if (isEdit) {
+      setIsEditDragActive(true);
+    } else {
+      setIsDragActive(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent, isEdit: boolean) => {
+    e.preventDefault();
+    if (isEdit) {
+      setIsEditDragActive(false);
+    } else {
+      setIsDragActive(false);
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent, isEdit: boolean) => {
+    e.preventDefault();
+    if (isEdit) {
+      setIsEditDragActive(false);
+    } else {
+      setIsDragActive(false);
+    }
+
+    const file = e.dataTransfer.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      await uploadImageFile(file, isEdit);
+    }
+  };
 
   // Create Product Handler
   const handleCreateProduct = (e: React.FormEvent) => {
@@ -1263,16 +1373,147 @@ export default function AdminPage() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col gap-1.5">
-                      <label className="font-mono text-[10px] text-white/50 tracking-wider">IMAGE PATH</label>
+                    <div className="flex flex-col gap-3">
+                      <label className="font-mono text-[10px] text-white/50 tracking-wider">PRODUCT VISUAL ASSET</label>
+                      
+                      {/* Hidden File Input */}
                       <input
-                        type="text"
-                        required
-                        placeholder="e.g. /aurelia_silk_frock.png"
-                        value={imagePath}
-                        onChange={(e) => setImagePath(e.target.value)}
-                        className="bg-white/[0.02] border border-white/10 hover:border-white/20 focus:border-cyber-green py-2.5 px-4 rounded-xl text-xs font-mono text-white outline-none"
+                        type="file"
+                        ref={fileInputRef}
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) uploadImageFile(file, false);
+                        }}
                       />
+
+                      {/* Dropzone Container */}
+                      <div
+                        onDragOver={handleDragOver}
+                        onDragEnter={(e) => handleDragEnter(e, false)}
+                        onDragLeave={(e) => handleDragLeave(e, false)}
+                        onDrop={(e) => handleDrop(e, false)}
+                        onClick={() => fileInputRef.current?.click()}
+                        className={`relative min-h-[160px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all duration-300 cursor-pointer overflow-hidden group ${
+                          isDragActive 
+                            ? 'border-cyber-green bg-cyber-green/5 shadow-[0_0_15px_rgba(0,255,170,0.15)]' 
+                            : 'border-white/10 bg-white/[0.01] hover:border-white/20 hover:bg-white/[0.02]'
+                        }`}
+                      >
+                        {isUploading ? (
+                          <div className="flex flex-col items-center gap-2 text-white/60 font-mono text-xs">
+                            <Loader2 className="w-6 h-6 animate-spin text-cyber-green" />
+                            <span>Uploading garment asset...</span>
+                          </div>
+                        ) : imagePath ? (
+                          <>
+                            {/* Visual Preview */}
+                            <img 
+                              src={imagePath} 
+                              alt="Garment Preview" 
+                              className="absolute inset-0 w-full h-full object-contain p-2 transition-transform duration-300 group-hover:scale-[1.02]"
+                              onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                            />
+                            {/* Hover Overlay */}
+                            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-2 transition-opacity duration-300">
+                              <UploadCloud className="w-6 h-6 text-cyber-green animate-pulse" />
+                              <span className="font-mono text-xs text-white/90 font-semibold">Change Image</span>
+                              <span className="font-mono text-[10px] text-white/45">Drag & Drop or Click</span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex flex-col items-center gap-2.5 text-center text-white/50">
+                            <UploadCloud className={`w-8 h-8 transition-transform duration-300 ${isDragActive ? 'scale-110 text-cyber-green' : 'text-white/30 group-hover:text-white/55'}`} />
+                            <div className="space-y-1">
+                              <p className="font-mono text-xs text-white/80 font-medium">
+                                Drag & drop image here, or <span className="text-cyber-green underline">browse</span>
+                              </p>
+                              <p className="font-mono text-[10px] text-white/30">Supports PNG, JPG, WebP up to 5MB</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {uploadError && (
+                        <div className="flex items-center gap-1.5 text-[10px] font-mono text-red-400 mt-1">
+                          <AlertCircle className="w-3.5 h-3.5" />
+                          <span>{uploadError}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col gap-1.5 relative z-30">
+                      <label className="font-mono text-[10px] text-white/50 tracking-wider font-semibold">IMAGE PATH / URL</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          required
+                          placeholder="Select or enter image path..."
+                          value={imagePath}
+                          onChange={(e) => setImagePath(e.target.value)}
+                          onFocus={() => setIsImageDropdownOpen(true)}
+                          className="w-full bg-white/[0.02] border border-white/10 hover:border-white/20 focus:border-cyber-green py-2.5 pl-11 pr-10 rounded-xl text-xs font-mono text-white outline-none transition-all"
+                        />
+                        {/* Thumbnail preview on the left of input if path is set */}
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 w-5.5 h-5.5 rounded-md overflow-hidden bg-black/40 border border-white/10 flex items-center justify-center pointer-events-none">
+                          {imagePath ? (
+                            <img src={imagePath} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+                          ) : (
+                            <ImageIcon className="w-3 h-3 text-white/30" />
+                          )}
+                        </div>
+                        {/* Toggle button on the right */}
+                        <button
+                          type="button"
+                          onClick={() => setIsImageDropdownOpen(!isImageDropdownOpen)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
+                        >
+                          <ChevronDown className={`w-4 h-4 transform transition-transform duration-200 ${isImageDropdownOpen ? 'rotate-180 text-cyber-green' : ''}`} />
+                        </button>
+                      </div>
+
+                      {/* Dropdown menu */}
+                      {isImageDropdownOpen && (
+                        <>
+                          {/* Backdrop to close dropdown on click outside */}
+                          <div 
+                            className="fixed inset-0 z-40" 
+                            onClick={() => setIsImageDropdownOpen(false)}
+                          />
+                          <div className="absolute left-0 right-0 top-full mt-1.5 z-50 max-h-60 overflow-y-auto glass border border-white/10 rounded-xl p-2 shadow-2xl bg-black/95 backdrop-blur-md scrollbar-thin">
+                            <div className="text-[9px] font-mono text-white/40 px-2 pb-1.5 mb-1 border-b border-white/5 uppercase tracking-wider font-semibold">
+                              Select Available Asset
+                            </div>
+                            <div className="grid grid-cols-1 gap-1">
+                              {AVAILABLE_IMAGES.map((img) => {
+                                const isSelected = imagePath === img;
+                                return (
+                                  <button
+                                    key={img}
+                                    type="button"
+                                    onClick={() => {
+                                      setImagePath(img);
+                                      setIsImageDropdownOpen(false);
+                                    }}
+                                    className={`flex items-center gap-3 w-full text-left px-2 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                                      isSelected 
+                                        ? 'bg-cyber-green/10 text-cyber-green border border-cyber-green/20' 
+                                        : 'text-white/70 hover:text-white hover:bg-white/5 border border-transparent'
+                                    }`}
+                                  >
+                                    <div className="w-8 h-8 rounded overflow-hidden bg-black/40 flex-shrink-0 border border-white/10 flex items-center justify-center">
+                                      <img src={img} alt="" className="w-full h-full object-cover" />
+                                    </div>
+                                    <span className="truncate flex-1">{img}</span>
+                                    {isSelected && <Check className="w-3.5 h-3.5 flex-shrink-0 text-cyber-green" />}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -2132,15 +2373,147 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-white/50 tracking-wider">IMAGE PATH</label>
+                  <div className="flex flex-col gap-3">
+                    <label className="text-white/50 tracking-wider">PRODUCT VISUAL ASSET</label>
+                    
+                    {/* Hidden File Input */}
                     <input
-                      type="text"
-                      required
-                      value={editImagePath}
-                      onChange={(e) => setEditImagePath(e.target.value)}
-                      className="bg-white/[0.02] border border-white/10 focus:border-cyber-blue py-2.5 px-4 rounded-xl text-white outline-none"
+                      type="file"
+                      ref={editFileInputRef}
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) uploadImageFile(file, true);
+                      }}
                     />
+
+                    {/* Dropzone Container */}
+                    <div
+                      onDragOver={handleDragOver}
+                      onDragEnter={(e) => handleDragEnter(e, true)}
+                      onDragLeave={(e) => handleDragLeave(e, true)}
+                      onDrop={(e) => handleDrop(e, true)}
+                      onClick={() => editFileInputRef.current?.click()}
+                      className={`relative min-h-[160px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-4 transition-all duration-300 cursor-pointer overflow-hidden group ${
+                        isEditDragActive 
+                          ? 'border-cyber-blue bg-cyber-blue/5 shadow-[0_0_15px_rgba(0,170,255,0.15)]' 
+                          : 'border-white/10 bg-white/[0.01] hover:border-white/20 hover:bg-white/[0.02]'
+                      }`}
+                    >
+                      {isEditUploading ? (
+                        <div className="flex flex-col items-center gap-2 text-white/60 font-mono text-xs">
+                          <Loader2 className="w-6 h-6 animate-spin text-cyber-blue" />
+                          <span>Uploading garment asset...</span>
+                        </div>
+                      ) : editImagePath ? (
+                        <>
+                          {/* Visual Preview */}
+                          <img 
+                            src={editImagePath} 
+                            alt="Garment Preview" 
+                            className="absolute inset-0 w-full h-full object-contain p-2 transition-transform duration-300 group-hover:scale-[1.02]"
+                            onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                          />
+                          {/* Hover Overlay */}
+                          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-2 transition-opacity duration-300">
+                            <UploadCloud className="w-6 h-6 text-cyber-blue animate-pulse" />
+                            <span className="font-mono text-xs text-white/90 font-semibold">Change Image</span>
+                            <span className="font-mono text-[10px] text-white/45">Drag & Drop or Click</span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center gap-2.5 text-center text-white/50">
+                          <UploadCloud className={`w-8 h-8 transition-transform duration-300 ${isEditDragActive ? 'scale-110 text-cyber-blue' : 'text-white/30 group-hover:text-white/55'}`} />
+                          <div className="space-y-1">
+                            <p className="font-mono text-xs text-white/80 font-medium">
+                              Drag & drop image here, or <span className="text-cyber-blue underline">browse</span>
+                            </p>
+                            <p className="font-mono text-[10px] text-white/30">Supports PNG, JPG, WebP up to 5MB</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {editUploadError && (
+                      <div className="flex items-center gap-1.5 text-[10px] font-mono text-red-400 mt-1">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        <span>{editUploadError}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col gap-1.5 relative z-30">
+                    <label className="text-white/50 tracking-wider font-semibold">IMAGE PATH / URL</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        required
+                        placeholder="Select or enter image path..."
+                        value={editImagePath}
+                        onChange={(e) => setEditImagePath(e.target.value)}
+                        onFocus={() => setIsEditImageDropdownOpen(true)}
+                        className="w-full bg-white/[0.02] border border-white/10 hover:border-white/20 focus:border-cyber-blue py-2.5 pl-11 pr-10 rounded-xl text-xs font-mono text-white outline-none transition-all"
+                      />
+                      {/* Thumbnail preview on the left of input if path is set */}
+                      <div className="absolute left-3 top-1/2 -translate-y-1/2 w-5.5 h-5.5 rounded-md overflow-hidden bg-black/40 border border-white/10 flex items-center justify-center pointer-events-none">
+                        {editImagePath ? (
+                          <img src={editImagePath} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }} />
+                        ) : (
+                          <ImageIcon className="w-3 h-3 text-white/30" />
+                        )}
+                      </div>
+                      {/* Toggle button on the right */}
+                      <button
+                        type="button"
+                        onClick={() => setIsEditImageDropdownOpen(!isEditImageDropdownOpen)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors"
+                      >
+                        <ChevronDown className={`w-4 h-4 transform transition-transform duration-200 ${isEditImageDropdownOpen ? 'rotate-180 text-cyber-blue' : ''}`} />
+                      </button>
+                    </div>
+
+                    {/* Dropdown menu */}
+                    {isEditImageDropdownOpen && (
+                      <>
+                        {/* Backdrop to close dropdown on click outside */}
+                        <div 
+                          className="fixed inset-0 z-40" 
+                          onClick={() => setIsEditImageDropdownOpen(false)}
+                        />
+                        <div className="absolute left-0 right-0 top-full mt-1.5 z-50 max-h-60 overflow-y-auto glass border border-white/10 rounded-xl p-2 shadow-2xl bg-black/95 backdrop-blur-md scrollbar-thin">
+                          <div className="text-[9px] font-mono text-white/40 px-2 pb-1.5 mb-1 border-b border-white/5 uppercase tracking-wider font-semibold">
+                            Select Available Asset
+                          </div>
+                          <div className="grid grid-cols-1 gap-1">
+                            {AVAILABLE_IMAGES.map((img) => {
+                              const isSelected = editImagePath === img;
+                              return (
+                                <button
+                                  key={img}
+                                  type="button"
+                                  onClick={() => {
+                                    setEditImagePath(img);
+                                    setIsEditImageDropdownOpen(false);
+                                  }}
+                                  className={`flex items-center gap-3 w-full text-left px-2 py-1.5 rounded-lg text-xs font-mono transition-all ${
+                                    isSelected 
+                                      ? 'bg-cyber-blue/10 text-cyber-blue border border-cyber-blue/20' 
+                                      : 'text-white/70 hover:text-white hover:bg-white/5 border border-transparent'
+                                  }`}
+                                >
+                                  <div className="w-8 h-8 rounded overflow-hidden bg-black/40 flex-shrink-0 border border-white/10 flex items-center justify-center">
+                                    <img src={img} alt="" className="w-full h-full object-cover" />
+                                  </div>
+                                  <span className="truncate flex-1">{img}</span>
+                                  {isSelected && <Check className="w-3.5 h-3.5 flex-shrink-0 text-cyber-blue" />}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
 
