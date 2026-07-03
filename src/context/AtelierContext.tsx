@@ -18,7 +18,7 @@ export interface SizeComparisons {
 }
 
 export interface FitAdvisoryData {
-  recommendedSize: 'S' | 'M' | 'L' | 'XL';
+  recommendedSize: 'S' | 'M' | 'L' | 'XL' | '2XL';
   fitAndFeel: string;
   sizeComparisons: SizeComparisons;
 }
@@ -26,13 +26,13 @@ export interface FitAdvisoryData {
 interface AtelierContextType {
   measurements: UserMeasurements;
   selectedGarment: Garment;
-  selectedSize: 'S' | 'M' | 'L' | 'XL';
+  selectedSize: 'S' | 'M' | 'L' | 'XL' | '2XL';
   fitAdvisory: FitAdvisoryData | null;
   isLoading: boolean;
   isAtelierOpen: boolean;
   updateMeasurement: (key: keyof UserMeasurements, value: number) => void;
   setSelectedGarment: (garment: Garment) => void;
-  setSelectedSize: (size: 'S' | 'M' | 'L' | 'XL') => void;
+  setSelectedSize: (size: 'S' | 'M' | 'L' | 'XL' | '2XL') => void;
   setIsAtelierOpen: (open: boolean) => void;
   runTryOn: () => Promise<void>;
   resetAtelier: () => void;
@@ -51,7 +51,7 @@ const AtelierContext = createContext<AtelierContextType | undefined>(undefined);
 export function AtelierProvider({ children }: { children: React.ReactNode }) {
   const [measurements, setMeasurements] = useState<UserMeasurements>(defaultMeasurements);
   const [selectedGarment, setSelectedGarment] = useState<Garment>(GARMENTS[0]);
-  const [selectedSize, setSelectedSize] = useState<'S' | 'M' | 'L' | 'XL'>('M');
+  const [selectedSize, setSelectedSize] = useState<'S' | 'M' | 'L' | 'XL' | '2XL'>('M');
   const [fitAdvisory, setFitAdvisory] = useState<FitAdvisoryData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isAtelierOpen, setIsAtelierOpen] = useState(false);
@@ -61,23 +61,25 @@ export function AtelierProvider({ children }: { children: React.ReactNode }) {
     const chestVal = measurements.chest;
     const waistVal = measurements.waist;
 
-    let recommendedSize: 'S' | 'M' | 'L' | 'XL' = 'M';
+    let recommendedSize: 'S' | 'M' | 'L' | 'XL' | '2XL' = 'M';
 
     if (selectedGarment.category === 'Bottom') {
       if (waistVal <= 75) recommendedSize = 'S';
       else if (waistVal <= 84) recommendedSize = 'M';
       else if (waistVal <= 92) recommendedSize = 'L';
-      else recommendedSize = 'XL';
+      else if (waistVal <= 100) recommendedSize = 'XL';
+      else recommendedSize = '2XL';
     } else {
       if (chestVal <= 94) recommendedSize = 'S';
       else if (chestVal <= 104) recommendedSize = 'M';
       else if (chestVal <= 112) recommendedSize = 'L';
-      else recommendedSize = 'XL';
+      else if (chestVal <= 120) recommendedSize = 'XL';
+      else recommendedSize = '2XL';
     }
 
     // Ensure recommendation respects size availability
     if (selectedGarment.disabledSizes?.includes(recommendedSize)) {
-      const available = (['S', 'M', 'L', 'XL'] as const).filter(sz => !selectedGarment.disabledSizes?.includes(sz));
+      const available = (['S', 'M', 'L', 'XL', '2XL'] as const).filter(sz => !selectedGarment.disabledSizes?.includes(sz));
       if (available.length > 0) {
         recommendedSize = available.includes('M') ? 'M' : available[0];
       }

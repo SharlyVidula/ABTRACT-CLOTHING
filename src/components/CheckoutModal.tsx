@@ -14,13 +14,13 @@ interface CheckoutModalProps {
 
 export default function CheckoutModal({ garment, isOpen, onClose }: CheckoutModalProps) {
   const { addToCart, setCartOpen, user } = useStore();
-  const [size, setSize] = useState<'S' | 'M' | 'L' | 'XL'>('M');
+  const [size, setSize] = useState<'S' | 'M' | 'L' | 'XL' | '2XL'>('M');
   const [quantity, setQuantity] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState('Cyber-Credits');
 
   React.useEffect(() => {
     if (garment) {
-      const available = (['S', 'M', 'L', 'XL'] as const).filter(sz => !garment.disabledSizes?.includes(sz));
+      const available = (['S', 'M', 'L', 'XL', '2XL'] as const).filter(sz => !garment.disabledSizes?.includes(sz));
       setSize(available[0] || 'M');
       setQuantity(1);
     }
@@ -94,8 +94,8 @@ export default function CheckoutModal({ garment, isOpen, onClose }: CheckoutModa
             {/* Size Selector */}
             <div className="flex flex-col gap-2">
               <span className="font-mono text-xs tracking-wider text-white/60">SIZE MATRIX</span>
-              <div className="grid grid-cols-4 gap-2">
-                {(['S', 'M', 'L', 'XL'] as const).map((sz) => {
+              <div className="grid grid-cols-5 gap-2">
+                {(['S', 'M', 'L', 'XL', '2XL'] as const).map((sz) => {
                   const isSelected = size === sz;
                   const isDisabled = garment.disabledSizes?.includes(sz);
                   return (

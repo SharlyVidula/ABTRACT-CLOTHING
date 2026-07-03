@@ -15,7 +15,7 @@ export interface StoredUser {
 
 export interface CartItem {
   garment: Garment;
-  size: 'S' | 'M' | 'L' | 'XL';
+  size: 'S' | 'M' | 'L' | 'XL' | '2XL';
   quantity: number;
   paymentMethod: string;
 }
@@ -66,7 +66,7 @@ interface StoreContextType {
   createAdminUser: (username: string, password: string, gender: 'Male' | 'Female') => Promise<AuthResult>;
   removeAdminUser: (username: string) => Promise<AuthResult>;
   logout: () => void;
-  addToCart: (garment: Garment, size: 'S' | 'M' | 'L' | 'XL', quantity: number, paymentMethod: string) => void;
+  addToCart: (garment: Garment, size: 'S' | 'M' | 'L' | 'XL' | '2XL', quantity: number, paymentMethod: string) => void;
   removeFromCart: (index: number) => void;
   checkout: (deliveryDetails?: DeliveryDetails) => void;
   updateOrderStatus: (orderId: string, status: Order['status'], declineReason?: string) => void;
@@ -222,7 +222,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   };
 
   // ── Cart ───────────────────────────────────────────────────────────────────
-  const addToCart = (garment: Garment, size: 'S' | 'M' | 'L' | 'XL', quantity: number, paymentMethod: string) => {
+  const addToCart = (garment: Garment, size: 'S' | 'M' | 'L' | 'XL' | '2XL', quantity: number, paymentMethod: string) => {
     const updated = [...cart, { garment, size, quantity, paymentMethod }];
     setCart(updated);
     localStorage.setItem('abstract_cart', JSON.stringify(updated));

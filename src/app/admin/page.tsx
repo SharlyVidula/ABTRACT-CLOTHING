@@ -129,20 +129,24 @@ export default function AdminPage() {
   const [editAvailM, setEditAvailM] = useState(true);
   const [editAvailL, setEditAvailL] = useState(true);
   const [editAvailXL, setEditAvailXL] = useState(true);
+  const [editAvail2XL, setEditAvail2XL] = useState(true);
 
   // Edit sizing states
   const [editChestS, setEditChestS] = useState(90);
   const [editChestM, setEditChestM] = useState(98);
   const [editChestL, setEditChestL] = useState(106);
   const [editChestXL, setEditChestXL] = useState(114);
+  const [editChest2XL, setEditChest2XL] = useState(122);
   const [editWaistS, setEditWaistS] = useState(70);
   const [editWaistM, setEditWaistM] = useState(78);
   const [editWaistL, setEditWaistL] = useState(86);
   const [editWaistXL, setEditWaistXL] = useState(94);
+  const [editWaist2XL, setEditWaist2XL] = useState(102);
   const [editHipsS, setEditHipsS] = useState(90);
   const [editHipsM, setEditHipsM] = useState(98);
   const [editHipsL, setEditHipsL] = useState(106);
   const [editHipsXL, setEditHipsXL] = useState(114);
+  const [editHips2XL, setEditHips2XL] = useState(122);
 
   // Product creator states
   const [name, setName] = useState('');
@@ -174,20 +178,24 @@ export default function AdminPage() {
   const [availM, setAvailM] = useState(true);
   const [availL, setAvailL] = useState(true);
   const [availXL, setAvailXL] = useState(true);
+  const [avail2XL, setAvail2XL] = useState(true);
 
   // Creator sizing inputs
   const [chestS, setChestS] = useState(90);
   const [chestM, setChestM] = useState(98);
   const [chestL, setChestL] = useState(106);
   const [chestXL, setChestXL] = useState(114);
+  const [chest2XL, setChest2XL] = useState(122);
   const [waistS, setWaistS] = useState(70);
   const [waistM, setWaistM] = useState(78);
   const [waistL, setWaistL] = useState(86);
   const [waistXL, setWaistXL] = useState(94);
+  const [waist2XL, setWaist2XL] = useState(102);
   const [hipsS, setHipsS] = useState(90);
   const [hipsM, setHipsM] = useState(98);
   const [hipsL, setHipsL] = useState(106);
   const [hipsXL, setHipsXL] = useState(114);
+  const [hips2XL, setHips2XL] = useState(122);
 
   // Admin creation states
   const [adminUsername, setAdminUsername] = useState('');
@@ -564,14 +572,22 @@ export default function AdminPage() {
         height: 185, 
         inseam: catConfig.category === 'Bottom' ? 82 : undefined 
       },
+      '2XL': { 
+        chest: catConfig.needsChest ? chest2XL : undefined, 
+        waist: catConfig.needsWaist ? waist2XL : undefined, 
+        hips: catConfig.needsHips ? hips2XL : undefined, 
+        height: 190, 
+        inseam: catConfig.category === 'Bottom' ? 84 : undefined 
+      },
     };
 
     // Compile disabled sizes list
-    const disabledSizes: ('S' | 'M' | 'L' | 'XL')[] = [];
+    const disabledSizes: ('S' | 'M' | 'L' | 'XL' | '2XL')[] = [];
     if (!availS) disabledSizes.push('S');
     if (!availM) disabledSizes.push('M');
     if (!availL) disabledSizes.push('L');
     if (!availXL) disabledSizes.push('XL');
+    if (!avail2XL) disabledSizes.push('2XL');
 
     const newGarment: Garment = {
       id,
@@ -587,7 +603,8 @@ export default function AdminPage() {
         S: availS ? 10 : 0, 
         M: availM ? 10 : 0, 
         L: availL ? 10 : 0, 
-        XL: availXL ? 10 : 0 
+        XL: availXL ? 10 : 0,
+        '2XL': avail2XL ? 10 : 0
       },
       colorTheme: {
         primary: primaryGlow,
@@ -621,6 +638,10 @@ export default function AdminPage() {
     setAvailM(true);
     setAvailL(true);
     setAvailXL(true);
+    setAvail2XL(true);
+    setChest2XL(122);
+    setWaist2XL(102);
+    setHips2XL(122);
     setSelectedCatName('T-Shirt');
     setCatSearch('');
     setImagePath('');
@@ -666,21 +687,25 @@ export default function AdminPage() {
     setEditAvailM(!p.disabledSizes?.includes('M'));
     setEditAvailL(!p.disabledSizes?.includes('L'));
     setEditAvailXL(!p.disabledSizes?.includes('XL'));
+    setEditAvail2XL(!p.disabledSizes?.includes('2XL'));
 
     setEditChestS(p.sizes.S.chest || 90);
     setEditChestM(p.sizes.M.chest || 98);
     setEditChestL(p.sizes.L.chest || 106);
     setEditChestXL(p.sizes.XL.chest || 114);
+    setEditChest2XL(p.sizes['2XL']?.chest || 122);
 
     setEditWaistS(p.sizes.S.waist || 70);
     setEditWaistM(p.sizes.M.waist || 78);
     setEditWaistL(p.sizes.L.waist || 86);
     setEditWaistXL(p.sizes.XL.waist || 94);
+    setEditWaist2XL(p.sizes['2XL']?.waist || 102);
 
     setEditHipsS(p.sizes.S.hips || 90);
     setEditHipsM(p.sizes.M.hips || 98);
     setEditHipsL(p.sizes.L.hips || 106);
     setEditHipsXL(p.sizes.XL.hips || 114);
+    setEditHips2XL(p.sizes['2XL']?.hips || 122);
   };
 
   // Save Edits Handler
@@ -691,11 +716,12 @@ export default function AdminPage() {
     const editCatConfig = CLOTHING_CATEGORIES.find(c => c.name === editSelectedCatName) || CLOTHING_CATEGORIES[0];
 
     // Compile disabled sizes list
-    const disabledSizes: ('S' | 'M' | 'L' | 'XL')[] = [];
+    const disabledSizes: ('S' | 'M' | 'L' | 'XL' | '2XL')[] = [];
     if (!editAvailS) disabledSizes.push('S');
     if (!editAvailM) disabledSizes.push('M');
     if (!editAvailL) disabledSizes.push('L');
     if (!editAvailXL) disabledSizes.push('XL');
+    if (!editAvail2XL) disabledSizes.push('2XL');
 
     const updated: Garment = {
       ...editingGarment,
@@ -735,12 +761,20 @@ export default function AdminPage() {
           height: editingGarment.sizes.XL.height || 180,
           inseam: editCatConfig.category === 'Bottom' ? 82 : undefined
         },
+        '2XL': { 
+          chest: editCatConfig.needsChest ? editChest2XL : undefined, 
+          waist: editCatConfig.needsWaist ? editWaist2XL : undefined, 
+          hips: editCatConfig.needsHips ? editHips2XL : undefined, 
+          height: editingGarment.sizes['2XL']?.height || 185,
+          inseam: editCatConfig.category === 'Bottom' ? 84 : undefined
+        },
       },
       inventory: {
         S: editAvailS ? (editingGarment.inventory.S || 0) : 0,
         M: editAvailM ? (editingGarment.inventory.M || 0) : 0,
         L: editAvailL ? (editingGarment.inventory.L || 0) : 0,
         XL: editAvailXL ? (editingGarment.inventory.XL || 0) : 0,
+        '2XL': editAvail2XL ? (editingGarment.inventory['2XL'] || 0) : 0,
       },
       colorTheme: {
         primary: editPrimaryGlow,
@@ -780,7 +814,7 @@ export default function AdminPage() {
   };
 
   // Inline Stock Adjuster
-  const handleUpdateStock = (p: Garment, size: 'S' | 'M' | 'L' | 'XL', newQty: number) => {
+  const handleUpdateStock = (p: Garment, size: 'S' | 'M' | 'L' | 'XL' | '2XL', newQty: number) => {
     if (newQty < 0) return;
     const updated = {
       ...p,
@@ -800,7 +834,8 @@ export default function AdminPage() {
     const qtyM = p.disabledSizes?.includes('M') ? 0 : (p.inventory?.M || 0);
     const qtyL = p.disabledSizes?.includes('L') ? 0 : (p.inventory?.L || 0);
     const qtyXL = p.disabledSizes?.includes('XL') ? 0 : (p.inventory?.XL || 0);
-    return sum + qtyS + qtyM + qtyL + qtyXL;
+    const qty2XL = p.disabledSizes?.includes('2XL') ? 0 : (p.inventory?.['2XL'] || 0);
+    return sum + qtyS + qtyM + qtyL + qtyXL + qty2XL;
   }, 0);
 
   const inventoryRetailValuation = products.reduce((sum, p) => {
@@ -808,7 +843,8 @@ export default function AdminPage() {
     const qtyM = p.disabledSizes?.includes('M') ? 0 : (p.inventory?.M || 0);
     const qtyL = p.disabledSizes?.includes('L') ? 0 : (p.inventory?.L || 0);
     const qtyXL = p.disabledSizes?.includes('XL') ? 0 : (p.inventory?.XL || 0);
-    const qty = qtyS + qtyM + qtyL + qtyXL;
+    const qty2XL = p.disabledSizes?.includes('2XL') ? 0 : (p.inventory?.['2XL'] || 0);
+    const qty = qtyS + qtyM + qtyL + qtyXL + qty2XL;
     return sum + (p.price * qty);
   }, 0);
 
@@ -817,7 +853,8 @@ export default function AdminPage() {
     const qtyM = p.disabledSizes?.includes('M') ? 0 : (p.inventory?.M || 0);
     const qtyL = p.disabledSizes?.includes('L') ? 0 : (p.inventory?.L || 0);
     const qtyXL = p.disabledSizes?.includes('XL') ? 0 : (p.inventory?.XL || 0);
-    const qty = qtyS + qtyM + qtyL + qtyXL;
+    const qty2XL = p.disabledSizes?.includes('2XL') ? 0 : (p.inventory?.['2XL'] || 0);
+    const qty = qtyS + qtyM + qtyL + qtyXL + qty2XL;
     const manufacturingCost = p.cost !== undefined ? p.cost : Math.round(p.price * 0.7);
     return sum + ((p.price - manufacturingCost) * qty);
   }, 0);
@@ -827,7 +864,8 @@ export default function AdminPage() {
     (!p.disabledSizes?.includes('S') && p.inventory?.S <= 3) ||
     (!p.disabledSizes?.includes('M') && p.inventory?.M <= 3) ||
     (!p.disabledSizes?.includes('L') && p.inventory?.L <= 3) ||
-    (!p.disabledSizes?.includes('XL') && p.inventory?.XL <= 3)
+    (!p.disabledSizes?.includes('XL') && p.inventory?.XL <= 3) ||
+    (!p.disabledSizes?.includes('2XL') && (p.inventory?.['2XL'] || 0) <= 3)
   );
 
   // Filter products for the Inventory Tab
@@ -841,7 +879,8 @@ export default function AdminPage() {
       (!p.disabledSizes?.includes('S') && p.inventory?.S <= 3) || 
       (!p.disabledSizes?.includes('M') && p.inventory?.M <= 3) || 
       (!p.disabledSizes?.includes('L') && p.inventory?.L <= 3) || 
-      (!p.disabledSizes?.includes('XL') && p.inventory?.XL <= 3)
+      (!p.disabledSizes?.includes('XL') && p.inventory?.XL <= 3) ||
+      (!p.disabledSizes?.includes('2XL') && (p.inventory?.['2XL'] || 0) <= 3)
     );
     return matchesSearch && matchesCategory && matchesGender && matchesLowStock;
   });
@@ -1122,7 +1161,7 @@ export default function AdminPage() {
                         <tr>
                           <th className="py-4 px-6">MODEL DETECT</th>
                           <th className="py-4 px-6">PRICE</th>
-                          <th className="py-4 px-6 text-center">QUANTITY LEVEL PER SIZE (S / M / L / XL)</th>
+                          <th className="py-4 px-6 text-center">QUANTITY LEVEL PER SIZE (S / M / L / XL / 2XL)</th>
                           <th className="py-4 px-6 text-center">TOTAL STOCK</th>
                           <th className="py-4 px-6 text-right">OPERATIONS</th>
                         </tr>
@@ -1140,11 +1179,13 @@ export default function AdminPage() {
                             const totalStock = (p.disabledSizes?.includes('S') ? 0 : (p.inventory?.S || 0)) +
                                                (p.disabledSizes?.includes('M') ? 0 : (p.inventory?.M || 0)) +
                                                (p.disabledSizes?.includes('L') ? 0 : (p.inventory?.L || 0)) +
-                                               (p.disabledSizes?.includes('XL') ? 0 : (p.inventory?.XL || 0));
+                                               (p.disabledSizes?.includes('XL') ? 0 : (p.inventory?.XL || 0)) +
+                                               (p.disabledSizes?.includes('2XL') ? 0 : (p.inventory?.['2XL'] || 0));
                             const isLowStock = (!p.disabledSizes?.includes('S') && p.inventory?.S <= 3) ||
                                                (!p.disabledSizes?.includes('M') && p.inventory?.M <= 3) ||
                                                (!p.disabledSizes?.includes('L') && p.inventory?.L <= 3) ||
-                                               (!p.disabledSizes?.includes('XL') && p.inventory?.XL <= 3);
+                                               (!p.disabledSizes?.includes('XL') && p.inventory?.XL <= 3) ||
+                                               (!p.disabledSizes?.includes('2XL') && (p.inventory?.['2XL'] || 0) <= 3);
                             return (
                               <tr key={p.id} className="hover:bg-white/[0.01] transition-colors">
                                 <td className="py-4 px-6">
@@ -1168,7 +1209,7 @@ export default function AdminPage() {
                                 </td>
                                 <td className="py-4 px-6">
                                   <div className="flex justify-center gap-2">
-                                    {(['S', 'M', 'L', 'XL'] as const).map((size) => {
+                                    {(['S', 'M', 'L', 'XL', '2XL'] as const).map((size) => {
                                       const isDisabled = p.disabledSizes?.includes(size);
                                       const stockVal = p.inventory?.[size] ?? 0;
                                       
@@ -1766,6 +1807,59 @@ export default function AdminPage() {
                             !catConfig.needsHips
                               ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
                               : availXL
+                              ? 'border-white/10 focus:border-cyber-green'
+                              : 'border-transparent text-white/15 bg-transparent'
+                          }`}
+                          placeholder={!catConfig.needsHips ? 'N/A' : ''}
+                        />
+
+                        {/* Size 2XL */}
+                        <div className="flex items-center gap-1.5 justify-center">
+                          <input
+                            type="checkbox"
+                            checked={avail2XL}
+                            onChange={(e) => setAvail2XL(e.target.checked)}
+                            className="w-3.5 h-3.5 accent-cyber-green cursor-pointer"
+                          />
+                          <span className={`font-mono text-xs font-bold self-center ${avail2XL ? 'text-cyber-purple' : 'text-white/25'}`}>2XL</span>
+                        </div>
+                        <input
+                          type="number"
+                          value={catConfig.needsChest ? chest2XL : 0}
+                          disabled={!avail2XL || !catConfig.needsChest}
+                          onChange={(e) => setChest2XL(parseInt(e.target.value))}
+                          className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
+                            !catConfig.needsChest
+                              ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                              : avail2XL
+                              ? 'border-white/10 focus:border-cyber-green'
+                              : 'border-transparent text-white/15 bg-transparent'
+                          }`}
+                          placeholder={!catConfig.needsChest ? 'N/A' : ''}
+                        />
+                        <input
+                          type="number"
+                          value={catConfig.needsWaist ? waist2XL : 0}
+                          disabled={!avail2XL || !catConfig.needsWaist}
+                          onChange={(e) => setWaist2XL(parseInt(e.target.value))}
+                          className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
+                            !catConfig.needsWaist
+                              ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                              : avail2XL
+                              ? 'border-white/10 focus:border-cyber-green'
+                              : 'border-transparent text-white/15 bg-transparent'
+                          }`}
+                          placeholder={!catConfig.needsWaist ? 'N/A' : ''}
+                        />
+                        <input
+                          type="number"
+                          value={catConfig.needsHips ? hips2XL : 0}
+                          disabled={!avail2XL || !catConfig.needsHips}
+                          onChange={(e) => setHips2XL(parseInt(e.target.value))}
+                          className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
+                            !catConfig.needsHips
+                              ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                              : avail2XL
                               ? 'border-white/10 focus:border-cyber-green'
                               : 'border-transparent text-white/15 bg-transparent'
                           }`}
@@ -2769,6 +2863,59 @@ export default function AdminPage() {
                           !editCatConfig.needsHips
                             ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
                             : editAvailXL
+                            ? 'border-white/10 focus:border-cyber-blue'
+                            : 'border-transparent text-white/10 bg-transparent'
+                        }`}
+                        placeholder={!editCatConfig.needsHips ? 'N/A' : ''}
+                      />
+
+                      {/* Size 2XL */}
+                      <div className="flex items-center gap-1.5 justify-center">
+                        <input
+                          type="checkbox"
+                          checked={editAvail2XL}
+                          onChange={(e) => setEditAvail2XL(e.target.checked)}
+                          className="w-3.5 h-3.5 accent-cyber-blue cursor-pointer"
+                        />
+                        <span className={`font-bold self-center ${editAvail2XL ? 'text-cyber-blue' : 'text-white/25'}`}>2XL</span>
+                      </div>
+                      <input
+                        type="number"
+                        value={editCatConfig.needsChest ? editChest2XL : 0}
+                        disabled={!editAvail2XL || !editCatConfig.needsChest}
+                        onChange={(e) => setEditChest2XL(parseInt(e.target.value))}
+                        className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
+                          !editCatConfig.needsChest
+                            ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                            : editAvail2XL
+                            ? 'border-white/10 focus:border-cyber-blue'
+                            : 'border-transparent text-white/10 bg-transparent'
+                        }`}
+                        placeholder={!editCatConfig.needsChest ? 'N/A' : ''}
+                      />
+                      <input
+                        type="number"
+                        value={editCatConfig.needsWaist ? editWaist2XL : 0}
+                        disabled={!editAvail2XL || !editCatConfig.needsWaist}
+                        onChange={(e) => setEditWaist2XL(parseInt(e.target.value))}
+                        className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
+                          !editCatConfig.needsWaist
+                            ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                            : editAvail2XL
+                            ? 'border-white/10 focus:border-cyber-blue'
+                            : 'border-transparent text-white/10 bg-transparent'
+                        }`}
+                        placeholder={!editCatConfig.needsWaist ? 'N/A' : ''}
+                      />
+                      <input
+                        type="number"
+                        value={editCatConfig.needsHips ? editHips2XL : 0}
+                        disabled={!editAvail2XL || !editCatConfig.needsHips}
+                        onChange={(e) => setEditHips2XL(parseInt(e.target.value))}
+                        className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
+                          !editCatConfig.needsHips
+                            ? 'border-dashed border-white/5 text-white/10 bg-transparent cursor-not-allowed'
+                            : editAvail2XL
                             ? 'border-white/10 focus:border-cyber-blue'
                             : 'border-transparent text-white/10 bg-transparent'
                         }`}

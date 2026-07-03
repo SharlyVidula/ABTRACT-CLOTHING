@@ -83,8 +83,8 @@ export default function AtelierModal() {
               {/* Sizing Grid Custom Selector */}
               <div className="flex flex-col gap-3 border-t border-white/10 pt-5">
                 <span className="font-mono text-xs tracking-wider text-white/50">CHOOSE TARGET FIT SIZE</span>
-                <div className="grid grid-cols-4 gap-2">
-                  {(['S', 'M', 'L', 'XL'] as const).map((size) => {
+                <div className="grid grid-cols-5 gap-2">
+                  {(['S', 'M', 'L', 'XL', '2XL'] as const).map((size) => {
                     const isSelected = selectedSize === size;
                     const isDisabled = selectedGarment?.disabledSizes?.includes(size);
                     return (

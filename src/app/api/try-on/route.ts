@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const garmentSize = garment.sizes[size as 'S' | 'M' | 'L' | 'XL'];
+    const garmentSize = garment.sizes[size as 'S' | 'M' | 'L' | 'XL' | '2XL'];
     if (!garmentSize) {
       return NextResponse.json(
         { error: 'Invalid size specified for this garment' },
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
 
     // Calculate dynamic sizing advisory recommendation (e.g. if close to border limits)
     let sizeAdvisory: string | null = null;
-    const sizesList = ['S', 'M', 'L', 'XL'];
+    const sizesList = ['S', 'M', 'L', 'XL', '2XL'];
     const currentSizeIdx = sizesList.indexOf(size);
     const nextSize = currentSizeIdx < sizesList.length - 1 ? sizesList[currentSizeIdx + 1] : null;
 

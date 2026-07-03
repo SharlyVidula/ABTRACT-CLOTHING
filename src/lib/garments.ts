@@ -19,6 +19,7 @@ export interface GarmentSizeGuide {
   M: GarmentMeasurements;
   L: GarmentMeasurements;
   XL: GarmentMeasurements;
+  '2XL': GarmentMeasurements;
 }
 
 export interface Garment {
@@ -35,6 +36,7 @@ export interface Garment {
     M: number;
     L: number;
     XL: number;
+    '2XL': number;
   };
   colorTheme: {
     primary: string;
@@ -53,7 +55,7 @@ export interface Garment {
   image: string; // relative path under /public e.g. "/aurelia_silk_frock.png"
   images?: string[]; // optional additional gallery images
   video?: string; // optional runway video path
-  disabledSizes?: ('S' | 'M' | 'L' | 'XL')[];
+  disabledSizes?: ('S' | 'M' | 'L' | 'XL' | '2XL')[];
   categoryName?: string;
 }
 
@@ -73,9 +75,10 @@ export const GARMENTS: Garment[] = [
       S: { chest: 88, waist: 68, hips: 92, height: 165 },
       M: { chest: 96, waist: 76, hips: 100, height: 170 },
       L: { chest: 104, waist: 84, hips: 108, height: 175 },
-      XL: { chest: 112, waist: 92, hips: 116, height: 180 }
+      XL: { chest: 112, waist: 92, hips: 116, height: 180  },
+      '2XL': { chest: 120, waist: 100, hips: 124, height: 185 }
     },
-    inventory: { S: 5, M: 8, L: 4, XL: 2 },
+    inventory: { S: 5, M: 8, L: 4, XL: 2, '2XL': 2 },
     colorTheme: {
       primary: '#d500f9',
       secondary: '#00ffaa',
@@ -106,9 +109,10 @@ export const GARMENTS: Garment[] = [
       S: { chest: 90, waist: 70, hips: 94, height: 165 },
       M: { chest: 98, waist: 78, hips: 102, height: 170 },
       L: { chest: 106, waist: 86, hips: 110, height: 175 },
-      XL: { chest: 114, waist: 94, hips: 118, height: 180 }
+      XL: { chest: 114, waist: 94, hips: 118, height: 180  },
+      '2XL': { chest: 122, waist: 102, hips: 126, height: 185 }
     },
-    inventory: { S: 3, M: 6, L: 3, XL: 1 },
+    inventory: { S: 3, M: 6, L: 3, XL: 1, '2XL': 1 },
     colorTheme: {
       primary: '#00ffaa',
       secondary: '#00e5ff',
@@ -139,9 +143,10 @@ export const GARMENTS: Garment[] = [
       S: { chest: 92, waist: 72, hips: 96, height: 168 },
       M: { chest: 100, waist: 80, hips: 104, height: 172 },
       L: { chest: 108, waist: 88, hips: 112, height: 176 },
-      XL: { chest: 116, waist: 96, hips: 120, height: 180 }
+      XL: { chest: 116, waist: 96, hips: 120, height: 180  },
+      '2XL': { chest: 124, waist: 104, hips: 128, height: 185 }
     },
-    inventory: { S: 2, M: 5, L: 4, XL: 2 },
+    inventory: { S: 2, M: 5, L: 4, XL: 2, '2XL': 2 },
     colorTheme: {
       primary: '#00e5ff',
       secondary: '#d500f9',
@@ -172,9 +177,10 @@ export const GARMENTS: Garment[] = [
       S: { chest: 86, waist: 66, hips: 90, height: 165 },
       M: { chest: 94, waist: 74, hips: 98, height: 170 },
       L: { chest: 102, waist: 82, hips: 106, height: 175 },
-      XL: { chest: 110, waist: 90, hips: 114, height: 180 }
+      XL: { chest: 110, waist: 90, hips: 114, height: 180  },
+      '2XL': { chest: 118, waist: 98, hips: 122, height: 185 }
     },
-    inventory: { S: 4, M: 7, L: 5, XL: 3 },
+    inventory: { S: 4, M: 7, L: 5, XL: 3, '2XL': 3 },
     colorTheme: {
       primary: '#d500f9',
       secondary: '#00ffaa',
@@ -205,9 +211,10 @@ export const GARMENTS: Garment[] = [
       S: { chest: 90, waist: 68, hips: 92, height: 165 },
       M: { chest: 98, waist: 76, hips: 100, height: 170 },
       L: { chest: 106, waist: 84, hips: 108, height: 175 },
-      XL: { chest: 114, waist: 92, hips: 116, height: 180 }
+      XL: { chest: 114, waist: 92, hips: 116, height: 180  },
+      '2XL': { chest: 122, waist: 100, hips: 124, height: 185 }
     },
-    inventory: { S: 6, M: 10, L: 6, XL: 4 },
+    inventory: { S: 6, M: 10, L: 6, XL: 4, '2XL': 4 },
     colorTheme: {
       primary: '#00ffaa',
       secondary: '#00e5ff',
@@ -239,9 +246,10 @@ export const GARMENTS: Garment[] = [
       S: { chest: 108, waist: 104, hips: 106, height: 170 },
       M: { chest: 116, waist: 112, hips: 114, height: 175 },
       L: { chest: 124, waist: 120, hips: 122, height: 180 },
-      XL: { chest: 132, waist: 128, hips: 130, height: 185 }
+      XL: { chest: 132, waist: 128, hips: 130, height: 185  },
+      '2XL': { chest: 140, waist: 136, hips: 138, height: 190 }
     },
-    inventory: { S: 25, M: 40, L: 30, XL: 15 },
+    inventory: { S: 25, M: 40, L: 30, XL: 15, '2XL': 15 },
     colorTheme: {
       primary: '#00e5ff',
       secondary: '#d500f9',
@@ -273,9 +281,10 @@ export const GARMENTS: Garment[] = [
       S: { chest: 94, waist: 80, hips: 96, height: 170, inseam: 76 },
       M: { chest: 102, waist: 88, hips: 104, height: 175, inseam: 78 },
       L: { chest: 110, waist: 96, hips: 112, height: 180, inseam: 80 },
-      XL: { chest: 118, waist: 104, hips: 120, height: 185, inseam: 82 }
+      XL: { chest: 118, waist: 104, hips: 120, height: 185, inseam: 82  },
+      '2XL': { chest: 126, waist: 112, hips: 128, height: 190, inseam: 84 }
     },
-    inventory: { S: 8, M: 12, L: 8, XL: 4 },
+    inventory: { S: 8, M: 12, L: 8, XL: 4, '2XL': 4 },
     colorTheme: {
       primary: '#b45309',
       secondary: '#475569',
@@ -306,9 +315,10 @@ export const GARMENTS: Garment[] = [
       S: { chest: 80, waist: 74, hips: 92, height: 170, inseam: 76 },
       M: { chest: 88, waist: 82, hips: 100, height: 175, inseam: 78 },
       L: { chest: 96, waist: 90, hips: 108, height: 180, inseam: 80 },
-      XL: { chest: 104, waist: 98, hips: 116, height: 185, inseam: 82 }
+      XL: { chest: 104, waist: 98, hips: 116, height: 185, inseam: 82  },
+      '2XL': { chest: 112, waist: 106, hips: 124, height: 190, inseam: 84 }
     },
-    inventory: { S: 12, M: 15, L: 10, XL: 6 },
+    inventory: { S: 12, M: 15, L: 10, XL: 6, '2XL': 6 },
     colorTheme: {
       primary: '#475569',
       secondary: '#b45309',
@@ -339,9 +349,10 @@ export const GARMENTS: Garment[] = [
       S: { chest: 100, waist: 88, hips: 98, height: 172, inseam: 76 },
       M: { chest: 108, waist: 96, hips: 106, height: 177, inseam: 78 },
       L: { chest: 116, waist: 104, hips: 114, height: 182, inseam: 80 },
-      XL: { chest: 124, waist: 112, hips: 122, height: 187, inseam: 82 }
+      XL: { chest: 124, waist: 112, hips: 122, height: 187, inseam: 82  },
+      '2XL': { chest: 132, waist: 120, hips: 130, height: 192, inseam: 84 }
     },
-    inventory: { S: 6, M: 8, L: 5, XL: 3 },
+    inventory: { S: 6, M: 8, L: 5, XL: 3, '2XL': 3 },
     colorTheme: {
       primary: '#b45309',
       secondary: '#475569',
@@ -375,9 +386,10 @@ export const GARMENTS: Garment[] = [
       S: { chest: 86, waist: 66, hips: 90, height: 165 },
       M: { chest: 94, waist: 74, hips: 98, height: 170 },
       L: { chest: 102, waist: 82, hips: 106, height: 175 },
-      XL: { chest: 110, waist: 90, hips: 114, height: 180 }
+      XL: { chest: 110, waist: 90, hips: 114, height: 180  },
+      '2XL': { chest: 118, waist: 98, hips: 122, height: 185 }
     },
-    inventory: { S: 6, M: 10, L: 7, XL: 4 },
+    inventory: { S: 6, M: 10, L: 7, XL: 4, '2XL': 4 },
     colorTheme: {
       primary: '#f9a8d4',
       secondary: '#e879f9',
@@ -409,9 +421,10 @@ export const GARMENTS: Garment[] = [
       S: { chest: 88, waist: 68, hips: 90, height: 165 },
       M: { chest: 96, waist: 76, hips: 98, height: 170 },
       L: { chest: 104, waist: 84, hips: 106, height: 175 },
-      XL: { chest: 112, waist: 92, hips: 114, height: 180 }
+      XL: { chest: 112, waist: 92, hips: 114, height: 180  },
+      '2XL': { chest: 120, waist: 100, hips: 122, height: 185 }
     },
-    inventory: { S: 8, M: 14, L: 9, XL: 5 },
+    inventory: { S: 8, M: 14, L: 9, XL: 5, '2XL': 5 },
     colorTheme: {
       primary: '#3b82f6',
       secondary: '#06b6d4',
@@ -443,9 +456,10 @@ export const GARMENTS: Garment[] = [
       S: { waist: 66, hips: 90, height: 165, inseam: 62 },
       M: { waist: 74, hips: 98, height: 170, inseam: 64 },
       L: { waist: 82, hips: 106, height: 175, inseam: 66 },
-      XL: { waist: 90, hips: 114, height: 180, inseam: 68 }
+      XL: { waist: 90, hips: 114, height: 180, inseam: 68  },
+      '2XL': { waist: 98, hips: 122, height: 185, inseam: 70 }
     },
-    inventory: { S: 7, M: 12, L: 8, XL: 4 },
+    inventory: { S: 7, M: 12, L: 8, XL: 4, '2XL': 4 },
     colorTheme: {
       primary: '#10b981',
       secondary: '#34d399',
@@ -477,9 +491,10 @@ export const GARMENTS: Garment[] = [
       S: { chest: 80, waist: 62, hips: 84, height: 160 },
       M: { chest: 88, waist: 70, hips: 92, height: 165 },
       L: { chest: 96, waist: 78, hips: 100, height: 170 },
-      XL: { chest: 104, waist: 86, hips: 108, height: 175 }
+      XL: { chest: 104, waist: 86, hips: 108, height: 175  },
+      '2XL': { chest: 112, waist: 94, hips: 116, height: 180 }
     },
-    inventory: { S: 10, M: 16, L: 10, XL: 5 },
+    inventory: { S: 10, M: 16, L: 10, XL: 5, '2XL': 5 },
     colorTheme: {
       primary: '#fb7185',
       secondary: '#fda4af',
@@ -511,9 +526,10 @@ export const GARMENTS: Garment[] = [
       S: { chest: 84, waist: 64, hips: 88, height: 165 },
       M: { chest: 92, waist: 72, hips: 96, height: 170 },
       L: { chest: 100, waist: 80, hips: 104, height: 175 },
-      XL: { chest: 108, waist: 88, hips: 112, height: 180 }
+      XL: { chest: 108, waist: 88, hips: 112, height: 180  },
+      '2XL': { chest: 116, waist: 96, hips: 120, height: 185 }
     },
-    inventory: { S: 5, M: 8, L: 5, XL: 3 },
+    inventory: { S: 5, M: 8, L: 5, XL: 3, '2XL': 3 },
     colorTheme: {
       primary: '#a78bfa',
       secondary: '#7c3aed',
@@ -545,9 +561,10 @@ export const GARMENTS: Garment[] = [
       S: { waist: 74, hips: 92, height: 170, inseam: 76 },
       M: { waist: 82, hips: 100, height: 175, inseam: 78 },
       L: { waist: 90, hips: 108, height: 180, inseam: 80 },
-      XL: { waist: 98, hips: 116, height: 185, inseam: 82 }
+      XL: { waist: 98, hips: 116, height: 185, inseam: 82  },
+      '2XL': { waist: 106, hips: 124, height: 190, inseam: 84 }
     },
-    inventory: { S: 10, M: 15, L: 10, XL: 6 },
+    inventory: { S: 10, M: 15, L: 10, XL: 6, '2XL': 6 },
     colorTheme: {
       primary: '#64748b',
       secondary: '#94a3b8',
@@ -579,9 +596,10 @@ export const GARMENTS: Garment[] = [
       S: { chest: 100, waist: 96, hips: 98, height: 170 },
       M: { chest: 108, waist: 104, hips: 106, height: 175 },
       L: { chest: 116, waist: 112, hips: 114, height: 180 },
-      XL: { chest: 124, waist: 120, hips: 122, height: 185 }
+      XL: { chest: 124, waist: 120, hips: 122, height: 185  },
+      '2XL': { chest: 132, waist: 128, hips: 130, height: 190 }
     },
-    inventory: { S: 18, M: 25, L: 18, XL: 10 },
+    inventory: { S: 18, M: 25, L: 18, XL: 10, '2XL': 10 },
     colorTheme: {
       primary: '#6b7280',
       secondary: '#9ca3af',
@@ -613,9 +631,10 @@ export const GARMENTS: Garment[] = [
       S: { chest: 102, waist: 90, hips: 100, height: 170, inseam: 76 },
       M: { chest: 110, waist: 98, hips: 108, height: 175, inseam: 78 },
       L: { chest: 118, waist: 106, hips: 116, height: 180, inseam: 80 },
-      XL: { chest: 126, waist: 114, hips: 124, height: 185, inseam: 82 }
+      XL: { chest: 126, waist: 114, hips: 124, height: 185, inseam: 82  },
+      '2XL': { chest: 134, waist: 122, hips: 132, height: 190, inseam: 84 }
     },
-    inventory: { S: 8, M: 12, L: 8, XL: 4 },
+    inventory: { S: 8, M: 12, L: 8, XL: 4, '2XL': 4 },
     colorTheme: {
       primary: '#c084fc',
       secondary: '#a855f7',
@@ -647,9 +666,10 @@ export const GARMENTS: Garment[] = [
       S: { chest: 98, waist: 86, hips: 96, height: 165 },
       M: { chest: 106, waist: 94, hips: 104, height: 172 },
       L: { chest: 114, waist: 102, hips: 112, height: 178 },
-      XL: { chest: 122, waist: 110, hips: 120, height: 184 }
+      XL: { chest: 122, waist: 110, hips: 120, height: 184  },
+      '2XL': { chest: 130, waist: 118, hips: 128, height: 189 }
     },
-    inventory: { S: 12, M: 18, L: 12, XL: 7 },
+    inventory: { S: 12, M: 18, L: 12, XL: 7, '2XL': 7 },
     colorTheme: {
       primary: '#84cc16',
       secondary: '#4ade80',
@@ -681,9 +701,10 @@ export const GARMENTS: Garment[] = [
       S: { waist: 70, hips: 90, height: 165, inseam: 74 },
       M: { waist: 78, hips: 98, height: 172, inseam: 76 },
       L: { waist: 86, hips: 106, height: 178, inseam: 78 },
-      XL: { waist: 94, hips: 114, height: 184, inseam: 80 }
+      XL: { waist: 94, hips: 114, height: 184, inseam: 80  },
+      '2XL': { waist: 102, hips: 122, height: 189, inseam: 82 }
     },
-    inventory: { S: 15, M: 22, L: 15, XL: 8 },
+    inventory: { S: 15, M: 22, L: 15, XL: 8, '2XL': 8 },
     colorTheme: {
       primary: '#f59e0b',
       secondary: '#fbbf24',

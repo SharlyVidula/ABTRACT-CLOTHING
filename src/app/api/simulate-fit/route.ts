@@ -36,16 +36,16 @@ export async function POST(req: NextRequest) {
       - Size Guide Dimensions: ${JSON.stringify(garment.sizes)}
       - Selected Size: ${size}
 
-      1. Identify which catalog size (S, M, L, XL) is the optimal recommendation for the customer's chest, waist, and hips.
+      1. Identify which catalog size (S, M, L, XL, 2XL) is the optimal recommendation for the customer's chest, waist, and hips.
       2. Generate a detailed "Fit & Feel" review. Describe how the garment's specific fabrics (e.g. heavy cotton, silk, knit mesh) will drape, feel, and fit on their physical proportions. Keep this review luxurious, styling-focused, and 3-4 sentences long.
       3. Provide a comparison of how the fit and feel will change if they:
-         - Size Down: what happens if they wear one size smaller than the selected size.
-         - Selected Size: detail the fit and feel of the currently selected size.
-         - Size Up: what happens if they wear one size larger than the selected size.
+          - Size Down: what happens if they wear one size smaller than the selected size.
+          - Selected Size: detail the fit and feel of the currently selected size.
+          - Size Up: what happens if they wear one size larger than the selected size.
 
       Respond ONLY with a valid JSON object matching this schema:
       {
-        "recommendedSize": "S" | "M" | "L" | "XL",
+        "recommendedSize": "S" | "M" | "L" | "XL" | "2XL",
         "fitAndFeel": "Detailed paragraph explaining the fit and fabric feel on their body proportions.",
         "sizeComparisons": {
           "sizeDown": "Short, clear description of the fit/drape if they size down.",
