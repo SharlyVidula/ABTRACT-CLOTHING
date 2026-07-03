@@ -110,7 +110,7 @@ export default function AdminPage() {
   const [editPrimaryGlow, setEditPrimaryGlow] = useState('#d500f9');
   const [editSecondaryGlow, setEditSecondaryGlow] = useState('#00ffaa');
   const [editGender, setEditGender] = useState<'Male' | 'Female' | 'Unisex'>('Female');
-  const [editImagePath, setEditImagePath] = useState('/aurelia_silk_frock.png');
+  const [editImagePath, setEditImagePath] = useState('');
 
   // Search/Dropdown States for Category selector inside Edit Modal
   const [editCatSearch, setEditCatSearch] = useState('');
@@ -154,7 +154,7 @@ export default function AdminPage() {
   const [primaryGlow, setPrimaryGlow] = useState('#d500f9');
   const [secondaryGlow, setSecondaryGlow] = useState('#00ffaa');
   const [gender, setGender] = useState<'Male' | 'Female' | 'Unisex'>('Female');
-  const [imagePath, setImagePath] = useState('/aurelia_silk_frock.png');
+  const [imagePath, setImagePath] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
 
   // Search/Dropdown States for Category selector inside Catalog Injector
@@ -602,8 +602,8 @@ export default function AdminPage() {
         glowingLines: true,
       },
       gender,
-      image: imagePath || (images.length > 0 ? images[0] : '/aurelia_silk_frock.png'),
-      images: images.length > 0 ? images : [imagePath || '/aurelia_silk_frock.png'],
+      image: imagePath || (images.length > 0 ? images[0] : ''),
+      images: images.length > 0 ? images : (imagePath ? [imagePath] : []),
       video: video || undefined,
       disabledSizes,
     };
@@ -623,7 +623,7 @@ export default function AdminPage() {
     setAvailXL(true);
     setSelectedCatName('T-Shirt');
     setCatSearch('');
-    setImagePath('/aurelia_silk_frock.png');
+    setImagePath('');
     setImages([]);
     setVideo('');
     
@@ -755,8 +755,8 @@ export default function AdminPage() {
         glowingLines: true,
       },
       gender: editGender,
-      image: editImagePath || (editImages.length > 0 ? editImages[0] : '/aurelia_silk_frock.png'),
-      images: editImages.length > 0 ? editImages : [editImagePath || '/aurelia_silk_frock.png'],
+      image: editImagePath || (editImages.length > 0 ? editImages[0] : ''),
+      images: editImages.length > 0 ? editImages : (editImagePath ? [editImagePath] : []),
       video: editVideo || undefined,
       disabledSizes,
     };
@@ -1481,20 +1481,38 @@ export default function AdminPage() {
                             {images.map((img, idx) => (
                               <div key={idx} className="relative group rounded-xl overflow-hidden aspect-square bg-black/40 border border-white/10 flex items-center justify-center">
                                 <img src={img} alt="" className="w-full h-full object-cover" />
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    const updated = images.filter((_, i) => i !== idx);
-                                    setImages(updated);
-                                    if (imagePath === img) {
-                                      setImagePath(updated[0] || '');
-                                    }
-                                  }}
-                                  className="absolute inset-0 bg-black/75 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 font-mono text-[10px] uppercase font-bold"
-                                >
-                                  Remove
-                                </button>
+                                <div className="absolute inset-0 bg-black/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 flex flex-col justify-between p-1.5 transition-opacity duration-200 z-10">
+                                  {imagePath === img ? (
+                                    <span className="text-[9px] font-mono font-bold bg-cyber-green/20 text-cyber-green border border-cyber-green/30 px-1.5 py-0.5 rounded uppercase self-start">
+                                      Cover
+                                    </span>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setImagePath(img);
+                                      }}
+                                      className="text-[9px] font-mono font-bold bg-white/10 hover:bg-cyber-green hover:text-black text-white px-1.5 py-0.5 rounded uppercase transition-colors text-left self-start cursor-pointer"
+                                    >
+                                      Set Cover
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const updated = images.filter((_, i) => i !== idx);
+                                      setImages(updated);
+                                      if (imagePath === img) {
+                                        setImagePath(updated[0] || '');
+                                      }
+                                    }}
+                                    className="text-[9px] font-mono font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 px-1.5 py-0.5 rounded uppercase text-left self-end cursor-pointer"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
                                 {imagePath === img && (
                                   <div className="absolute bottom-1 right-1 bg-cyber-green text-black font-mono font-bold text-[8px] px-1 py-0.5 rounded uppercase">
                                     Main
@@ -2466,20 +2484,38 @@ export default function AdminPage() {
                           {editImages.map((img, idx) => (
                             <div key={idx} className="relative group rounded-xl overflow-hidden aspect-square bg-black/40 border border-white/10 flex items-center justify-center">
                               <img src={img} alt="" className="w-full h-full object-cover" />
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const updated = editImages.filter((_, i) => i !== idx);
-                                  setEditImages(updated);
-                                  if (editImagePath === img) {
-                                    setEditImagePath(updated[0] || '');
-                                  }
-                                }}
-                                className="absolute inset-0 bg-black/75 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 font-mono text-[10px] uppercase font-bold"
-                              >
-                                Remove
-                              </button>
+                              <div className="absolute inset-0 bg-black/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 flex flex-col justify-between p-1.5 transition-opacity duration-200 z-10">
+                                {editImagePath === img ? (
+                                  <span className="text-[9px] font-mono font-bold bg-cyber-blue/20 text-cyber-blue border border-cyber-blue/30 px-1.5 py-0.5 rounded uppercase self-start">
+                                    Cover
+                                  </span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setEditImagePath(img);
+                                    }}
+                                    className="text-[9px] font-mono font-bold bg-white/10 hover:bg-cyber-blue hover:text-white text-white px-1.5 py-0.5 rounded uppercase transition-colors text-left self-start cursor-pointer"
+                                  >
+                                    Set Cover
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const updated = editImages.filter((_, i) => i !== idx);
+                                    setEditImages(updated);
+                                    if (editImagePath === img) {
+                                      setEditImagePath(updated[0] || '');
+                                    }
+                                  }}
+                                  className="text-[9px] font-mono font-bold text-red-400 hover:text-red-300 hover:bg-red-500/10 px-1.5 py-0.5 rounded uppercase text-left self-end cursor-pointer"
+                                >
+                                  Remove
+                                </button>
+                              </div>
                               {editImagePath === img && (
                                 <div className="absolute bottom-1 right-1 bg-cyber-blue text-white font-mono font-bold text-[8px] px-1 py-0.5 rounded uppercase">
                                   Main
