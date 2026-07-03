@@ -134,6 +134,8 @@ export default function AdminPage() {
   const [editUploadError, setEditUploadError] = useState('');
   const [isEditDragActive, setIsEditDragActive] = useState(false);
   const editFileInputRef = useRef<HTMLInputElement>(null);
+  const [editImages, setEditImages] = useState<string[]>([]);
+  const [editVideo, setEditVideo] = useState<string>('');
 
   // Edit sizing availability states
   const [editAvailS, setEditAvailS] = useState(true);
@@ -178,6 +180,8 @@ export default function AdminPage() {
   const [uploadError, setUploadError] = useState('');
   const [isDragActive, setIsDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [images, setImages] = useState<string[]>([]);
+  const [video, setVideo] = useState<string>('');
 
   // Product creator availability states
   const [availS, setAvailS] = useState(true);
@@ -431,7 +435,6 @@ export default function AdminPage() {
   const uploadImageFile = async (file: File, isEdit: boolean) => {
     const setError = isEdit ? setEditUploadError : setUploadError;
     const setUploading = isEdit ? setIsEditUploading : setIsUploading;
-    const setImage = isEdit ? setEditImagePath : setImagePath;
 
     setError('');
     setUploading(true);
@@ -451,7 +454,21 @@ export default function AdminPage() {
 
       const data = await res.json();
       if (data.success && data.path) {
-        setImage(data.path);
+        if (file.type.startsWith('video/')) {
+          if (isEdit) {
+            setEditVideo(data.path);
+          } else {
+            setVideo(data.path);
+          }
+        } else {
+          if (isEdit) {
+            setEditImages(prev => [...prev, data.path]);
+            if (!editImagePath) setEditImagePath(data.path);
+          } else {
+            setImages(prev => [...prev, data.path]);
+            if (!imagePath) setImagePath(data.path);
+          }
+        }
       } else {
         throw new Error(data.error || 'Invalid upload response');
       }
@@ -462,12 +479,24 @@ export default function AdminPage() {
         const reader = new FileReader();
         reader.onload = (e) => {
           if (e.target?.result) {
-            setImage(e.target.result as string);
+            const dataUrl = e.target.result as string;
+            if (file.type.startsWith('video/')) {
+              if (isEdit) setEditVideo(dataUrl);
+              else setVideo(dataUrl);
+            } else {
+              if (isEdit) {
+                setEditImages(prev => [...prev, dataUrl]);
+                if (!editImagePath) setEditImagePath(dataUrl);
+              } else {
+                setImages(prev => [...prev, dataUrl]);
+                if (!imagePath) setImagePath(dataUrl);
+              }
+            }
           }
         };
         reader.readAsDataURL(file);
       } catch (fallbackErr) {
-        setError('Failed to upload image. Please try again.');
+        setError('Failed to upload asset. Please try again.');
       }
     } finally {
       setUploading(false);
@@ -504,9 +533,11 @@ export default function AdminPage() {
       setIsDragActive(false);
     }
 
-    const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      await uploadImageFile(file, isEdit);
+    const files = Array.from(e.dataTransfer.files);
+    for (const file of files) {
+      if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
+        await uploadImageFile(file, isEdit);
+      }
     }
   };
 
@@ -585,7 +616,9 @@ export default function AdminPage() {
         glowingLines: true,
       },
       gender,
-      image: imagePath,
+      image: imagePath || (images.length > 0 ? images[0] : '/aurelia_silk_frock.png'),
+      images: images.length > 0 ? images : [imagePath || '/aurelia_silk_frock.png'],
+      video: video || undefined,
       disabledSizes,
     };
 
@@ -604,6 +637,9 @@ export default function AdminPage() {
     setAvailXL(true);
     setSelectedCatName('T-Shirt');
     setCatSearch('');
+    setImagePath('/aurelia_silk_frock.png');
+    setImages([]);
+    setVideo('');
     
     setTimeout(() => {
       setIsSuccess(false);
@@ -622,6 +658,8 @@ export default function AdminPage() {
     setEditSecondaryGlow(p.colorTheme.secondary);
     setEditGender(p.gender);
     setEditImagePath(p.image);
+    setEditImages(p.images || [p.image]);
+    setEditVideo(p.video || '');
 
     // Resolve Category Name
     let catName = 'T-Shirt';
@@ -731,7 +769,9 @@ export default function AdminPage() {
         glowingLines: true,
       },
       gender: editGender,
-      image: editImagePath,
+      image: editImagePath || (editImages.length > 0 ? editImages[0] : '/aurelia_silk_frock.png'),
+      images: editImages.length > 0 ? editImages : [editImagePath || '/aurelia_silk_frock.png'],
+      video: editVideo || undefined,
       disabledSizes,
     };
 
@@ -1374,17 +1414,20 @@ export default function AdminPage() {
                     </div>
 
                     <div className="flex flex-col gap-3">
-                      <label className="font-mono text-[10px] text-white/50 tracking-wider">PRODUCT VISUAL ASSET</label>
+                      <label className="font-mono text-[10px] text-white/50 tracking-wider">PRODUCT VISUAL ASSETS</label>
                       
                       {/* Hidden File Input */}
                       <input
                         type="file"
                         ref={fileInputRef}
-                        accept="image/*"
+                        accept="image/*,video/*"
+                        multiple
                         className="hidden"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) uploadImageFile(file, false);
+                        onChange={async (e) => {
+                          const files = Array.from(e.target.files || []);
+                          for (const file of files) {
+                            await uploadImageFile(file, false);
+                          }
                         }}
                       />
 
@@ -1404,7 +1447,7 @@ export default function AdminPage() {
                         {isUploading ? (
                           <div className="flex flex-col items-center gap-2 text-white/60 font-mono text-xs">
                             <Loader2 className="w-6 h-6 animate-spin text-cyber-green" />
-                            <span>Uploading garment asset...</span>
+                            <span>Uploading garment assets...</span>
                           </div>
                         ) : imagePath ? (
                           <>
@@ -1418,7 +1461,7 @@ export default function AdminPage() {
                             {/* Hover Overlay */}
                             <div className="absolute inset-0 bg-black/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-2 transition-opacity duration-300">
                               <UploadCloud className="w-6 h-6 text-cyber-green animate-pulse" />
-                              <span className="font-mono text-xs text-white/90 font-semibold">Change Image</span>
+                              <span className="font-mono text-xs text-white/90 font-semibold">Add Images / Video</span>
                               <span className="font-mono text-[10px] text-white/45">Drag & Drop or Click</span>
                             </div>
                           </>
@@ -1427,9 +1470,9 @@ export default function AdminPage() {
                             <UploadCloud className={`w-8 h-8 transition-transform duration-300 ${isDragActive ? 'scale-110 text-cyber-green' : 'text-white/30 group-hover:text-white/55'}`} />
                             <div className="space-y-1">
                               <p className="font-mono text-xs text-white/80 font-medium">
-                                Drag & drop image here, or <span className="text-cyber-green underline">browse</span>
+                                Drag & drop images/video, or <span className="text-cyber-green underline">browse</span>
                               </p>
-                              <p className="font-mono text-[10px] text-white/30">Supports PNG, JPG, WebP up to 5MB</p>
+                              <p className="font-mono text-[10px] text-white/30">Supports PNG, JPG, WebP, MP4 up to 20MB</p>
                             </div>
                           </div>
                         )}
@@ -1439,6 +1482,60 @@ export default function AdminPage() {
                         <div className="flex items-center gap-1.5 text-[10px] font-mono text-red-400 mt-1">
                           <AlertCircle className="w-3.5 h-3.5" />
                           <span>{uploadError}</span>
+                        </div>
+                      )}
+
+                      {/* Visual Uploaded List */}
+                      {(images.length > 0 || video) && (
+                        <div className="space-y-2 mt-1">
+                          <span className="font-mono text-[9px] text-white/40 tracking-wider uppercase block">
+                            UPLOADED ASSETS ({images.length} Image{images.length !== 1 && 's'} {video && '· 1 Video'})
+                          </span>
+                          <div className="grid grid-cols-4 gap-2">
+                            {images.map((img, idx) => (
+                              <div key={idx} className="relative group rounded-xl overflow-hidden aspect-square bg-black/40 border border-white/10 flex items-center justify-center">
+                                <img src={img} alt="" className="w-full h-full object-cover" />
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const updated = images.filter((_, i) => i !== idx);
+                                    setImages(updated);
+                                    if (imagePath === img) {
+                                      setImagePath(updated[0] || '');
+                                    }
+                                  }}
+                                  className="absolute inset-0 bg-black/75 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 font-mono text-[10px] uppercase font-bold"
+                                >
+                                  Remove
+                                </button>
+                                {imagePath === img && (
+                                  <div className="absolute bottom-1 right-1 bg-cyber-green text-black font-mono font-bold text-[8px] px-1 py-0.5 rounded uppercase">
+                                    Main
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+
+                            {video && (
+                              <div className="relative group rounded-xl overflow-hidden aspect-square bg-black/40 border border-white/10 flex flex-col items-center justify-center p-1">
+                                <video src={video} className="w-full h-full object-cover" muted />
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setVideo('');
+                                  }}
+                                  className="absolute inset-0 bg-black/75 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 font-mono text-[10px] uppercase font-bold"
+                                >
+                                  Remove
+                                </button>
+                                <div className="absolute bottom-1 right-1 bg-cyber-purple text-white font-mono font-bold text-[8px] px-1 py-0.5 rounded uppercase">
+                                  Video
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -2374,17 +2471,20 @@ export default function AdminPage() {
                   </div>
 
                   <div className="flex flex-col gap-3">
-                    <label className="text-white/50 tracking-wider">PRODUCT VISUAL ASSET</label>
+                    <label className="text-white/50 tracking-wider">PRODUCT VISUAL ASSETS</label>
                     
                     {/* Hidden File Input */}
                     <input
                       type="file"
                       ref={editFileInputRef}
-                      accept="image/*"
+                      accept="image/*,video/*"
+                      multiple
                       className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) uploadImageFile(file, true);
+                      onChange={async (e) => {
+                        const files = Array.from(e.target.files || []);
+                        for (const file of files) {
+                          await uploadImageFile(file, true);
+                        }
                       }}
                     />
 
@@ -2404,7 +2504,7 @@ export default function AdminPage() {
                       {isEditUploading ? (
                         <div className="flex flex-col items-center gap-2 text-white/60 font-mono text-xs">
                           <Loader2 className="w-6 h-6 animate-spin text-cyber-blue" />
-                          <span>Uploading garment asset...</span>
+                          <span>Uploading garment assets...</span>
                         </div>
                       ) : editImagePath ? (
                         <>
@@ -2418,7 +2518,7 @@ export default function AdminPage() {
                           {/* Hover Overlay */}
                           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-2 transition-opacity duration-300">
                             <UploadCloud className="w-6 h-6 text-cyber-blue animate-pulse" />
-                            <span className="font-mono text-xs text-white/90 font-semibold">Change Image</span>
+                            <span className="font-mono text-xs text-white/90 font-semibold">Add Images / Video</span>
                             <span className="font-mono text-[10px] text-white/45">Drag & Drop or Click</span>
                           </div>
                         </>
@@ -2427,9 +2527,9 @@ export default function AdminPage() {
                           <UploadCloud className={`w-8 h-8 transition-transform duration-300 ${isEditDragActive ? 'scale-110 text-cyber-blue' : 'text-white/30 group-hover:text-white/55'}`} />
                           <div className="space-y-1">
                             <p className="font-mono text-xs text-white/80 font-medium">
-                              Drag & drop image here, or <span className="text-cyber-blue underline">browse</span>
+                              Drag & drop images/video, or <span className="text-cyber-blue underline">browse</span>
                             </p>
-                            <p className="font-mono text-[10px] text-white/30">Supports PNG, JPG, WebP up to 5MB</p>
+                            <p className="font-mono text-[10px] text-white/30">Supports PNG, JPG, WebP, MP4 up to 20MB</p>
                           </div>
                         </div>
                       )}
@@ -2439,6 +2539,60 @@ export default function AdminPage() {
                       <div className="flex items-center gap-1.5 text-[10px] font-mono text-red-400 mt-1">
                         <AlertCircle className="w-3.5 h-3.5" />
                         <span>{editUploadError}</span>
+                      </div>
+                    )}
+
+                    {/* Visual Uploaded List */}
+                    {(editImages.length > 0 || editVideo) && (
+                      <div className="space-y-2 mt-1">
+                        <span className="font-mono text-[9px] text-white/45 tracking-wider uppercase block">
+                          UPLOADED ASSETS ({editImages.length} Image{editImages.length !== 1 && 's'} {editVideo && '· 1 Video'})
+                        </span>
+                        <div className="grid grid-cols-4 gap-2">
+                          {editImages.map((img, idx) => (
+                            <div key={idx} className="relative group rounded-xl overflow-hidden aspect-square bg-black/40 border border-white/10 flex items-center justify-center">
+                              <img src={img} alt="" className="w-full h-full object-cover" />
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const updated = editImages.filter((_, i) => i !== idx);
+                                  setEditImages(updated);
+                                  if (editImagePath === img) {
+                                    setEditImagePath(updated[0] || '');
+                                  }
+                                }}
+                                className="absolute inset-0 bg-black/75 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 font-mono text-[10px] uppercase font-bold"
+                              >
+                                Remove
+                              </button>
+                              {editImagePath === img && (
+                                <div className="absolute bottom-1 right-1 bg-cyber-blue text-white font-mono font-bold text-[8px] px-1 py-0.5 rounded uppercase">
+                                  Main
+                                </div>
+                              )}
+                            </div>
+                          ))}
+
+                          {editVideo && (
+                            <div className="relative group rounded-xl overflow-hidden aspect-square bg-black/40 border border-white/10 flex flex-col items-center justify-center p-1">
+                              <video src={editVideo} className="w-full h-full object-cover" muted />
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditVideo('');
+                                }}
+                                className="absolute inset-0 bg-black/75 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 font-mono text-[10px] uppercase font-bold"
+                              >
+                                Remove
+                              </button>
+                              <div className="absolute bottom-1 right-1 bg-cyber-purple text-white font-mono font-bold text-[8px] px-1 py-0.5 rounded uppercase">
+                                Video
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>

@@ -51,6 +51,8 @@ export interface Garment {
   gender: 'Male' | 'Female' | 'Unisex';
   brand?: string; // e.g. 'Universe' for collab brand garments
   image: string; // relative path under /public e.g. "/aurelia_silk_frock.png"
+  images?: string[]; // optional additional gallery images
+  video?: string; // optional runway video path
   disabledSizes?: ('S' | 'M' | 'L' | 'XL')[];
   categoryName?: string;
 }

@@ -17,14 +17,18 @@ export default function ProductGalleryModal({ isOpen, onClose, garment }: Produc
 
   const isExclusive = !garment.brand || garment.brand !== 'Universe' ? garment.price >= 5000 : false;
   
-  const mediaItems: any[] = [
-    { type: 'image', src: garment.image },
-    { type: 'image', src: garment.image, flip: true },
-    { type: 'image', src: garment.image, filter: 'grayscale opacity-80' }
-  ];
+  const baseImages = garment.images && garment.images.length > 0 ? garment.images : [garment.image];
+  const mediaItems: any[] = baseImages.map(img => ({ type: 'image', src: img }));
 
-  if (isExclusive) {
-    mediaItems.push({ type: 'video' });
+  if (baseImages.length === 1 && baseImages[0]) {
+    mediaItems.push({ type: 'image', src: baseImages[0], flip: true });
+    mediaItems.push({ type: 'image', src: baseImages[0], filter: 'grayscale opacity-80' });
+  }
+
+  if (garment.video) {
+    mediaItems.push({ type: 'video', src: garment.video });
+  } else if (isExclusive) {
+    mediaItems.push({ type: 'video' }); // Fallback simulated runway
   }
 
   const handleNext = () => setCurrentIndex((prev) => (prev + 1) % mediaItems.length);
@@ -91,15 +95,26 @@ export default function ProductGalleryModal({ isOpen, onClose, garment }: Produc
                         </div>
                       )
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center relative bg-[#050505] rounded-xl border border-white/5">
-                        <div className="absolute inset-0 flex flex-col items-center justify-center text-[var(--theme-primary)]">
-                          <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ repeat: Infinity, duration: 2 }}>
-                            <Play className="w-16 h-16 opacity-30 mb-4" />
-                          </motion.div>
-                          <span className="font-mono text-sm tracking-widest font-bold opacity-50">EXCLUSIVE RUNWAY FOOTAGE</span>
-                          <span className="font-mono text-[10px] text-white/30 mt-2">SIMULATED PLAYBACK</span>
+                      mediaItems[currentIndex].src ? (
+                        <video 
+                          src={mediaItems[currentIndex].src}
+                          controls
+                          autoPlay
+                          muted
+                          loop
+                          className="max-w-full max-h-full object-contain rounded-xl"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center relative bg-[#050505] rounded-xl border border-white/5">
+                          <div className="absolute inset-0 flex flex-col items-center justify-center text-[var(--theme-primary)]">
+                            <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ repeat: Infinity, duration: 2 }}>
+                              <Play className="w-16 h-16 opacity-30 mb-4" />
+                            </motion.div>
+                            <span className="font-mono text-sm tracking-widest font-bold opacity-50">EXCLUSIVE RUNWAY FOOTAGE</span>
+                            <span className="font-mono text-[10px] text-white/30 mt-2">SIMULATED PLAYBACK</span>
+                          </div>
                         </div>
-                      </div>
+                      )
                     )}
                   </motion.div>
                 </AnimatePresence>
