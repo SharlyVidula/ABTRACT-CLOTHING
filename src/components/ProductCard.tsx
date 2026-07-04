@@ -15,6 +15,7 @@ interface ProductCardProps {
 export default function ProductCard({ garment, onAddToCartClick }: ProductCardProps) {
   const { setSelectedGarment, setIsAtelierOpen } = useAtelier();
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [showOverlay, setShowOverlay] = useState(false);
 
   const handleFitOn = () => {
     setSelectedGarment(garment);
@@ -32,6 +33,8 @@ export default function ProductCard({ garment, onAddToCartClick }: ProductCardPr
       viewport={{ once: true }}
       transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{ y: -8, scale: 1.05, zIndex: 50 }}
+      onClick={() => setShowOverlay((prev) => !prev)}
+      onMouseLeave={() => setShowOverlay(false)}
       className="relative overflow-hidden rounded-[24px] flex flex-col group cursor-pointer"
       style={{
         height: '340px',
@@ -48,7 +51,11 @@ export default function ProductCard({ garment, onAddToCartClick }: ProductCardPr
           <img
             src={garment.image}
             alt={garment.name}
-            className="w-full h-full object-cover opacity-80 group-hover:opacity-30 group-hover:scale-105 transition-all duration-700 ease-out"
+            className={`w-full h-full object-cover transition-all duration-700 ease-out ${
+              showOverlay
+                ? 'opacity-30 scale-105'
+                : 'opacity-80 group-hover:opacity-30 group-hover:scale-105'
+            }`}
           />
         ) : (
           /* Placeholder gradient when no image is set */
@@ -105,7 +112,9 @@ export default function ProductCard({ garment, onAddToCartClick }: ProductCardPr
       )}
 
       {/* ── Bottom: name only (resting state) ────────────────────────────── */}
-      <div className="relative z-10 mt-auto p-4 group-hover:opacity-0 transition-opacity duration-300">
+      <div className={`relative z-10 mt-auto p-4 transition-opacity duration-300 ${
+        showOverlay ? 'opacity-0' : 'group-hover:opacity-0'
+      }`}>
         <h3 className="font-sans text-base font-bold tracking-tight text-white leading-snug drop-shadow-lg">
           {garment.name}
         </h3>
@@ -113,7 +122,12 @@ export default function ProductCard({ garment, onAddToCartClick }: ProductCardPr
       </div>
 
       {/* ── Hover overlay with full info + actions ────────────────────────── */}
-      <div className="absolute inset-0 z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center p-5 gap-4"
+      <div
+        className={`absolute inset-0 z-20 transition-all duration-300 flex flex-col items-center justify-center p-5 gap-4 ${
+          showOverlay
+            ? 'opacity-100 pointer-events-auto'
+            : 'opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto'
+        }`}
         style={{ background: 'rgba(8,7,12,0.88)', backdropFilter: 'blur(8px)' }}
       >
         {/* Sparkle label */}
