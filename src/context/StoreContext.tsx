@@ -79,11 +79,16 @@ interface StoreContextType {
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
-export function StoreProvider({ children }: { children: React.ReactNode }) {
+interface StoreProviderProps {
+  children: React.ReactNode;
+  initialProducts?: Garment[];
+}
+
+export function StoreProvider({ children, initialProducts }: StoreProviderProps) {
   const [user, setUser] = useState<UserSession | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const [products, setProducts] = useState<Garment[]>(GARMENTS);
+  const [products, setProducts] = useState<Garment[]>(initialProducts || GARMENTS);
   const [isCartOpen, setCartOpen] = useState(false);
   const [genderMode, setGenderMode] = useState<'Male' | 'Female'>('Female');
   const [registeredUsers, setRegisteredUsers] = useState<StoredUser[]>([]);
@@ -114,19 +119,15 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const savedOrders = localStorage.getItem('abstract_orders');
     if (savedOrders) setOrders(JSON.parse(savedOrders));
 
-    const savedProducts = localStorage.getItem('abstract_products');
-    if (savedProducts) setProducts(JSON.parse(savedProducts));
-
     const loadProducts = async () => {
       try {
         const res = await fetch('/api/products');
         const data = await res.json();
         if (data.success && data.products) {
           setProducts(data.products);
-          localStorage.setItem('abstract_products', JSON.stringify(data.products));
         }
       } catch (err) {
-        console.error('Failed to load products from database API, using cache:', err);
+        console.error('Failed to load products from database API:', err);
       }
     };
     loadProducts();
@@ -282,7 +283,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const addProduct = async (garment: Garment) => {
     const updated = [garment, ...products];
     setProducts(updated);
-    localStorage.setItem('abstract_products', JSON.stringify(updated));
 
     try {
       await fetch('/api/products', {
@@ -298,7 +298,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const updateProduct = async (garment: Garment) => {
     const updated = products.map((p) => (p.id === garment.id ? garment : p));
     setProducts(updated);
-    localStorage.setItem('abstract_products', JSON.stringify(updated));
 
     try {
       await fetch('/api/products', {
@@ -314,7 +313,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const deleteProduct = async (id: string) => {
     const updated = products.filter((p) => p.id !== id);
     setProducts(updated);
-    localStorage.setItem('abstract_products', JSON.stringify(updated));
 
     try {
       await fetch('/api/products', {
