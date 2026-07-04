@@ -46,7 +46,11 @@ export async function POST(req: Request) {
         username: newUser.username,
         role: newUser.role,
         gender: newUser.gender,
-        email: newUser.email
+        email: newUser.email,
+        phone: newUser.phone,
+        address: newUser.address,
+        city: newUser.city,
+        profilePicture: newUser.profilePicture
       }
     }, { status: 201 });
 

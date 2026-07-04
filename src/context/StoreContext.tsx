@@ -45,6 +45,10 @@ export interface UserSession {
   email?: string;
   role: 'Customer' | 'Admin';
   gender: 'Male' | 'Female';
+  phone?: string;
+  address?: string;
+  city?: string;
+  profilePicture?: string;
 }
 
 export type AuthResult = { success: boolean; error?: string };
@@ -74,6 +78,7 @@ interface StoreContextType {
   updateProduct: (garment: Garment) => void;
   deleteProduct: (id: string) => void;
   setCartOpen: (open: boolean) => void;
+  updateProfile: (details: { email?: string; phone?: string; address?: string; city?: string; gender?: 'Male' | 'Female'; profilePicture?: string }) => Promise<AuthResult>;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -325,6 +330,55 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
     }
   };
 
+  const updateProfile = async (details: {
+    email?: string;
+    phone?: string;
+    address?: string;
+    city?: string;
+    gender?: 'Male' | 'Female';
+    profilePicture?: string;
+  }): Promise<AuthResult> => {
+    if (!user) return { success: false, error: 'No active session' };
+
+    try {
+      const res = await fetch('/api/auth/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: user.username, ...details }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        return { success: false, error: data.error || 'Failed to update profile' };
+      }
+
+      // Update state
+      const updatedUser: UserSession = {
+        ...user,
+        ...details,
+      };
+      setUser(updatedUser);
+
+      // Sync to localStorage session
+      localStorage.setItem('abstract_session', JSON.stringify(updatedUser));
+
+      // Sync to registeredUsers mock list in local storage
+      const updatedUsers = registeredUsers.map((u) => {
+        if (u.username.toLowerCase() === user.username.toLowerCase()) {
+          return { ...u, ...details };
+        }
+        return u;
+      });
+      setRegisteredUsers(updatedUsers);
+      localStorage.setItem('abstract_users', JSON.stringify(updatedUsers));
+
+      return { success: true };
+    } catch (err: any) {
+      console.error('Failed to update profile:', err);
+      return { success: false, error: err.message || 'Network error' };
+    }
+  };
+
   return (
     <StoreContext.Provider
       value={{
@@ -349,6 +403,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
         updateProduct,
         deleteProduct,
         setCartOpen,
+        updateProfile,
       }}
     >
       {children}

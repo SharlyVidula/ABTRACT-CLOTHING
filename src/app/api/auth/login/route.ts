@@ -29,7 +29,11 @@ export async function POST(req: Request) {
         username: user.username,
         role: user.role,
         gender: user.gender,
-        email: user.email
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+        city: user.city,
+        profilePicture: user.profilePicture
       }
     }, { status: 200 });
 

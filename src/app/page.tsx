@@ -7,6 +7,7 @@ import { BentoGrid, BentoCard } from '@/components/BentoGrid';
 import AtelierModal from '@/components/AtelierModal';
 import ProductCard from '@/components/ProductCard';
 import CheckoutModal from '@/components/CheckoutModal';
+import MyAccountModal from '@/components/MyAccountModal';
 import BackgroundScene from '@/components/BackgroundScene';
 import CustomDesignModal from '@/components/CustomDesignModal';
 import AIAssistant from '@/components/AIAssistant';
@@ -32,6 +33,7 @@ export default function Home() {
   const [selectedCheckoutGarment, setSelectedCheckoutGarment] = useState<Garment | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isCustomDesignOpen, setIsCustomDesignOpen] = useState(false);
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
   type Collection = 'ALL' | 'EXCLUSIVE' | 'UNIVERSE' | 'DELUX';
   const [activeCollection, setActiveCollection] = useState<Collection>('ALL');
 
@@ -361,18 +363,33 @@ export default function Home() {
           <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto border-t sm:border-t-0 border-white/5 pt-3 sm:pt-0">
             {user ? (
               <div className="flex items-center gap-3 border-r border-white/10 pr-4">
-                <div className="flex flex-col text-right">
-                  <span className="font-mono text-[10px] text-white/80 font-bold uppercase">{user.username}</span>
-                  <span className="text-[8px] text-white/30 font-mono tracking-widest uppercase">{user.role}</span>
-                </div>
+                {/* Profile Avatar / Trigger button */}
+                <button
+                  onClick={() => setIsAccountOpen(true)}
+                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl border border-white/5 hover:border-white/20 bg-white/[0.01] hover:bg-white/[0.04] transition-all cursor-pointer text-left focus:outline-none"
+                  title="My Account Settings & Order Tracking"
+                >
+                  {user.profilePicture ? (
+                    <img src={user.profilePicture} alt="Avatar" className="w-6 h-6 rounded-lg object-cover border border-white/15" />
+                  ) : (
+                    <div className="w-6 h-6 rounded-lg bg-white/5 border border-white/15 flex items-center justify-center font-mono text-[9px] font-bold text-white/70">
+                      {user.username.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="hidden sm:flex flex-col">
+                    <span className="font-mono text-[9px] text-white/80 font-bold uppercase leading-none">{user.username}</span>
+                    <span className="text-[7px] text-white/30 font-mono tracking-wider uppercase mt-0.5 leading-none">MY PROFILE</span>
+                  </div>
+                </button>
+
                 {user.role === 'Admin' && (
-                  <Link href="/admin" className="p-2 border border-white/10 hover:border-[var(--theme-primary)] rounded-lg bg-white/[0.01] text-white/50 hover:text-[var(--theme-primary)] transition-all" title="Admin Control">
+                  <Link href="/admin" className="p-2.5 border border-white/5 hover:border-[var(--theme-primary)] hover:bg-[var(--theme-primary)]/5 rounded-xl bg-white/[0.01] text-white/50 hover:text-[var(--theme-primary)] transition-all" title="Admin Control">
                     <Shield className="w-3.5 h-3.5" />
                   </Link>
                 )}
                 <button 
                   onClick={logout} 
-                  className="p-2 border border-white/5 hover:border-red-500/30 rounded-lg bg-white/[0.01] hover:bg-red-500/5 text-white/50 hover:text-red-400 transition-all cursor-pointer"
+                  className="p-2.5 border border-white/5 hover:border-red-500/30 rounded-xl bg-white/[0.01] hover:bg-red-500/5 text-white/50 hover:text-red-400 transition-all cursor-pointer"
                   title="Disconnect Profile"
                 >
                   <LogOut className="w-3.5 h-3.5" />
@@ -1135,6 +1152,12 @@ export default function Home() {
         garment={selectedCheckoutGarment}
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
+      />
+
+      {/* My Account Profile & Tracking Modal */}
+      <MyAccountModal
+        isOpen={isAccountOpen}
+        onClose={() => setIsAccountOpen(false)}
       />
 
       {/* Footer */}
