@@ -13,6 +13,7 @@ import AIAssistant from '@/components/AIAssistant';
 import { Heart, Sparkles, ShoppingBag, X, Trash2, ArrowRight, ShieldCheck, LogIn, LogOut, Shield, Check, Crown, Zap, Palette, CreditCard, Coins, Database, Banknote, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import Script from 'next/script';
 
 export default function Home() {
   const {
@@ -100,19 +101,7 @@ export default function Home() {
     setCardCvv(value);
   };
 
-  React.useEffect(() => {
-    const script = document.createElement('script');
-    const isSandbox = process.env.NEXT_PUBLIC_PAYHERE_SANDBOX !== 'false';
-    script.src = isSandbox 
-      ? 'https://sandbox.payhere.lk/lib/payhere.js' 
-      : 'https://www.payhere.lk/lib/payhere.js';
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
+  // PayHere SDK is loaded globally via Next.js Script component in the return block
 
   const handlePayHerePayment = async () => {
     if (!deliveryFullName.trim() || !deliveryPhone.trim() || !deliveryAddress.trim() || !deliveryCity.trim()) {
@@ -243,6 +232,13 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen relative flex flex-col justify-between font-sans text-white select-none transition-all duration-500 bg-[var(--theme-bg)] ${genderMode === 'Female' ? 'theme-female' : 'theme-male'}`}>
+      <Script
+        src={process.env.NEXT_PUBLIC_PAYHERE_SANDBOX === 'false'
+          ? 'https://www.payhere.lk/lib/payhere.js'
+          : 'https://sandbox.payhere.lk/lib/payhere.js'
+        }
+        strategy="afterInteractive"
+      />
       
       {/* Themed animated background scene */}
       <BackgroundScene mode={genderMode} />
