@@ -131,9 +131,7 @@ export default function Home() {
       let payhereObj = (window as any).payhere;
       if (!payhereObj) {
         console.log('PayHere SDK not found on window. Attempting dynamic load...');
-        const scriptUrl = process.env.NEXT_PUBLIC_PAYHERE_SANDBOX === 'false'
-          ? 'https://www.payhere.lk/lib/payhere.js'
-          : 'https://sandbox.payhere.lk/lib/payhere.js';
+        const scriptUrl = 'https://www.payhere.lk/lib/payhere.js';
         
         try {
           await new Promise<void>((resolve, reject) => {
@@ -256,10 +254,7 @@ export default function Home() {
   return (
     <div className={`min-h-screen relative flex flex-col justify-between font-sans text-white select-none transition-all duration-500 bg-[var(--theme-bg)] ${genderMode === 'Female' ? 'theme-female' : 'theme-male'}`}>
       <Script
-        src={process.env.NEXT_PUBLIC_PAYHERE_SANDBOX === 'false'
-          ? 'https://www.payhere.lk/lib/payhere.js'
-          : 'https://sandbox.payhere.lk/lib/payhere.js'
-        }
+        src="https://www.payhere.lk/lib/payhere.js"
         strategy="afterInteractive"
       />
       
