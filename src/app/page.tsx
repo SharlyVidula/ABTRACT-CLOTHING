@@ -57,6 +57,17 @@ export default function Home() {
   const [cyberCredits, setCyberCredits] = useState<number>(15000);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
+  // Custom dialog modal alert state
+  const [modalAlert, setModalAlert] = useState<{
+    title: string;
+    message: string;
+    type: 'success' | 'info' | 'error';
+  } | null>(null);
+
+  const showCustomAlert = (title: string, message: string, type: 'success' | 'info' | 'error' = 'info') => {
+    setModalAlert({ title, message, type });
+  };
+
   React.useEffect(() => {
     const saved = localStorage.getItem('abstract_credits_balance');
     if (saved) {
@@ -163,7 +174,11 @@ export default function Home() {
           address: deliveryAddress.trim(),
           city: deliveryCity.trim()
         });
-        alert('PAYMENT & ORDER PLACED SUCCESSFULLY VIA PAYHERE.');
+        showCustomAlert(
+          'PAYMENT SUCCESSFUL',
+          'Your payment was processed securely and your order has been placed successfully via PayHere.',
+          'success'
+        );
         
         setDeliveryFullName('');
         setDeliveryPhone('');
@@ -247,7 +262,7 @@ export default function Home() {
   const navLinks = [
     { name: 'HOME', action: () => window.scrollTo({ top: 0, behavior: 'smooth' }) },
     { name: 'BESPOKE STUDIO', action: () => setIsCustomDesignOpen(true) },
-    { name: 'CAMPAIGNS', action: () => alert('Campaigns coming soon!') },
+    { name: 'CAMPAIGNS', action: () => showCustomAlert('CAMPAIGNS', 'Campaigns and brand collections are coming soon!', 'info') },
     { name: 'OUR STORY', action: () => window.location.href = '/our-story' },
   ];
 
@@ -1058,7 +1073,7 @@ export default function Home() {
                                 city: deliveryCity.trim()
                               });
 
-                              alert('ORDER PLACED SUCCESSFULLY.');
+                              showCustomAlert('ORDER PLACED', 'Your order has been placed successfully.', 'success');
                               
                               // Clean fields
                               setDeliveryFullName('');
@@ -1148,6 +1163,50 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Custom themed Modal Alert */}
+      <AnimatePresence>
+        {modalAlert && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-sm glass rounded-[24px] overflow-hidden border border-white/10 shadow-2xl p-6 md:p-8 text-white flex flex-col items-center text-center gap-4"
+            >
+              {modalAlert.type === 'success' ? (
+                <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.2)] animate-bounce">
+                  <ShieldCheck className="w-8 h-8" />
+                </div>
+              ) : modalAlert.type === 'error' ? (
+                <div className="w-16 h-16 rounded-full bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-500 shadow-[0_0_20px_rgba(244,63,94,0.2)] animate-pulse">
+                  <X className="w-8 h-8" />
+                </div>
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-[var(--theme-primary)]/10 border border-[var(--theme-primary)]/30 flex items-center justify-center text-[var(--theme-primary)] shadow-[0_0_20px_rgba(var(--theme-glow-rgb),0.2)]">
+                  <Sparkles className="w-8 h-8" />
+                </div>
+              )}
+
+              <div className="flex flex-col gap-2 mt-2">
+                <h3 className="text-lg font-bold tracking-wider uppercase font-mono text-white/90">
+                  {modalAlert.title}
+                </h3>
+                <p className="text-xs text-white/60 leading-relaxed font-sans">
+                  {modalAlert.message}
+                </p>
+              </div>
+
+              <button
+                onClick={() => setModalAlert(null)}
+                className="w-full py-3 mt-4 rounded-xl font-mono text-xs tracking-wider font-bold bg-white text-black hover:bg-white/90 transition-all border border-white/10"
+              >
+                PROCEED
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
       
     </div>
   );
