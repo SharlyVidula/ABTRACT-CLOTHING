@@ -10,7 +10,6 @@ import CheckoutModal from '@/components/CheckoutModal';
 import BackgroundScene from '@/components/BackgroundScene';
 import CustomDesignModal from '@/components/CustomDesignModal';
 import AIAssistant from '@/components/AIAssistant';
-import StripePayment from '@/components/StripePayment';
 import { Heart, Sparkles, ShoppingBag, X, Trash2, ArrowRight, ShieldCheck, LogIn, LogOut, Shield, Check, Crown, Zap, Palette, CreditCard, Coins, Database, Banknote, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -101,27 +100,113 @@ export default function Home() {
     setCardCvv(value);
   };
 
-  const handleStripeSuccess = () => {
-    checkout({
-      fullName: deliveryFullName.trim(),
-      phone: deliveryPhone.trim(),
-      address: deliveryAddress.trim(),
-      city: deliveryCity.trim()
-    });
+  React.useEffect(() => {
+    const script = document.createElement('script');
+    const isSandbox = process.env.NEXT_PUBLIC_PAYHERE_SANDBOX !== 'false';
+    script.src = isSandbox 
+      ? 'https://sandbox.payhere.lk/lib/payhere.js' 
+      : 'https://www.payhere.lk/lib/payhere.js';
+    script.async = true;
+    document.body.appendChild(script);
 
-    alert('PAYMENT & ORDER PLACED SUCCESSFULLY VIA STRIPE.');
-    
-    // Clean fields
-    setDeliveryFullName('');
-    setDeliveryPhone('');
-    setDeliveryAddress('');
-    setDeliveryCity('');
-    setCardNumber('');
-    setCardHolder('');
-    setCardExpiry('');
-    setCardCvv('');
-    setIsEnteringDelivery(false);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  const handlePayHerePayment = async () => {
+    if (!deliveryFullName.trim() || !deliveryPhone.trim() || !deliveryAddress.trim() || !deliveryCity.trim()) {
+      setDeliveryError('ALL TELEMETRY FIELDS MUST BE FULLY RESOLVED');
+      return;
+    }
+
+    setIsProcessingPayment(true);
     setDeliveryError('');
+
+    try {
+      const orderId = 'TX_PH_' + Math.random().toString(36).substring(3, 9).toUpperCase();
+      
+      const res = await fetch('/api/payhere-hash', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: cartTotal, orderId }),
+      });
+      const data = await res.json();
+
+      if (!data.hash) {
+        setDeliveryError(data.error || 'Failed to initialize PayHere gateway');
+        setIsProcessingPayment(false);
+        return;
+      }
+
+      const payhereObj = (window as any).payhere;
+      if (!payhereObj) {
+        setDeliveryError('PayHere SDK is not loaded yet. Please try again.');
+        setIsProcessingPayment(false);
+        return;
+      }
+
+      payhereObj.onCompleted = function (orderIdVal: string) {
+        checkout({
+          fullName: deliveryFullName.trim(),
+          phone: deliveryPhone.trim(),
+          address: deliveryAddress.trim(),
+          city: deliveryCity.trim()
+        });
+        alert('PAYMENT & ORDER PLACED SUCCESSFULLY VIA PAYHERE.');
+        
+        setDeliveryFullName('');
+        setDeliveryPhone('');
+        setDeliveryAddress('');
+        setDeliveryCity('');
+        setCardNumber('');
+        setCardHolder('');
+        setCardExpiry('');
+        setCardCvv('');
+        setIsEnteringDelivery(false);
+        setDeliveryError('');
+        setIsProcessingPayment(false);
+      };
+
+      payhereObj.onDismissed = function () {
+        console.log("PayHere Checkout dismissed");
+        setIsProcessingPayment(false);
+      };
+
+      payhereObj.onError = function (errorMsg: string) {
+        setDeliveryError('PayHere payment error: ' + errorMsg);
+        setIsProcessingPayment(false);
+      };
+
+      const nameParts = deliveryFullName.trim().split(' ');
+      const firstName = nameParts[0] || 'Customer';
+      const lastName = nameParts.slice(1).join(' ') || 'User';
+
+      const paymentDetails = {
+        sandbox: data.sandbox,
+        merchant_id: data.merchantId,
+        return_url: window.location.origin + '/',
+        cancel_url: window.location.origin + '/',
+        notify_url: window.location.origin + '/api/payhere-notify',
+        order_id: orderId,
+        items: cart.map(i => i.garment.name).join(', '),
+        amount: data.formattedAmount,
+        currency: 'LKR',
+        hash: data.hash,
+        first_name: firstName,
+        last_name: lastName,
+        email: user?.email || 'customer@abstract.lk',
+        phone: deliveryPhone.trim(),
+        address: deliveryAddress.trim(),
+        city: deliveryCity.trim(),
+        country: 'Sri Lanka',
+      };
+
+      payhereObj.startPayment(paymentDetails);
+    } catch (err: any) {
+      setDeliveryError('Connection error to PayHere network: ' + err.message);
+      setIsProcessingPayment(false);
+    }
   };
 
   const handleOpenCheckout = (garment: Garment) => {
@@ -662,18 +747,36 @@ export default function Home() {
                           </div>
                         </div>
 
-                        {/* Dynamic Stripe Secure Input Form */}
+                        {/* Dynamic PayHere Secure Input Form */}
                         {(!deliveryFullName.trim() || !deliveryPhone.trim() || !deliveryAddress.trim() || !deliveryCity.trim()) ? (
                           <div className="p-4 border border-dashed border-white/10 rounded-2xl bg-white/[0.01] text-center">
                             <span className="font-mono text-[9px] text-white/50 uppercase tracking-wider">RESOLVE SHIPPING TELEMETRY TO UNLOCK</span>
-                            <p className="text-[11px] text-white/30 mt-1">Please enter your shipping address details above to initialize the Stripe payment channel.</p>
+                            <p className="text-[11px] text-white/30 mt-1">Please enter your shipping address details above to initialize the PayHere payment channel.</p>
                           </div>
                         ) : (
-                          <StripePayment
-                            amount={cartTotal}
-                            onSuccess={handleStripeSuccess}
-                            onError={setDeliveryError}
-                          />
+                          <div className="space-y-4 animate-fade-in">
+                            <button
+                              type="button"
+                              onClick={handlePayHerePayment}
+                              disabled={isProcessingPayment}
+                              className="w-full py-4 rounded-xl font-mono text-sm tracking-wider font-semibold bg-white text-black hover:bg-white/90 active:scale-98 transition-all flex items-center justify-center gap-2 border border-white/20 cursor-pointer disabled:opacity-50 shadow-lg"
+                            >
+                              {isProcessingPayment ? (
+                                <>
+                                  <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                                  INITIALIZING SECURE PORTAL...
+                                </>
+                              ) : (
+                                <>
+                                  PAY & PLACE ORDER ({cartTotal} LKR)
+                                </>
+                              )}
+                            </button>
+                            <div className="flex items-center justify-center gap-1.5 text-[8px] font-mono text-white/20">
+                              <ShieldCheck className="w-3 h-3 text-emerald-500" />
+                              <span>PROCESSED SECURELY BY PAYHERE AGGREGATOR</span>
+                            </div>
+                          </div>
                         )}
                       </div>
                     )}
