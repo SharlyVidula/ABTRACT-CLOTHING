@@ -10,7 +10,8 @@ import CheckoutModal from '@/components/CheckoutModal';
 import BackgroundScene from '@/components/BackgroundScene';
 import CustomDesignModal from '@/components/CustomDesignModal';
 import AIAssistant from '@/components/AIAssistant';
-import { Heart, Sparkles, ShoppingBag, X, Trash2, ArrowRight, ShieldCheck, LogIn, LogOut, Shield, Check, Crown, Zap, Palette } from 'lucide-react';
+import StripePayment from '@/components/StripePayment';
+import { Heart, Sparkles, ShoppingBag, X, Trash2, ArrowRight, ShieldCheck, LogIn, LogOut, Shield, Check, Crown, Zap, Palette, CreditCard, Coins, Database, Banknote, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
@@ -41,12 +42,87 @@ export default function Home() {
   const [deliveryCity, setDeliveryCity] = useState('');
   const [deliveryError, setDeliveryError] = useState('');
 
+  // Credit Card States
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardHolder, setCardHolder] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvv, setCardCvv] = useState('');
+  const [isCvvFocused, setIsCvvFocused] = useState(false);
+
+  // Solana States
+  const [solanaWallet, setSolanaWallet] = useState<string | null>(null);
+  const [isConnectingSolana, setIsConnectingSolana] = useState(false);
+
+  // Cyber-Credits States
+  const [cyberCredits, setCyberCredits] = useState<number>(15000);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+  React.useEffect(() => {
+    const saved = localStorage.getItem('abstract_credits_balance');
+    if (saved) {
+      setCyberCredits(parseInt(saved));
+    } else {
+      localStorage.setItem('abstract_credits_balance', '15000');
+    }
+  }, []);
+
   React.useEffect(() => {
     if (!isCartOpen) {
       setIsEnteringDelivery(false);
       setDeliveryError('');
+      setCardNumber('');
+      setCardHolder('');
+      setCardExpiry('');
+      setCardCvv('');
     }
   }, [isCartOpen]);
+
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, ''); // digits only
+    if (value.length > 16) value = value.slice(0, 16);
+    const matches = value.match(/\d{1,4}/g);
+    const formatted = matches ? matches.join(' ') : '';
+    setCardNumber(formatted);
+  };
+
+  const handleCardExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, ''); // digits only
+    if (value.length > 4) value = value.slice(0, 4);
+    if (value.length >= 3) {
+      setCardExpiry(`${value.slice(0, 2)}/${value.slice(2)}`);
+    } else {
+      setCardExpiry(value);
+    }
+  };
+
+  const handleCardCvvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, ''); // digits only
+    if (value.length > 4) value = value.slice(0, 4);
+    setCardCvv(value);
+  };
+
+  const handleStripeSuccess = () => {
+    checkout({
+      fullName: deliveryFullName.trim(),
+      phone: deliveryPhone.trim(),
+      address: deliveryAddress.trim(),
+      city: deliveryCity.trim()
+    });
+
+    alert('PAYMENT & ORDER PLACED SUCCESSFULLY VIA STRIPE.');
+    
+    // Clean fields
+    setDeliveryFullName('');
+    setDeliveryPhone('');
+    setDeliveryAddress('');
+    setDeliveryCity('');
+    setCardNumber('');
+    setCardHolder('');
+    setCardExpiry('');
+    setCardCvv('');
+    setIsEnteringDelivery(false);
+    setDeliveryError('');
+  };
 
   const handleOpenCheckout = (garment: Garment) => {
     setSelectedCheckoutGarment(garment);
@@ -505,6 +581,245 @@ export default function Home() {
                       />
                     </div>
 
+                    {/* Payment Gateway Form Separator */}
+                    <div className="border-t border-white/10 pt-4 mt-6" />
+                    
+                    {/* Dynamic Payment Gateways */}
+                    {cart[0]?.paymentMethod === 'Credit Card' && (
+                      <div className="space-y-4">
+                        <span className="font-mono text-[10px] text-white/40 tracking-widest font-semibold uppercase">
+                          CREDIT CARD GATEWAY
+                        </span>
+                        
+                        {/* 3D Glassmorphic Card Preview */}
+                        <div className="w-full h-44 [perspective:1000px] mb-4">
+                          <div className="relative w-full h-full animate-fade-in" style={{
+                            transition: 'transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+                            transformStyle: 'preserve-3d',
+                            transform: isCvvFocused ? 'rotateY(180deg)' : 'rotateY(0deg)',
+                          }}>
+                            {/* FRONT OF THE CARD */}
+                            <div className="absolute inset-0 w-full h-full rounded-2xl p-5 flex flex-col justify-between overflow-hidden border border-white/10 shadow-2xl"
+                                 style={{
+                                   backfaceVisibility: 'hidden',
+                                   WebkitBackfaceVisibility: 'hidden',
+                                   background: `linear-gradient(135deg, rgba(var(--theme-glow-rgb),0.25) 0%, rgba(15,15,25,0.85) 100%)`,
+                                   backdropFilter: 'blur(10px)',
+                                 }}
+                            >
+                              <div className="absolute -top-10 -left-10 w-32 h-32 rounded-full bg-[rgba(var(--theme-glow-rgb),0.3)] blur-2xl pointer-events-none" />
+                              <div className="flex justify-between items-center relative z-10">
+                                <div className="w-9 h-7 rounded-md bg-gradient-to-r from-yellow-600 via-yellow-400 to-yellow-500 border border-yellow-300/30 flex flex-col justify-between p-1">
+                                  <div className="h-0.5 bg-black/20 rounded" />
+                                  <div className="h-0.5 bg-black/20 rounded" />
+                                  <div className="h-0.5 bg-black/20 rounded" />
+                                </div>
+                                <span className="font-mono text-[9px] font-black tracking-widest text-white/50">ABSTRACT DEBIT</span>
+                              </div>
+                              <div className="font-mono text-base tracking-[0.16em] text-white/95 mt-4 drop-shadow-md">
+                                {cardNumber || '•••• •••• •••• ••••'}
+                              </div>
+                              <div className="flex justify-between items-end mt-auto">
+                                <div className="flex flex-col">
+                                  <span className="text-[6px] text-white/40 tracking-wider font-mono">CARDHOLDER</span>
+                                  <span className="font-mono text-[9px] font-bold text-white/80 uppercase truncate max-w-[150px]">
+                                    {cardHolder || 'SHARLY VIDULA'}
+                                  </span>
+                                </div>
+                                <div className="flex flex-col text-right">
+                                  <span className="text-[6px] text-white/40 tracking-wider font-mono">EXPIRES</span>
+                                  <span className="font-mono text-[9px] font-bold text-white/80">
+                                    {cardExpiry || 'MM/YY'}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* BACK OF THE CARD */}
+                            <div className="absolute inset-0 w-full h-full rounded-2xl flex flex-col justify-between overflow-hidden border border-white/10 shadow-2xl"
+                                 style={{
+                                   backfaceVisibility: 'hidden',
+                                   WebkitBackfaceVisibility: 'hidden',
+                                   transform: 'rotateY(180deg)',
+                                   background: 'linear-gradient(135deg, rgba(15,15,25,0.95) 0%, rgba(var(--theme-glow-rgb),0.1) 100%)',
+                                   backdropFilter: 'blur(10px)',
+                                 }}
+                            >
+                              <div className="w-full h-8 bg-black/90 mt-4" />
+                              <div className="px-5 mt-2 flex items-center gap-3">
+                                <div className="flex-1 h-7 bg-white/10 rounded border border-white/5 flex items-center pl-3 font-mono text-[9px] text-white/30 italic">
+                                  ABSTRACT COUTURE ACCESS
+                                </div>
+                                <div className="w-10 h-6 bg-white rounded flex items-center justify-center font-mono text-[10px] font-black text-black shadow-inner">
+                                  {cardCvv || '•••'}
+                                </div>
+                              </div>
+                              <div className="px-5 pb-3 flex justify-between items-center text-[6px] font-mono text-white/20">
+                                <span>AUTHENTICATION MATRIX v2.4</span>
+                                <span>SECURE TRANS</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Dynamic Stripe Secure Input Form */}
+                        {(!deliveryFullName.trim() || !deliveryPhone.trim() || !deliveryAddress.trim() || !deliveryCity.trim()) ? (
+                          <div className="p-4 border border-dashed border-white/10 rounded-2xl bg-white/[0.01] text-center">
+                            <span className="font-mono text-[9px] text-white/50 uppercase tracking-wider">RESOLVE SHIPPING TELEMETRY TO UNLOCK</span>
+                            <p className="text-[11px] text-white/30 mt-1">Please enter your shipping address details above to initialize the Stripe payment channel.</p>
+                          </div>
+                        ) : (
+                          <StripePayment
+                            amount={cartTotal}
+                            onSuccess={handleStripeSuccess}
+                            onError={setDeliveryError}
+                          />
+                        )}
+                      </div>
+                    )}
+
+                    {cart[0]?.paymentMethod === 'Solana Network' && (
+                      <div className="space-y-4">
+                        <span className="font-mono text-[10px] text-white/40 tracking-widest font-semibold uppercase">
+                          WEB3 WALLET INTEGRATION
+                        </span>
+                        {!solanaWallet ? (
+                          <div className="flex flex-col items-center justify-center p-6 border border-dashed border-white/10 rounded-2xl bg-white/[0.01] gap-4">
+                            <Database className="w-8 h-8 text-cyan-400 animate-pulse" />
+                            <div className="text-center">
+                              <span className="font-mono text-[10px] text-cyan-400 font-bold uppercase tracking-wider">SOLANA PAYMENT NODE</span>
+                              <p className="text-[11px] text-white/40 mt-1 max-w-[240px]">Connect your Web3 cryptographic ledger to authorize on-chain transaction logs.</p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                setIsConnectingSolana(true);
+                                setTimeout(() => {
+                                  setSolanaWallet('FX5q9A' + Math.random().toString(36).substring(3, 8).toUpperCase() + '...3XYZ');
+                                  setIsConnectingSolana(false);
+                                }, 1500);
+                              }}
+                              disabled={isConnectingSolana}
+                              className="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-mono text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(6,182,212,0.3)] disabled:opacity-50"
+                            >
+                              {isConnectingSolana ? (
+                                <>
+                                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                  CONNECTING...
+                                </>
+                              ) : (
+                                'CONNECT WEB3 WALLET'
+                              )}
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="p-4 rounded-xl border border-cyan-500/20 bg-cyan-500/5 flex flex-col gap-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                                <span className="font-mono text-[10px] text-cyan-400 font-bold">SOLANA NODE: CONNECTED</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setSolanaWallet(null)}
+                                className="font-mono text-[9px] text-rose-400 hover:underline cursor-pointer"
+                              >
+                                DISCONNECT
+                              </button>
+                            </div>
+                            <div className="flex justify-between items-baseline font-mono text-[11px] mt-1">
+                              <span className="text-white/40">LEDGER KEY:</span>
+                              <span className="text-white/80 font-bold">{solanaWallet}</span>
+                            </div>
+                            <div className="flex justify-between items-baseline font-mono text-[11px]">
+                              <span className="text-white/40">WALLET BALANCE:</span>
+                              <span className="text-cyan-400 font-bold">4.20 SOL</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {cart[0]?.paymentMethod === 'Cyber-Credits' && (
+                      <div className="space-y-4">
+                        <div className="p-4 rounded-xl border border-purple-500/20 bg-purple-500/5 flex flex-col gap-2">
+                          <div className="flex justify-between items-center">
+                            <span className="font-mono text-[10px] text-purple-400 font-bold">CYBER-CREDITS LEDGER</span>
+                            <span className="font-mono text-[10px] text-white/30">SECURE STORE PORTAL</span>
+                          </div>
+                          
+                          <div className="flex justify-between items-center mt-1">
+                            <div className="flex flex-col">
+                              <span className="text-[9px] text-white/40 font-mono">YOUR CREDITS</span>
+                              <span className={`font-mono text-base font-bold ${cyberCredits < cartTotal ? 'text-rose-400' : 'text-purple-300'}`}>
+                                {cyberCredits.toLocaleString()} LKR
+                              </span>
+                            </div>
+                            <div className="flex flex-col text-right">
+                              <span className="text-[9px] text-white/40 font-mono">TOTAL COST</span>
+                              <span className="font-mono text-base font-bold text-white">
+                                {cartTotal.toLocaleString()} LKR
+                              </span>
+                            </div>
+                          </div>
+
+                          {cyberCredits < cartTotal ? (
+                            <div className="mt-2 flex flex-col gap-2">
+                              <p className="text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/25 p-2 rounded-lg">
+                                INSUFFICIENT FUNDS. RECHARGE LEDGER CREDITS.
+                              </p>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newCredits = cyberCredits + 5000;
+                                  setCyberCredits(newCredits);
+                                  localStorage.setItem('abstract_credits_balance', newCredits.toString());
+                                }}
+                                className="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-mono text-[10px] font-bold rounded-lg border border-purple-400/30 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                              >
+                                <Coins className="w-3.5 h-3.5" /> CLAIM +5,000 CYBER-CREDITS
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-2 rounded-lg text-center">
+                              FUNDS DECREE RESOLVED: SYSTEM IS READY TO SETTLE
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {cart[0]?.paymentMethod === 'Cash on Delivery' && (
+                      <div className="space-y-4">
+                        <div className="p-4 rounded-xl border border-white/5 bg-white/[0.01] flex flex-col gap-1.5">
+                          <span className="font-mono text-[10px] text-amber-500 font-bold uppercase">PHYSICAL DISPATCH DECREE</span>
+                          <p className="text-[11px] text-white/50 leading-relaxed font-sans">
+                            Settle the total of <strong className="text-white font-mono">{cartTotal} LKR</strong> in cash when our security transport courier hand-delivers your package.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Transaction overlay loader */}
+                    {isProcessingPayment && (
+                      <div className="absolute inset-0 bg-[#0a0a0c]/95 backdrop-blur-md flex flex-col items-center justify-center gap-4 z-50 rounded-2xl p-6">
+                        <div className="relative w-12 h-12 flex items-center justify-center">
+                          <div className="absolute inset-0 rounded-full border-2 border-t-[var(--theme-primary)] border-white/5 animate-spin" />
+                          <Sparkles className="w-5 h-5 text-[var(--theme-primary)] animate-pulse" />
+                        </div>
+                        <div className="text-center space-y-1">
+                          <span className="font-mono text-[10px] tracking-widest text-[var(--theme-primary)] font-semibold uppercase animate-pulse">
+                            {cart[0]?.paymentMethod === 'Credit Card' ? 'AUTHORIZING CYBER-PORT...' :
+                             cart[0]?.paymentMethod === 'Solana Network' ? 'SIGNING TRANSACTION BLOCK...' :
+                             'RECONCILING LEDGER BALANCES...'}
+                          </span>
+                          <p className="font-mono text-[8px] text-white/30 tracking-widest uppercase">
+                            TRANSACTING WITH SECURE ROUTER CORE
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
                     {deliveryError && (
                       <div className="text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 p-3 rounded-xl">
                         {deliveryError}
@@ -588,35 +903,67 @@ export default function Home() {
 
                   {isEnteringDelivery ? (
                     <div className="flex flex-col gap-2.5">
-                      <button
-                        onClick={() => {
-                          if (!deliveryFullName.trim() || !deliveryPhone.trim() || !deliveryAddress.trim() || !deliveryCity.trim()) {
-                            setDeliveryError('ALL TELEMETRY FIELDS MUST BE FULLY RESOLVED');
-                            return;
-                          }
+                      {cart[0]?.paymentMethod !== 'Credit Card' && (
+                        <button
+                          onClick={() => {
+                            if (!deliveryFullName.trim() || !deliveryPhone.trim() || !deliveryAddress.trim() || !deliveryCity.trim()) {
+                              setDeliveryError('ALL TELEMETRY FIELDS MUST BE FULLY RESOLVED');
+                              return;
+                            }
 
-                          checkout({
-                            fullName: deliveryFullName.trim(),
-                            phone: deliveryPhone.trim(),
-                            address: deliveryAddress.trim(),
-                            city: deliveryCity.trim()
-                          });
+                            const method = cart[0]?.paymentMethod || 'Cyber-Credits';
+                            if (method === 'Solana Network') {
+                              if (!solanaWallet) {
+                                setDeliveryError('PLEASE CONNECT SOLANA WEB3 WALLET LEDGER');
+                                return;
+                              }
+                            } else if (method === 'Cyber-Credits') {
+                              if (cyberCredits < cartTotal) {
+                                setDeliveryError('INSUFFICIENT CYBER-CREDITS BALANCE');
+                                return;
+                              }
+                            }
 
-                          alert('ORDER PLACED SUCCESSFULLY.');
-                          
-                          // Clean fields
-                          setDeliveryFullName('');
-                          setDeliveryPhone('');
-                          setDeliveryAddress('');
-                          setDeliveryCity('');
-                          setIsEnteringDelivery(false);
-                          setDeliveryError('');
-                        }}
-                        className="w-full py-4 rounded-xl font-mono text-sm tracking-wider font-semibold bg-white text-black hover:bg-white/90 active:scale-98 transition-all flex items-center justify-center gap-2 border border-white/20 cursor-pointer shadow-lg"
-                      >
-                        CONFIRM & PLACE ORDER
-                        <Check className="w-4 h-4" />
-                      </button>
+                            setIsProcessingPayment(true);
+                            setDeliveryError('');
+
+                            setTimeout(() => {
+                              if (method === 'Cyber-Credits') {
+                                const newBalance = cyberCredits - cartTotal;
+                                setCyberCredits(newBalance);
+                                localStorage.setItem('abstract_credits_balance', newBalance.toString());
+                              }
+
+                              checkout({
+                                fullName: deliveryFullName.trim(),
+                                phone: deliveryPhone.trim(),
+                                address: deliveryAddress.trim(),
+                                city: deliveryCity.trim()
+                              });
+
+                              alert('ORDER PLACED SUCCESSFULLY.');
+                              
+                              // Clean fields
+                              setDeliveryFullName('');
+                              setDeliveryPhone('');
+                              setDeliveryAddress('');
+                              setDeliveryCity('');
+                              setCardNumber('');
+                              setCardHolder('');
+                              setCardExpiry('');
+                              setCardCvv('');
+                              setSolanaWallet(null);
+                              setIsEnteringDelivery(false);
+                              setIsProcessingPayment(false);
+                              setDeliveryError('');
+                            }, 2500);
+                          }}
+                          className="w-full py-4 rounded-xl font-mono text-sm tracking-wider font-semibold bg-white text-black hover:bg-white/90 active:scale-98 transition-all flex items-center justify-center gap-2 border border-white/20 cursor-pointer shadow-lg"
+                        >
+                          CONFIRM & PLACE ORDER
+                          <Check className="w-4 h-4" />
+                        </button>
+                      )}
 
                       <button
                         onClick={() => {
@@ -672,7 +1019,16 @@ export default function Home() {
             <Check className="w-3.5 h-3.5 text-emerald-500" />
             <span>SYS: ABSTRACT_CHECKOUT_CORE // CERTIFIED_TRANSACTIONS</span>
           </div>
-          <span>&copy; 2026 ABSTRACT ONLINE BOUTIQUE COUTURE. ALL RIGHTS RESERVED.</span>
+          <div className="flex flex-col items-center md:items-end gap-2.5">
+            <div className="flex flex-wrap justify-center gap-3 text-white/40">
+              <Link href="/refund-policy" className="hover:text-white transition-colors">REFUND POLICY</Link>
+              <span>|</span>
+              <Link href="/privacy-policy" className="hover:text-white transition-colors">PRIVACY POLICY</Link>
+              <span>|</span>
+              <Link href="/terms-conditions" className="hover:text-white transition-colors">TERMS & CONDITIONS</Link>
+            </div>
+            <span>&copy; 2026 ABSTRACT ONLINE BOUTIQUE COUTURE. ALL RIGHTS RESERVED.</span>
+          </div>
         </div>
       </footer>
       

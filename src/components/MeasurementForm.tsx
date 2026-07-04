@@ -15,7 +15,7 @@ interface MeasurementSliderProps {
 }
 
 export default function MeasurementForm() {
-  const { measurements, updateMeasurement, selectedSize } = useAtelier();
+  const { measurements, updateMeasurement, selectedSize, selectedGarment } = useAtelier();
 
   const sliders: MeasurementSliderProps[] = [
     {
@@ -60,6 +60,21 @@ export default function MeasurementForm() {
     },
   ];
 
+  const isNeeded = (name: keyof UserMeasurements): boolean => {
+    if (!selectedGarment) return true;
+    const cat = selectedGarment.category;
+    const styleType = selectedGarment.visualStyle?.type;
+
+    if (name === 'height') return true;
+    if (name === 'chest') return cat === 'Top' || cat === 'Outerwear';
+    if (name === 'waist') return true;
+    if (name === 'hips') return cat === 'Bottom' || styleType === 'frock' || styleType === 'skirt';
+    if (name === 'inseam') return cat === 'Bottom' && styleType === 'trousers';
+    return true;
+  };
+
+  const filteredSliders = sliders.filter((s) => isNeeded(s.name));
+
   return (
     <div className="flex flex-col gap-6 text-foreground">
       <div className="flex items-center gap-3 border-b border-white/10 pb-4">
@@ -73,7 +88,7 @@ export default function MeasurementForm() {
       </div>
 
       <div className="space-y-6">
-        {sliders.map((slider) => {
+        {filteredSliders.map((slider) => {
           const value = measurements[slider.name];
           const percent = ((value - slider.min) / (slider.max - slider.min)) * 100;
 
