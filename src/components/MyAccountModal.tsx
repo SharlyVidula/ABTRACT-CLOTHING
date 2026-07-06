@@ -3,7 +3,7 @@
 import React, { useState, useRef } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, Mail, Phone, MapPin, Landmark, Upload, ShieldCheck, ShoppingBag, Eye, Clock, CheckCircle2, AlertTriangle, AlertCircle } from 'lucide-react';
+import { X, User, Mail, Phone, MapPin, Landmark, Upload, ShieldCheck, ShoppingBag, Eye, Clock, CheckCircle2, AlertTriangle, AlertCircle, Star } from 'lucide-react';
 
 interface MyAccountModalProps {
   isOpen: boolean;
@@ -11,7 +11,7 @@ interface MyAccountModalProps {
 }
 
 export default function MyAccountModal({ isOpen, onClose }: MyAccountModalProps) {
-  const { user, orders, updateProfile } = useStore();
+  const { user, orders, updateProfile, updateOrderStatus, addReview } = useStore();
   const [activeTab, setActiveTab] = useState<'profile' | 'orders'>('profile');
   
   // Profile Form States
@@ -27,6 +27,11 @@ export default function MyAccountModal({ isOpen, onClose }: MyAccountModalProps)
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [uploading, setUploading] = useState(false);
+
+  // Review states
+  const [reviewingOrder, setReviewingOrder] = useState<any | null>(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -151,6 +156,10 @@ export default function MyAccountModal({ isOpen, onClose }: MyAccountModalProps)
         active: true,
         completed: false
       };
+    } else if (status === 'Completed') {
+      steps[1].completed = true;
+      steps[2].completed = true;
+      steps[3].completed = true;
     } else {
       // Completed fallback
       steps[1].completed = true;
@@ -162,7 +171,7 @@ export default function MyAccountModal({ isOpen, onClose }: MyAccountModalProps)
   };
 
   return (
-    <AnimatePresence>
+    <>
       <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
         
         {/* Modal container card */}
@@ -490,6 +499,21 @@ export default function MyAccountModal({ isOpen, onClose }: MyAccountModalProps)
                               })}
                             </div>
 
+                            {/* Order Received Confirmation Button */}
+                            {order.status === 'Dispatched' && (
+                              <button
+                                onClick={() => {
+                                  updateOrderStatus(order.id, 'Completed');
+                                  setReviewingOrder(order);
+                                  setReviewRating(5);
+                                  setReviewComment('');
+                                }}
+                                className="w-full py-2.5 mt-2 rounded-xl font-mono text-xs font-bold bg-emerald-500 text-black hover:bg-emerald-400 active:scale-95 transition-all flex items-center justify-center gap-1.5 border border-emerald-400/20 cursor-pointer shadow-[0_0_15px_rgba(16,185,129,0.25)]"
+                              >
+                                <CheckCircle2 className="w-3.5 h-3.5" /> CONFIRM ORDER RECEIVED
+                              </button>
+                            )}
+
                             {/* Discarded Reason Info Alert block */}
                             {order.status === 'Discarded' && order.declineReason && (
                               <div className="p-3 rounded-xl bg-rose-500/5 border border-rose-500/10 text-[10px] text-rose-400/80 font-mono mt-1 flex items-start gap-2">
@@ -510,6 +534,91 @@ export default function MyAccountModal({ isOpen, onClose }: MyAccountModalProps)
           </div>
         </motion.div>
       </div>
-    </AnimatePresence>
+
+      {/* Review Feedback Popup */}
+      <AnimatePresence>
+        {reviewingOrder && (
+          <div className="fixed inset-0 z-[60] overflow-y-auto bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-md glass rounded-[24px] border border-white/10 shadow-2xl p-6 md:p-8 text-white flex flex-col gap-5 text-left"
+            >
+              <div className="flex flex-col text-left">
+                <span className="font-mono text-[9px] text-[var(--theme-primary)] tracking-widest font-semibold uppercase flex items-center gap-1">
+                  <Star className="w-3.5 h-3.5 text-[var(--theme-primary)] fill-[var(--theme-primary)]" /> VERIFIED ORDER FEEDBACK
+                </span>
+                <h3 className="text-lg font-black tracking-wider text-white uppercase mt-1">
+                  LEAVE A REVIEW
+                </h3>
+                <p className="text-[10px] text-white/50 font-mono mt-0.5 uppercase">
+                  ORDER ID: {reviewingOrder.id}
+                </p>
+              </div>
+
+              {/* Star Rating Selector */}
+              <div className="flex flex-col gap-2">
+                <span className="font-mono text-[9px] tracking-wider text-white/50 font-bold uppercase">RATING PROTOCOL</span>
+                <div className="flex gap-2 justify-center py-2 bg-white/[0.02] border border-white/5 rounded-xl">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setReviewRating(star)}
+                      className="p-1 focus:outline-none transition-all scale-100 hover:scale-110 cursor-pointer"
+                    >
+                      <Star
+                        className={`w-8 h-8 transition-colors ${
+                          star <= reviewRating
+                            ? 'text-[var(--theme-primary)] fill-[var(--theme-primary)] filter drop-shadow-[0_0_8px_rgba(var(--theme-glow-rgb),0.5)]'
+                            : 'text-white/10'
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Comment Text Area */}
+              <div className="flex flex-col gap-2">
+                <label className="font-mono text-[9px] tracking-wider text-white/50 font-bold uppercase">FEEDBACK COMMENT</label>
+                <textarea
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  placeholder="Share your experience with this design..."
+                  className="w-full p-3 rounded-xl border border-white/10 bg-white/[0.02] text-sm text-white focus:outline-none focus:border-white transition-all font-sans resize-none h-24"
+                />
+              </div>
+
+              <div className="flex gap-3 mt-2">
+                <button
+                  type="button"
+                  onClick={() => setReviewingOrder(null)}
+                  className="flex-1 py-3 rounded-xl font-mono text-xs font-bold border border-white/10 text-white/50 hover:text-white hover:border-white/20 bg-white/[0.01] transition-all cursor-pointer focus:outline-none"
+                >
+                  SKIP
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    addReview({
+                      orderId: reviewingOrder.id,
+                      username: user.username,
+                      rating: reviewRating,
+                      comment: reviewComment || 'Amazing design and service!',
+                    });
+                    setReviewingOrder(null);
+                  }}
+                  className="flex-1 py-3 rounded-xl font-mono text-xs font-bold bg-white text-black hover:bg-white/90 transition-all cursor-pointer focus:outline-none"
+                >
+                  SUBMIT REVIEW
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

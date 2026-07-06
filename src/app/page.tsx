@@ -11,7 +11,7 @@ import MyAccountModal from '@/components/MyAccountModal';
 import BackgroundScene from '@/components/BackgroundScene';
 import CustomDesignModal from '@/components/CustomDesignModal';
 import AIAssistant from '@/components/AIAssistant';
-import { Heart, Sparkles, ShoppingBag, X, Trash2, ArrowRight, ShieldCheck, LogIn, LogOut, Shield, Check, Crown, Zap, Palette, CreditCard, Coins, Database, Banknote, RefreshCw } from 'lucide-react';
+import { Heart, Sparkles, ShoppingBag, X, Trash2, ArrowRight, ShieldCheck, LogIn, LogOut, Shield, Check, Crown, Zap, Palette, CreditCard, Coins, Database, Banknote, RefreshCw, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Script from 'next/script';
@@ -28,6 +28,7 @@ export default function Home() {
     logout,
     genderMode,
     setGenderMode,
+    reviews,
   } = useStore();
 
   const [selectedCheckoutGarment, setSelectedCheckoutGarment] = useState<Garment | null>(null);
@@ -621,6 +622,67 @@ export default function Home() {
               </div>
             </BentoCard>
           </BentoGrid>
+        </section>
+
+        {/* ── Customer Reviews Section ────────────────────────────────────── */}
+        <section id="reviews" className="mt-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="glass rounded-3xl p-6 md:p-8 border border-white/8 space-y-6"
+            style={{
+              background: 'rgba(255,255,255,0.03)',
+              backdropFilter: 'blur(20px)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
+            }}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div className="flex items-center gap-2">
+                <Star className="w-5 h-5 text-[var(--theme-primary)] fill-[var(--theme-primary)]" />
+                <div>
+                  <h3 className="font-mono text-sm tracking-widest text-[var(--theme-primary)] font-semibold">
+                    CLIENT TESTIMONIAL LOGS
+                  </h3>
+                  <p className="text-xs text-white/40">Verified customer feedback and experience telemetry</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Reviews Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {reviews.filter(r => r.published).length === 0 ? (
+                <div className="col-span-full py-8 text-center text-white/30 font-mono text-xs uppercase border border-dashed border-white/5 rounded-2xl">
+                  No verified client feedback published yet.
+                </div>
+              ) : (
+                reviews.filter(r => r.published).map((rev) => (
+                  <div key={rev.id} className="p-5 border border-white/5 rounded-2xl bg-white/[0.01] flex flex-col justify-between gap-4 hover:border-white/10 transition-all font-mono text-xs">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-white uppercase">{rev.username}</span>
+                        <span className="text-[10px] text-white/40">{rev.date.split(' ')[0]}</span>
+                      </div>
+                      <div className="flex gap-0.5">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-3.5 h-3.5 ${i < rev.rating ? 'text-[var(--theme-primary)] fill-[var(--theme-primary)]' : 'text-white/10'}`}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-white/70 leading-relaxed font-sans mt-2">{rev.comment}</p>
+                    </div>
+                    <div className="text-[9px] text-white/30 border-t border-white/5 pt-2 uppercase">
+                      VERIFIED ORDER · {rev.orderId}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
         </section>
 
       </main>

@@ -35,9 +35,19 @@ export interface Order {
   date: string;
   user: string;
   email?: string;
-  status: 'Pending Approval' | 'Pending Delivery' | 'Dispatched' | 'Discarded';
+  status: 'Pending Approval' | 'Pending Delivery' | 'Dispatched' | 'Discarded' | 'Completed';
   declineReason?: string;
   deliveryDetails?: DeliveryDetails;
+}
+
+export interface Review {
+  id: string;
+  orderId: string;
+  username: string;
+  rating: number;
+  comment: string;
+  date: string;
+  published: boolean;
 }
 
 export interface UserSession {
@@ -64,6 +74,7 @@ interface StoreContextType {
   registeredUsers: StoredUser[];
   isCartOpen: boolean;
   genderMode: 'Male' | 'Female';
+  reviews: Review[];
   setGenderMode: (gender: 'Male' | 'Female') => void;
   login: (username: string, password: string) => Promise<AuthResult>;
   register: (username: string, password: string, gender: 'Male' | 'Female', email?: string) => Promise<AuthResult>;
@@ -79,6 +90,8 @@ interface StoreContextType {
   deleteProduct: (id: string) => void;
   setCartOpen: (open: boolean) => void;
   updateProfile: (details: { email?: string; phone?: string; address?: string; city?: string; gender?: 'Male' | 'Female'; profilePicture?: string }) => Promise<AuthResult>;
+  addReview: (review: Omit<Review, 'id' | 'date' | 'published'>) => void;
+  toggleReviewPublish: (reviewId: string) => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -97,6 +110,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
   const [isCartOpen, setCartOpen] = useState(false);
   const [genderMode, setGenderMode] = useState<'Male' | 'Female'>('Female');
   const [registeredUsers, setRegisteredUsers] = useState<StoredUser[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
 
   // ── Hydrate from localStorage ──────────────────────────────────────────────
   useEffect(() => {
@@ -123,6 +137,34 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
 
     const savedOrders = localStorage.getItem('abstract_orders');
     if (savedOrders) setOrders(JSON.parse(savedOrders));
+
+    const savedReviews = localStorage.getItem('abstract_reviews');
+    if (savedReviews) {
+      setReviews(JSON.parse(savedReviews));
+    } else {
+      const initialReviews: Review[] = [
+        {
+          id: 'REV_1',
+          orderId: 'TX_INV903',
+          username: 'Seraphina',
+          rating: 5,
+          comment: 'The Seraphina Top fits like an absolute glove! The fabric draping is extremely high quality.',
+          date: '7/5/2026 10:15 AM',
+          published: true
+        },
+        {
+          id: 'REV_2',
+          orderId: 'TX_INV904',
+          username: 'Lucian',
+          rating: 4,
+          comment: 'Impressed with the fast validation and dispatch. Blazer quality is premium.',
+          date: '7/4/2026 04:30 PM',
+          published: true
+        }
+      ];
+      setReviews(initialReviews);
+      localStorage.setItem('abstract_reviews', JSON.stringify(initialReviews));
+    }
 
     const loadProducts = async () => {
       try {
@@ -379,6 +421,26 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
     }
   };
 
+  const addReview = (newReviewData: Omit<Review, 'id' | 'date' | 'published'>) => {
+    const newReview: Review = {
+      ...newReviewData,
+      id: 'REV_' + Math.random().toString(36).substring(3, 9).toUpperCase(),
+      date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      published: false
+    };
+    const updated = [newReview, ...reviews];
+    setReviews(updated);
+    localStorage.setItem('abstract_reviews', JSON.stringify(updated));
+  };
+
+  const toggleReviewPublish = (reviewId: string) => {
+    const updated = reviews.map((r) =>
+      r.id === reviewId ? { ...r, published: !r.published } : r
+    );
+    setReviews(updated);
+    localStorage.setItem('abstract_reviews', JSON.stringify(updated));
+  };
+
   return (
     <StoreContext.Provider
       value={{
@@ -389,6 +451,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
         registeredUsers,
         isCartOpen,
         genderMode,
+        reviews,
         setGenderMode,
         login,
         register,
@@ -404,6 +467,8 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
         deleteProduct,
         setCartOpen,
         updateProfile,
+        addReview,
+        toggleReviewPublish,
       }}
     >
       {children}

@@ -10,7 +10,7 @@ import {
   Heart, Sparkles, Palette, Download, Check, X, Search, 
   SlidersHorizontal, Trash2, Edit3, AlertTriangle, Coins, 
   Package, BarChart3, ChevronRight, Settings,
-  UploadCloud, Loader2
+  UploadCloud, Loader2, Star, Clock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -41,12 +41,13 @@ const CLOTHING_CATEGORIES: ClothingCategoryConfig[] = [
 export default function AdminPage() {
   const { 
     user, products, orders, addProduct, updateProduct, deleteProduct,
-    createAdminUser, registeredUsers, removeAdminUser, updateOrderStatus 
+    createAdminUser, registeredUsers, removeAdminUser, updateOrderStatus,
+    reviews, toggleReviewPublish
   } = useStore();
   const router = useRouter();
 
   // Active dashboard tab state
-  const [activeTab, setActiveTab] = useState<'diagnostics' | 'inventory' | 'injector' | 'orders' | 'inquiries' | 'security'>('diagnostics');
+  const [activeTab, setActiveTab] = useState<'diagnostics' | 'inventory' | 'injector' | 'orders' | 'reviews' | 'inquiries' | 'security'>('diagnostics');
 
   // Custom themed Modal Alert/Confirm state
   const [modalAlert, setModalAlert] = useState<{
@@ -937,6 +938,7 @@ export default function AdminPage() {
             { id: 'inventory', label: 'INVENTORY DATABASE', icon: Package },
             { id: 'injector', label: 'CATALOG INJECTOR', icon: Plus },
             { id: 'orders', label: 'ORDER STREAM', icon: ClipboardList },
+            { id: 'reviews', label: 'CUSTOMER REVIEWS', icon: Star },
             { id: 'inquiries', label: 'BESPOKE STUDIO', icon: Palette },
             { id: 'security', label: 'SECURITY ACCESS', icon: UserCog }
           ].map((tab) => {
@@ -1881,172 +1883,377 @@ export default function AdminPage() {
             )}
 
             {/* ─────────────── TAB: ORDER STREAM ─────────────── */}
-            {activeTab === 'orders' && (
+            {activeTab === 'orders' && (() => {
+              const activeOrders = orders.filter(
+                (o) => !o.status || o.status === 'Pending Approval' || o.status === 'Pending Delivery' || o.status === 'Dispatched'
+              );
+              const completedOrders = orders.filter(
+                (o) => o.status === 'Completed' || o.status === 'Discarded'
+              );
+
+              return (
+                <div className="glass rounded-3xl p-6 border border-white/5 flex flex-col gap-6">
+                  <div className="flex items-center gap-2 border-b border-white/10 pb-4">
+                    <ClipboardList className="w-5 h-5 text-cyber-purple" />
+                    <div>
+                      <h3 className="font-mono text-sm tracking-widest text-cyber-purple font-semibold">
+                        TRANSACTION RECEIPTS DATABASE
+                      </h3>
+                      <p className="text-xs text-white/40">Real-time order workflow management queue</p>
+                    </div>
+                  </div>
+
+                  {/* ACTIVE ORDERS SECTION */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 pb-2 border-b border-white/5">
+                      <Clock className="w-4 h-4 text-cyan-400 animate-pulse" />
+                      <h4 className="font-mono text-xs tracking-widest text-cyan-400 font-bold uppercase">
+                        ACTIVE WORKFLOW QUEUE ({activeOrders.length})
+                      </h4>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                      {activeOrders.length === 0 ? (
+                        <div className="col-span-full py-12 flex flex-col items-center justify-center text-white/20 border border-dashed border-white/5 rounded-2xl bg-black/10">
+                          <Terminal className="w-6 h-6 mb-2 text-white/10" />
+                          <span className="font-mono text-xs tracking-wider">NO ACTIVE ORDERS IN QUEUE</span>
+                        </div>
+                      ) : (
+                        activeOrders.map((order) => (
+                          <div key={order.id} className="p-4 rounded-2xl border border-white/5 bg-white/[0.01] flex flex-col gap-3 font-mono text-xs hover:border-white/10 transition-all">
+                            <div className="flex justify-between items-center text-white/80 border-b border-white/5 pb-2">
+                              <span className="text-cyber-green font-bold text-sm">{order.id}</span>
+                              <span className="text-white/30 text-[10px]">{order.date}</span>
+                            </div>
+
+                            <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                              <span className="text-white/40">STATUS:</span>
+                              {(!order.status || order.status === 'Pending Approval') && (
+                                <span className="text-[10px] text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded bg-amber-500/10 font-semibold font-mono">PENDING APPROVAL</span>
+                              )}
+                              {order.status === 'Pending Delivery' && (
+                                <span className="text-[10px] text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded bg-cyan-500/10 font-semibold font-mono">PENDING DELIVERY</span>
+                              )}
+                              {order.status === 'Dispatched' && (
+                                <span className="text-[10px] text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded bg-emerald-500/10 font-semibold">DISPATCHED</span>
+                              )}
+                            </div>
+                            
+                            <div className="space-y-1 text-white/60">
+                              <div className="flex justify-between">
+                                <span className="text-white/40">CLIENT ID:</span>
+                                <span>{order.user}</span>
+                              </div>
+                              {order.email && (
+                                <div className="flex justify-between">
+                                  <span className="text-white/40">EMAIL:</span>
+                                  <span className="truncate max-w-[170px]">{order.email}</span>
+                                </div>
+                              )}
+                              <div className="flex justify-between font-bold text-white">
+                                <span className="text-white/40">TOTAL VALUE:</span>
+                                <span className="text-cyber-purple text-glow-purple">LKR {order.total.toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between text-[10px]">
+                                <span className="text-white/40">METHOD:</span>
+                                <span className="uppercase">{order.paymentMethod}</span>
+                              </div>
+                            </div>
+
+                            {order.deliveryDetails && (
+                              <div className="pt-2 border-t border-white/5 space-y-1 text-[11px] text-white/50 bg-black/20 p-2.5 rounded-xl">
+                                <div className="text-[9px] text-cyber-purple font-bold tracking-wider mb-1 uppercase">DELIVERY TELEMETRY</div>
+                                <div className="flex justify-between">
+                                  <span>RECIPIENT:</span>
+                                  <span className="text-white">{order.deliveryDetails.fullName}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>PHONE:</span>
+                                  <span className="text-white">{order.deliveryDetails.phone}</span>
+                                </div>
+                                <div className="flex justify-between items-start gap-2">
+                                  <span>ADDRESS:</span>
+                                  <span className="text-white text-right break-all max-w-[140px]">{order.deliveryDetails.address}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>CITY:</span>
+                                  <span className="text-white">{order.deliveryDetails.city}</span>
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="space-y-1.5 my-1 border-t border-b border-white/5 py-2">
+                              <span className="text-[9px] text-white/30 block uppercase font-bold">ITEMS BUNDLE</span>
+                              {order.items.map((item, idx) => (
+                                <div key={idx} className="flex justify-between text-white/80">
+                                  <span className="truncate max-w-[160px] font-semibold">{item.garment.name}</span>
+                                  <span className="text-white/50">{item.size} &times; {item.quantity}</span>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Workflow Action Buttons */}
+                            {(!order.status || order.status === 'Pending Approval') && declineReasonForOrder !== order.id && (
+                              <div className="flex gap-2 mt-1">
+                                <button
+                                  onClick={() => handleAcceptOrder(order)}
+                                  disabled={processingOrder === order.id}
+                                  className="flex-1 py-2 rounded-lg border border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                                >
+                                  {processingOrder === order.id ? 'ACCEPTING...' : 'ACCEPT'}
+                                </button>
+                                <button
+                                  onClick={() => { setDeclineReasonForOrder(order.id); setDeclineOrderReasonText(''); }}
+                                  disabled={processingOrder === order.id}
+                                  className="flex-1 py-2 rounded-lg border border-red-500/30 text-red-400 bg-red-500/5 hover:bg-red-500/15 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                                >
+                                  DISCARD
+                                </button>
+                              </div>
+                            )}
+
+                            {declineReasonForOrder === order.id && (
+                              <div className="flex flex-col gap-2 mt-1">
+                                <textarea
+                                  value={declineOrderReasonText}
+                                  onChange={(e) => setDeclineOrderReasonText(e.target.value)}
+                                  placeholder="Reason for discarding order..."
+                                  className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs font-sans text-white resize-none outline-none focus:border-red-500/50"
+                                  rows={2}
+                                />
+                                <div className="flex gap-1.5">
+                                  <button
+                                    onClick={() => setDeclineReasonForOrder(null)}
+                                    disabled={processingOrder === order.id}
+                                    className="flex-1 py-1.5 rounded-lg border border-white/10 text-white/50 hover:text-white bg-white/[0.02] text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                                  >
+                                    CANCEL
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeclineOrder(order)}
+                                    disabled={processingOrder === order.id}
+                                    className="flex-1 py-1.5 rounded-lg border border-red-500/30 text-red-400 bg-red-500/10 hover:bg-red-500/20 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+                                  >
+                                    {processingOrder === order.id ? 'SENDING...' : 'CONFIRM'}
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+
+                            {order.status === 'Pending Delivery' && (
+                              <button
+                                onClick={() => handleDispatchOrder(order.id)}
+                                className="w-full py-2 rounded-lg bg-cyber-purple/20 border border-cyber-purple/40 hover:bg-cyber-purple/35 text-cyber-purple text-xs font-bold transition-all cursor-pointer"
+                              >
+                                DISPATCH TO COURIER
+                              </button>
+                            )}
+
+                            {order.status === 'Dispatched' && (
+                              <div className="flex flex-col gap-2 mt-1">
+                                <div className="text-center text-emerald-400 font-bold py-1.5 bg-emerald-500/5 border border-emerald-500/20 rounded-lg text-[10px]">
+                                  [+] DISPATCHED TO COURIER TEAM
+                                </div>
+                                <button
+                                  onClick={() => updateOrderStatus(order.id, 'Completed')}
+                                  className="w-full py-2 rounded-lg bg-emerald-500/20 border border-emerald-500/40 hover:bg-emerald-500/35 text-emerald-400 text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5" /> MARK AS COMPLETED
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* ALL TIME COMPLETED & ARCHIVED ORDERS SECTION */}
+                  <div className="space-y-4 mt-6">
+                    <div className="flex items-center gap-2 pb-2 border-b border-white/5">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      <h4 className="font-mono text-xs tracking-widest text-emerald-400 font-bold uppercase">
+                        ALL TIME ORDERS DATABASE ({completedOrders.length})
+                      </h4>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                      {completedOrders.length === 0 ? (
+                        <div className="col-span-full py-12 flex flex-col items-center justify-center text-white/20 border border-dashed border-white/5 rounded-2xl bg-black/10">
+                          <Terminal className="w-6 h-6 mb-2 text-white/10" />
+                          <span className="font-mono text-xs tracking-wider">NO COMPLETED OR DISCARDED ORDERS</span>
+                        </div>
+                      ) : (
+                        completedOrders.map((order) => (
+                          <div key={order.id} className="p-4 rounded-2xl border border-white/5 bg-white/[0.01] flex flex-col gap-3 font-mono text-xs hover:border-white/10 transition-all opacity-80">
+                            <div className="flex justify-between items-center text-white/80 border-b border-white/5 pb-2">
+                              <span className="text-white/60 font-bold text-sm">{order.id}</span>
+                              <span className="text-white/30 text-[10px]">{order.date}</span>
+                            </div>
+
+                            <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                              <span className="text-white/40">STATUS:</span>
+                              {order.status === 'Completed' && (
+                                <span className="text-[10px] text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded bg-emerald-500/10 font-semibold font-mono flex items-center gap-1 uppercase tracking-wider">
+                                  <Check className="w-3 h-3 text-emerald-400" /> COMPLETED
+                                </span>
+                              )}
+                              {order.status === 'Discarded' && (
+                                <span className="text-[10px] text-red-400 border border-red-500/30 px-2 py-0.5 rounded bg-red-500/10 font-semibold">DISCARDED</span>
+                              )}
+                            </div>
+                            
+                            <div className="space-y-1 text-white/50">
+                              <div className="flex justify-between">
+                                <span className="text-white/40">CLIENT ID:</span>
+                                <span>{order.user}</span>
+                              </div>
+                              {order.email && (
+                                <div className="flex justify-between">
+                                  <span className="text-white/40">EMAIL:</span>
+                                  <span className="truncate max-w-[170px]">{order.email}</span>
+                                </div>
+                              )}
+                              <div className="flex justify-between font-bold text-white/70">
+                                <span className="text-white/40">TOTAL VALUE:</span>
+                                <span>LKR {order.total.toLocaleString()}</span>
+                              </div>
+                              <div className="flex justify-between text-[10px]">
+                                <span className="text-white/40">METHOD:</span>
+                                <span className="uppercase">{order.paymentMethod}</span>
+                              </div>
+                            </div>
+
+                            {order.deliveryDetails && (
+                              <div className="pt-2 border-t border-white/5 space-y-1 text-[11px] text-white/40 bg-black/10 p-2.5 rounded-xl">
+                                <div className="text-[9px] text-white/40 font-bold tracking-wider mb-1 uppercase">DELIVERY TELEMETRY</div>
+                                <div className="flex justify-between">
+                                  <span>RECIPIENT:</span>
+                                  <span className="text-white/80">{order.deliveryDetails.fullName}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>PHONE:</span>
+                                  <span className="text-white/80">{order.deliveryDetails.phone}</span>
+                                </div>
+                                <div className="flex justify-between items-start gap-2">
+                                  <span>ADDRESS:</span>
+                                  <span className="text-white/80 text-right break-all max-w-[140px]">{order.deliveryDetails.address}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>CITY:</span>
+                                  <span className="text-white/80">{order.deliveryDetails.city}</span>
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="space-y-1.5 my-1 border-t border-b border-white/5 py-2">
+                              <span className="text-[9px] text-white/30 block uppercase font-bold">ITEMS BUNDLE</span>
+                              {order.items.map((item, idx) => (
+                                <div key={idx} className="flex justify-between text-white/60">
+                                  <span className="truncate max-w-[160px]">{item.garment.name}</span>
+                                  <span className="text-white/40">{item.size} &times; {item.quantity}</span>
+                                </div>
+                              ))}
+                            </div>
+
+                            {order.status === 'Completed' && (
+                              <div className="text-center text-emerald-400 font-bold py-1.5 bg-emerald-500/5 border border-emerald-500/20 rounded-lg text-[10px] flex items-center justify-center gap-1.5">
+                                <Check className="w-3.5 h-3.5 text-emerald-400" /> TRANSACTION ARCHIVED
+                              </div>
+                            )}
+
+                            {order.status === 'Discarded' && (
+                              <div className="text-red-400 text-[10px] flex flex-col gap-0.5 bg-red-500/5 border border-red-500/20 p-2 rounded-lg">
+                                <span className="font-bold">[-] ORDER DISCARDED</span>
+                                {order.declineReason && (
+                                  <span className="text-white/40 leading-normal italic">Reason: {order.declineReason}</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* ─────────────── TAB: CUSTOMER REVIEWS ─────────────── */}
+            {activeTab === 'reviews' && (
               <div className="glass rounded-3xl p-6 border border-white/5 flex flex-col gap-4">
                 <div className="flex items-center gap-2 border-b border-white/10 pb-4">
-                  <ClipboardList className="w-5 h-5 text-cyber-purple" />
+                  <Star className="w-5 h-5 text-cyber-purple fill-cyber-purple" />
                   <div>
                     <h3 className="font-mono text-sm tracking-widest text-cyber-purple font-semibold">
-                      TRANSACTION RECEIPTS DATABASE
+                      CUSTOMER FEEDBACK PROTOCOLS
                     </h3>
-                    <p className="text-xs text-white/40">Real-time order workflow management queue</p>
+                    <p className="text-xs text-white/40">Moderate and publish verified client testimonials</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {orders.length === 0 ? (
-                    <div className="col-span-full py-12 flex flex-col items-center justify-center text-white/20">
+                  {reviews.length === 0 ? (
+                    <div className="col-span-full py-12 flex flex-col items-center justify-center text-white/20 border border-dashed border-white/5 rounded-2xl bg-black/10">
                       <Terminal className="w-8 h-8 mb-2 animate-pulse" />
-                      <span className="font-mono text-xs tracking-wider">ORDER DATABASE LOG EMPTY</span>
+                      <span className="font-mono text-xs tracking-wider">NO REVIEWS FOUND IN DATABASE</span>
                     </div>
                   ) : (
-                    orders.map((order) => (
-                      <div key={order.id} className="p-4 rounded-2xl border border-white/5 bg-white/[0.01] flex flex-col gap-3 font-mono text-xs">
-                        <div className="flex justify-between items-center text-white/80 border-b border-white/5 pb-2">
-                          <span className="text-cyber-green font-bold text-sm">{order.id}</span>
-                          <span className="text-white/30 text-[10px]">{order.date}</span>
-                        </div>
+                    reviews.map((review) => (
+                      <div key={review.id} className="p-4 rounded-2xl border border-white/5 bg-white/[0.01] flex flex-col justify-between gap-4 font-mono text-xs hover:border-white/10 transition-all">
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center text-white/80 border-b border-white/5 pb-2">
+                            <span className="text-cyber-green font-bold text-sm">{review.username}</span>
+                            <span className="text-white/30 text-[10px]">{review.date}</span>
+                          </div>
 
-                        <div className="flex justify-between items-center pb-2 border-b border-white/5">
-                          <span className="text-white/40">STATUS:</span>
-                          {(!order.status || order.status === 'Pending Approval') && (
-                            <span className="text-[10px] text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded bg-amber-500/10 font-semibold font-mono">PENDING APPROVAL</span>
-                          )}
-                          {order.status === 'Pending Delivery' && (
-                            <span className="text-[10px] text-cyan-400 border border-cyan-500/30 px-2 py-0.5 rounded bg-cyan-500/10 font-semibold font-mono">PENDING DELIVERY</span>
-                          )}
-                          {order.status === 'Dispatched' && (
-                            <span className="text-[10px] text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded bg-emerald-500/10 font-semibold">DISPATCHED</span>
-                          )}
-                          {order.status === 'Discarded' && (
-                            <span className="text-[10px] text-red-400 border border-red-500/30 px-2 py-0.5 rounded bg-red-500/10 font-semibold">DISCARDED</span>
-                          )}
-                        </div>
-                        
-                        <div className="space-y-1 text-white/60">
-                          <div className="flex justify-between">
-                            <span className="text-white/40">CLIENT ID:</span>
-                            <span>{order.user}</span>
-                          </div>
-                          {order.email && (
-                            <div className="flex justify-between">
-                              <span className="text-white/40">EMAIL:</span>
-                              <span className="truncate max-w-[170px]">{order.email}</span>
+                          <div className="space-y-1">
+                            <div className="flex justify-between items-center text-[10px]">
+                              <span className="text-white/40">ORDER REFERENCE:</span>
+                              <span className="text-white font-bold">{review.orderId}</span>
                             </div>
-                          )}
-                          <div className="flex justify-between font-bold text-white">
-                            <span className="text-white/40">TOTAL VALUE:</span>
-                            <span className="text-cyber-purple text-glow-purple">LKR {order.total.toLocaleString()}</span>
+                            <div className="flex justify-between items-center text-[10px]">
+                              <span className="text-white/40">RATING LEVEL:</span>
+                              <div className="flex gap-0.5">
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`w-3 h-3 ${i < review.rating ? 'text-cyber-purple fill-cyber-purple' : 'text-white/10'}`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex justify-between text-[10px]">
-                            <span className="text-white/40">METHOD:</span>
-                            <span className="uppercase">{order.paymentMethod}</span>
+
+                          <div className="bg-black/20 p-2.5 rounded-xl border border-white/5 font-sans text-white/70 leading-relaxed text-xs italic">
+                            "{review.comment}"
                           </div>
                         </div>
 
-                        {order.deliveryDetails && (
-                          <div className="pt-2 border-t border-white/5 space-y-1 text-[11px] text-white/50 bg-black/20 p-2.5 rounded-xl">
-                            <div className="text-[9px] text-cyber-purple font-bold tracking-wider mb-1 uppercase">DELIVERY TELEMETRY</div>
-                            <div className="flex justify-between">
-                              <span>RECIPIENT:</span>
-                              <span className="text-white">{order.deliveryDetails.fullName}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>PHONE:</span>
-                              <span className="text-white">{order.deliveryDetails.phone}</span>
-                            </div>
-                            <div className="flex justify-between items-start gap-2">
-                              <span>ADDRESS:</span>
-                              <span className="text-white text-right break-all max-w-[140px]">{order.deliveryDetails.address}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>CITY:</span>
-                              <span className="text-white">{order.deliveryDetails.city}</span>
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="space-y-1.5 my-1 border-t border-b border-white/5 py-2">
-                          <span className="text-[9px] text-white/30 block uppercase font-bold">ITEMS BUNDLE</span>
-                          {order.items.map((item, idx) => (
-                            <div key={idx} className="flex justify-between text-white/80">
-                              <span className="truncate max-w-[160px] font-semibold">{item.garment.name}</span>
-                              <span className="text-white/50">{item.size} &times; {item.quantity}</span>
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Workflow Action Buttons */}
-                        {(!order.status || order.status === 'Pending Approval') && declineReasonForOrder !== order.id && (
-                          <div className="flex gap-2 mt-1">
-                            <button
-                              onClick={() => handleAcceptOrder(order)}
-                              disabled={processingOrder === order.id}
-                              className="flex-1 py-2 rounded-lg border border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
-                            >
-                              {processingOrder === order.id ? 'ACCEPTING...' : 'ACCEPT'}
-                            </button>
-                            <button
-                              onClick={() => { setDeclineReasonForOrder(order.id); setDeclineOrderReasonText(''); }}
-                              disabled={processingOrder === order.id}
-                              className="flex-1 py-2 rounded-lg border border-red-500/30 text-red-400 bg-red-500/5 hover:bg-red-500/15 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
-                            >
-                              DISCARD
-                            </button>
-                          </div>
-                        )}
-
-                        {declineReasonForOrder === order.id && (
-                          <div className="flex flex-col gap-2 mt-1">
-                            <textarea
-                              value={declineOrderReasonText}
-                              onChange={(e) => setDeclineOrderReasonText(e.target.value)}
-                              placeholder="Reason for discarding order..."
-                              className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-xs font-sans text-white resize-none outline-none focus:border-red-500/50"
-                              rows={2}
-                            />
-                            <div className="flex gap-1.5">
-                              <button
-                                onClick={() => setDeclineReasonForOrder(null)}
-                                disabled={processingOrder === order.id}
-                                className="flex-1 py-1.5 rounded-lg border border-white/10 text-white/50 hover:text-white bg-white/[0.02] text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
-                              >
-                                CANCEL
-                              </button>
-                              <button
-                                onClick={() => handleDeclineOrder(order)}
-                                disabled={processingOrder === order.id}
-                                className="flex-1 py-1.5 rounded-lg border border-red-500/30 text-red-400 bg-red-500/10 hover:bg-red-500/20 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
-                              >
-                                {processingOrder === order.id ? 'SENDING...' : 'CONFIRM'}
-                              </button>
-                            </div>
-                          </div>
-                        )}
-
-                        {order.status === 'Pending Delivery' && (
-                          <button
-                            onClick={() => handleDispatchOrder(order.id)}
-                            className="w-full py-2 rounded-lg bg-cyber-purple/20 border border-cyber-purple/40 hover:bg-cyber-purple/35 text-cyber-purple text-xs font-bold transition-all cursor-pointer"
-                          >
-                            DISPATCH TO COURIER
-                          </button>
-                        )}
-
-                        {order.status === 'Dispatched' && (
-                          <div className="text-center text-emerald-400 font-bold py-1.5 bg-emerald-500/5 border border-emerald-500/20 rounded-lg text-[10px]">
-                            [+] DISPATCHED TO COURIER TEAM
-                          </div>
-                        )}
-
-                        {order.status === 'Discarded' && (
-                          <div className="text-red-400 text-[10px] flex flex-col gap-0.5 bg-red-500/5 border border-red-500/20 p-2 rounded-lg">
-                            <span className="font-bold">[-] ORDER DISCARDED</span>
-                            {order.declineReason && (
-                              <span className="text-white/40 leading-normal italic">Reason: {order.declineReason}</span>
+                        <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-3">
+                          <span className="text-[10px] text-white/40 flex items-center gap-1">
+                            STATUS:
+                            {review.published ? (
+                              <span className="text-emerald-400 font-bold uppercase tracking-wider text-[9px] bg-emerald-500/10 border border-emerald-500/25 px-1.5 py-0.5 rounded">
+                                PUBLISHED
+                              </span>
+                            ) : (
+                              <span className="text-amber-400 font-bold uppercase tracking-wider text-[9px] bg-amber-500/10 border border-amber-500/25 px-1.5 py-0.5 rounded">
+                                PENDING
+                              </span>
                             )}
-                          </div>
-                        )}
+                          </span>
+                          <button
+                            onClick={() => toggleReviewPublish(review.id)}
+                            className={`px-3 py-1.5 rounded-lg font-bold text-[10px] transition-all cursor-pointer border ${
+                              review.published
+                                ? 'bg-red-500/10 border-red-500/40 text-red-400 hover:bg-red-500/20'
+                                : 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/20'
+                            }`}
+                          >
+                            {review.published ? 'UNPUBLISH' : 'PUBLISH'}
+                          </button>
+                        </div>
                       </div>
                     ))
                   )}
