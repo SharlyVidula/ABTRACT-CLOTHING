@@ -98,7 +98,7 @@ export default function ProductGalleryModal({ isOpen, onClose, garment }: Produc
             </button>
 
             {/* Media Section */}
-            <div className="w-full md:w-2/3 h-[35vh] md:h-[80vh] relative bg-black flex flex-col shrink-0">
+            <div className="w-full md:w-2/3 h-[45vh] md:h-[80vh] relative bg-black flex flex-col shrink-0">
               
               {/* Media Content with Arrows */}
               <div 

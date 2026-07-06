@@ -25,6 +25,7 @@ export default function AtelierModal() {
   const [showStudioCheckout, setShowStudioCheckout] = React.useState(false);
   const [quantity, setQuantity] = React.useState(1);
   const [paymentMethod, setPaymentMethod] = React.useState('Cyber-Credits');
+  const [mobileTab, setMobileTab] = React.useState<'calibrator' | 'advisory'>('calibrator');
 
   if (!isAtelierOpen) return null;
 
@@ -48,6 +49,29 @@ export default function AtelierModal() {
           transition={{ type: 'spring', damping: 25, stiffness: 220 }}
           className="relative w-full max-w-5xl glass rounded-[24px] md:rounded-[36px] overflow-y-auto md:overflow-hidden border border-white/10 shadow-2xl flex flex-col md:flex-row h-auto max-h-[90vh] md:h-[80vh] text-white"
         >
+          {/* Mobile Tabs Header */}
+          <div className="flex md:hidden border-b border-white/10 w-full pt-16 pb-0 px-6 gap-2 shrink-0">
+            <button
+              onClick={() => setMobileTab('calibrator')}
+              className={`flex-1 pb-3 text-xs font-mono font-bold border-b-2 tracking-wider transition-all cursor-pointer focus:outline-none ${
+                mobileTab === 'calibrator'
+                  ? 'border-[var(--theme-primary)] text-white'
+                  : 'border-transparent text-white/40'
+              }`}
+            >
+              1. CALIBRATOR
+            </button>
+            <button
+              onClick={() => setMobileTab('advisory')}
+              className={`flex-1 pb-3 text-xs font-mono font-bold border-b-2 tracking-wider transition-all cursor-pointer focus:outline-none ${
+                mobileTab === 'advisory'
+                  ? 'border-[var(--theme-primary)] text-white'
+                  : 'border-transparent text-white/40'
+              }`}
+            >
+              2. AI ADVISORY
+            </button>
+          </div>
           {/* Close & Reset Controls */}
           <div className="absolute top-6 right-6 z-40 flex items-center gap-3">
             <button
@@ -66,7 +90,7 @@ export default function AtelierModal() {
           </div>
 
           {/* Left Column: Biometrics Input & Size Selection (40% width) */}
-          <div className="w-full md:w-[40%] border-b md:border-b-0 md:border-r border-white/5 p-6 md:p-8 flex flex-col justify-between md:overflow-y-auto">
+          <div className={`w-full md:w-[40%] border-b md:border-b-0 md:border-r border-white/5 p-6 md:p-8 flex-col justify-between md:overflow-y-auto ${mobileTab === 'calibrator' ? 'flex' : 'hidden md:flex'}`}>
             <div className="flex flex-col gap-6">
               <div className="pr-20 md:pr-0">
                 <span className="font-mono text-[10px] tracking-widest text-[var(--theme-primary)] uppercase font-semibold">
@@ -106,11 +130,25 @@ export default function AtelierModal() {
                   })}
                 </div>
               </div>
+
+              {/* Mobile CTA */}
+              <button
+                type="button"
+                onClick={() => {
+                  runTryOn();
+                  setMobileTab('advisory');
+                }}
+                disabled={isLoading}
+                className="md:hidden w-full py-4 mt-4 rounded-xl font-mono text-xs tracking-wider font-bold bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-secondary)] text-white hover:brightness-110 active:scale-98 transition-all flex items-center justify-center gap-2 border border-[var(--theme-border)] shadow-[0_4px_12px_var(--theme-glow)] cursor-pointer disabled:opacity-50"
+              >
+                <Cpu className="w-4 h-4" />
+                {isLoading ? 'ANALYSING BIOMETRICS...' : 'GENERATE AI FIT ADVISORY'}
+              </button>
             </div>
           </div>
 
           {/* Right Column: AI Advisory Report (60% width) */}
-          <div className="w-full md:w-[60%] p-6 md:p-8 flex flex-col justify-between md:overflow-y-auto bg-black/20 relative">
+          <div className={`w-full md:w-[60%] p-6 md:p-8 flex-col justify-between md:overflow-y-auto bg-black/20 relative ${mobileTab === 'advisory' ? 'flex' : 'hidden md:flex'}`}>
             
             <div className="flex flex-col gap-6">
               {/* Garment Title and Spec */}

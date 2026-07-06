@@ -128,7 +128,11 @@ export default function ProductCard({ garment, onAddToCartClick }: ProductCardPr
             ? 'opacity-100 pointer-events-auto'
             : 'opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto'
         }`}
-        style={{ background: 'rgba(8,7,12,0.88)', backdropFilter: 'blur(8px)' }}
+        style={{ 
+          background: 'rgba(8,7,12,0.72)', 
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)'
+        }}
       >
         {/* Sparkle label */}
         <div className="flex items-center gap-1.5 font-mono text-[9px] tracking-widest font-bold"
