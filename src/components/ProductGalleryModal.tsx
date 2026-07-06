@@ -14,6 +14,14 @@ interface ProductGalleryModalProps {
 
 export default function ProductGalleryModal({ isOpen, onClose, garment }: ProductGalleryModalProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isZoomedOpen, setIsZoomedOpen] = useState(false);
+  const [zoomScale, setZoomScale] = useState(1);
+
+  // Swipe gesture handlers
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  const minSwipeDistance = 50;
 
   const isExclusive = !garment.brand || garment.brand !== 'Universe' ? garment.price >= 5000 : false;
   
@@ -33,6 +41,27 @@ export default function ProductGalleryModal({ isOpen, onClose, garment }: Produc
 
   const handleNext = () => setCurrentIndex((prev) => (prev + 1) % mediaItems.length);
   const handlePrev = () => setCurrentIndex((prev) => (prev - 1 + mediaItems.length) % mediaItems.length);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    if (isLeftSwipe) {
+      handleNext();
+    } else if (isRightSwipe) {
+      handlePrev();
+    }
+  };
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -72,7 +101,12 @@ export default function ProductGalleryModal({ isOpen, onClose, garment }: Produc
             <div className="w-full md:w-2/3 h-[35vh] md:h-[80vh] relative bg-black flex flex-col shrink-0">
               
               {/* Media Content with Arrows */}
-              <div className="flex-1 w-full h-full relative overflow-hidden flex items-center justify-center p-4 group/carousel">
+              <div 
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
+                className="flex-1 w-full h-full relative overflow-hidden flex items-center justify-center p-4 group/carousel"
+              >
                 <AnimatePresence mode="wait">
                   <motion.div 
                     key={currentIndex}
@@ -87,7 +121,8 @@ export default function ProductGalleryModal({ isOpen, onClose, garment }: Produc
                         <img 
                           src={mediaItems[currentIndex].src} 
                           alt={`${garment.name} view ${currentIndex + 1}`} 
-                          className={`max-w-full max-h-full object-contain rounded-xl transition-all duration-500 ${mediaItems[currentIndex].flip ? 'scale-x-[-1]' : ''} ${mediaItems[currentIndex].filter || ''}`} 
+                          className={`max-w-full max-h-full object-contain rounded-xl transition-all duration-500 cursor-zoom-in ${mediaItems[currentIndex].flip ? 'scale-x-[-1]' : ''} ${mediaItems[currentIndex].filter || ''}`} 
+                          onClick={() => setIsZoomedOpen(true)}
                         />
                       ) : (
                         <div className="w-64 h-64 border border-white/10 rounded-xl flex items-center justify-center">
@@ -122,7 +157,7 @@ export default function ProductGalleryModal({ isOpen, onClose, garment }: Produc
                 {/* Left Arrow */}
                 <button 
                   onClick={handlePrev} 
-                  className="absolute left-6 z-30 p-3 bg-black/40 hover:bg-black/80 rounded-full text-white/70 hover:text-white transition-all backdrop-blur-md border border-white/10 opacity-0 group-hover/carousel:opacity-100 hover:scale-110"
+                  className="absolute left-6 z-30 p-3 bg-black/40 hover:bg-black/80 rounded-full text-white/70 hover:text-white transition-all backdrop-blur-md border border-white/10 opacity-100 md:opacity-0 group-hover/carousel:opacity-100 hover:scale-110"
                 >
                   <ChevronLeft className="w-6 h-6" />
                 </button>
@@ -130,7 +165,7 @@ export default function ProductGalleryModal({ isOpen, onClose, garment }: Produc
                 {/* Right Arrow */}
                 <button 
                   onClick={handleNext} 
-                  className="absolute right-6 z-30 p-3 bg-black/40 hover:bg-black/80 rounded-full text-white/70 hover:text-white transition-all backdrop-blur-md border border-white/10 opacity-0 group-hover/carousel:opacity-100 hover:scale-110"
+                  className="absolute right-6 z-30 p-3 bg-black/40 hover:bg-black/80 rounded-full text-white/70 hover:text-white transition-all backdrop-blur-md border border-white/10 opacity-100 md:opacity-0 group-hover/carousel:opacity-100 hover:scale-110"
                 >
                   <ChevronRight className="w-6 h-6" />
                 </button>
@@ -191,6 +226,58 @@ export default function ProductGalleryModal({ isOpen, onClose, garment }: Produc
                 </button>
               </div>
             </div>
+
+            {/* Zoom modal overlay */}
+            <AnimatePresence>
+              {isZoomedOpen && mediaItems[currentIndex].type === 'image' && (
+                <div className="fixed inset-0 z-[110] bg-black flex flex-col items-center justify-center p-4">
+                  {/* Controls */}
+                  <div className="absolute top-4 right-4 z-50 flex items-center gap-2">
+                    <button
+                      onClick={() => setZoomScale(prev => Math.min(prev + 0.5, 3))}
+                      className="p-2.5 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors border border-white/10 text-xs font-mono cursor-pointer"
+                    >
+                      ZOOM +
+                    </button>
+                    <button
+                      onClick={() => setZoomScale(prev => Math.max(prev - 0.5, 1))}
+                      className="p-2.5 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors border border-white/10 text-xs font-mono cursor-pointer"
+                    >
+                      ZOOM -
+                    </button>
+                    <button
+                      onClick={() => { setZoomScale(1); setIsZoomedOpen(false); }}
+                      className="p-2.5 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors border border-white/10 cursor-pointer"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Image container */}
+                  <div className="w-full h-full overflow-hidden flex items-center justify-center cursor-zoom-out" onClick={() => { setZoomScale(1); setIsZoomedOpen(false); }}>
+                    <motion.img
+                      src={mediaItems[currentIndex].src}
+                      alt={garment.name}
+                      animate={{ scale: zoomScale }}
+                      transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                      className={`max-w-full max-h-full object-contain rounded-lg ${mediaItems[currentIndex].flip ? 'scale-x-[-1]' : ''} ${mediaItems[currentIndex].filter || ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setZoomScale(prev => prev === 1 ? 2 : 1);
+                      }}
+                      drag={zoomScale > 1}
+                      dragConstraints={{ left: -300, right: 300, top: -300, bottom: 300 }}
+                      style={{ cursor: zoomScale > 1 ? 'grab' : 'zoom-in' }}
+                    />
+                  </div>
+
+                  {/* Helper text */}
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/50 text-[10px] font-mono tracking-wider uppercase pointer-events-none text-center bg-black/60 px-4 py-2 rounded-full border border-white/5">
+                    Click to toggle zoom · Drag to pan when zoomed
+                  </div>
+                </div>
+              )}
+            </AnimatePresence>
 
           </motion.div>
         </div>
