@@ -2,6 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Garment, GARMENTS } from '@/lib/garments';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -93,6 +95,7 @@ interface StoreContextType {
   updateProfile: (details: { email?: string; phone?: string; address?: string; city?: string; gender?: 'Male' | 'Female'; profilePicture?: string; credits?: number }) => Promise<AuthResult>;
   addReview: (review: Omit<Review, 'id' | 'date' | 'published'>) => Promise<void>;
   toggleReviewPublish: (reviewId: string) => Promise<void>;
+  showToast: (message: string, type?: 'success' | 'info' | 'error') => void;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -112,6 +115,19 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
   const [genderMode, setGenderMode] = useState<'Male' | 'Female'>('Female');
   const [registeredUsers, setRegisteredUsers] = useState<StoredUser[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
+
+  // ── Toast Timer Auto-dismiss ─────────────────────────────────────────────────
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => setToast(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
+  const showToast = (message: string, type: 'success' | 'info' | 'error' = 'success') => {
+    setToast({ message, type });
+  };
 
   // ── Hydrate Session and Cart ──────────────────────────────────────────────
   useEffect(() => {
@@ -209,6 +225,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
       setUser(session);
       setGenderMode(data.user.gender);
       localStorage.setItem('abstract_session', JSON.stringify(session));
+      showToast(`Welcome back, ${session.username}!`, 'success');
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message || 'Login failed' };
@@ -239,6 +256,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
       setUser(session);
       setGenderMode(data.user.gender);
       localStorage.setItem('abstract_session', JSON.stringify(session));
+      showToast(`Profile registration verified. Welcome, ${session.username}!`, 'success');
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message || 'Registration failed' };
@@ -267,6 +285,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
         setRegisteredUsers(usersData.users);
       }
       
+      showToast(`Admin account "${username}" registered.`, 'success');
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message || 'Failed to create admin' };
@@ -296,6 +315,8 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
         setRegisteredUsers(usersData.users);
       }
       
+      showToast(`Account "${username}" removed from registry.`, 'info');
+      
       if (user.username === username) {
         logout();
       }
@@ -306,6 +327,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
   };
 
   const logout = () => {
+    showToast(`Terminal session logged out.`, 'info');
     setUser(null);
     localStorage.removeItem('abstract_session');
   };
@@ -315,12 +337,17 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
     const updated = [...cart, { garment, size, quantity, paymentMethod }];
     setCart(updated);
     localStorage.setItem('abstract_cart', JSON.stringify(updated));
+    showToast(`"${garment.name}" added to cart successfully.`, 'success');
   };
 
   const removeFromCart = (index: number) => {
+    const item = cart[index];
     const updated = cart.filter((_, i) => i !== index);
     setCart(updated);
     localStorage.setItem('abstract_cart', JSON.stringify(updated));
+    if (item) {
+      showToast(`Removed "${item.garment.name}" from cart.`, 'info');
+    }
   };
 
   const checkout = async (deliveryDetails?: DeliveryDetails) => {
@@ -390,6 +417,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
         if (ordersData.success && ordersData.orders) {
           setOrders(ordersData.orders);
         }
+        showToast(`Order "${orderId}" status updated to: ${status}`, 'success');
       }
     } catch (err) {
       console.error('Failed to update order status in DB:', err);
@@ -407,6 +435,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'add', product: garment }),
       });
+      showToast(`Product "${garment.name}" added successfully.`, 'success');
     } catch (err) {
       console.error('Failed to save product to database:', err);
     }
@@ -422,6 +451,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'update', product: garment }),
       });
+      showToast(`Product "${garment.name}" updated successfully.`, 'success');
     } catch (err) {
       console.error('Failed to update product in database:', err);
     }
@@ -437,6 +467,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'delete', id }),
       });
+      showToast(`Product deleted successfully.`, 'info');
     } catch (err) {
       console.error('Failed to delete product from database:', err);
     }
@@ -483,6 +514,13 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
         setRegisteredUsers(usersData.users);
       }
 
+      // If credits were claimed, show custom toast
+      if (details.credits !== undefined && details.credits > (user.credits || 0)) {
+        showToast(`Credits Claimed! New Balance: ${details.credits} Credits`, 'success');
+      } else {
+        showToast(`User profile updated.`, 'success');
+      }
+
       return { success: true };
     } catch (err: any) {
       console.error('Failed to update profile:', err);
@@ -505,6 +543,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
         if (reviewsData.success && reviewsData.reviews) {
           setReviews(reviewsData.reviews);
         }
+        showToast(`Review submitted and is awaiting administrator approval.`, 'info');
       }
     } catch (err) {
       console.error('Failed to save review in DB:', err);
@@ -526,6 +565,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
         if (reviewsData.success && reviewsData.reviews) {
           setReviews(reviewsData.reviews);
         }
+        showToast(`Review publish status updated.`, 'success');
       }
     } catch (err) {
       console.error('Failed to toggle review status in DB:', err);
@@ -560,9 +600,48 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
         updateProfile,
         addReview,
         toggleReviewPublish,
+        showToast,
       }}
     >
       {children}
+
+      {/* Global Toast Notification System Overlay */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className="fixed top-6 right-6 z-[9999]"
+          >
+            <div className={`flex items-center gap-3 bg-black/85 backdrop-blur-md border px-4 py-3.5 rounded-2xl shadow-2xl font-sans text-xs tracking-wide min-w-[280px] max-w-sm ${
+              toast.type === 'success' ? 'border-emerald-500/30' :
+              toast.type === 'error' ? 'border-rose-500/30' : 'border-purple-500/30'
+            }`}>
+              {toast.type === 'success' && <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />}
+              {toast.type === 'error' && <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />}
+              {toast.type === 'info' && <Info className="w-4 h-4 text-purple-400 shrink-0" />}
+              
+              <div className="flex-1 flex flex-col gap-0.5">
+                <span className={`font-mono text-[8px] font-bold uppercase tracking-widest ${
+                  toast.type === 'success' ? 'text-emerald-400' :
+                  toast.type === 'error' ? 'text-rose-400' : 'text-purple-400'
+                }`}>
+                  {toast.type === 'success' ? 'SYSTEM LINK ACTIVE' :
+                   toast.type === 'error' ? 'TRANSACTION DECLINED' : 'TELEMETRY PROTOCOL'}
+                </span>
+                <span className="font-semibold text-white/95">{toast.message}</span>
+              </div>
+              <button 
+                onClick={() => setToast(null)}
+                className="p-1 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-all focus:outline-none shrink-0"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </StoreContext.Provider>
   );
 }
