@@ -33,7 +33,8 @@ export async function POST(req: Request) {
         phone: user.phone,
         address: user.address,
         city: user.city,
-        profilePicture: user.profilePicture
+        profilePicture: user.profilePicture,
+        credits: user.credits || 0
       }
     }, { status: 200 });
 

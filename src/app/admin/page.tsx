@@ -218,23 +218,40 @@ export default function AdminPage() {
   const [declineOrderReasonText, setDeclineOrderReasonText] = useState('');
 
   React.useEffect(() => {
-    const data = localStorage.getItem('abstract_custom_inquiries');
-    if (data) {
+    const loadInquiries = async () => {
       try {
-        setCustomInquiries(JSON.parse(data));
-      } catch (e) {
-        console.error('Failed to parse inquiries', e);
+        const res = await fetch('/api/inquiries');
+        const data = await res.json();
+        if (data.success && data.inquiries) {
+          setCustomInquiries(data.inquiries);
+        }
+      } catch (err) {
+        console.error('Failed to load inquiries from DB:', err);
       }
-    }
+    };
+    loadInquiries();
   }, []);
 
   // Sync Inquiries status helper
-  const updateInquiryStatus = (id: string, status: 'accepted' | 'declined') => {
-    const updated = customInquiries.map(inq => 
-      inq.id === id ? { ...inq, status } : inq
-    );
-    setCustomInquiries(updated);
-    localStorage.setItem('abstract_custom_inquiries', JSON.stringify(updated));
+  const updateInquiryStatus = async (id: string, status: 'accepted' | 'declined', reason?: string) => {
+    try {
+      const res = await fetch('/api/inquiries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'updateStatus', inquiryId: id, status, declineReason: reason })
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Refresh inquiries list
+        const listRes = await fetch('/api/inquiries');
+        const listData = await listRes.json();
+        if (listData.success && listData.inquiries) {
+          setCustomInquiries(listData.inquiries);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to update inquiry status in DB:', err);
+    }
   };
 
   const sendInquiryEmail = async (inquiry: any, status: 'accepted' | 'declined', reason?: string) => {
@@ -260,7 +277,7 @@ export default function AdminPage() {
     setProcessingInquiry(inquiry.id);
     const emailRes = await sendInquiryEmail(inquiry, 'accepted');
     if (emailRes.success || !inquiry.contact.includes('@')) {
-      updateInquiryStatus(inquiry.id, 'accepted');
+      await updateInquiryStatus(inquiry.id, 'accepted');
       await showAlert('INQUIRY ACCEPTED', `Bespoke studio request "${inquiry.id}" accepted successfully. Notice sent.`, 'success');
     } else {
       await showAlert('TRANSACTION FAILURE', 'Failed to send acceptance notification: ' + (emailRes.error || 'Unknown network error'), 'error');
@@ -276,7 +293,7 @@ export default function AdminPage() {
     setProcessingInquiry(inquiry.id);
     const emailRes = await sendInquiryEmail(inquiry, 'declined', declineReason);
     if (emailRes.success || !inquiry.contact.includes('@')) {
-      updateInquiryStatus(inquiry.id, 'declined');
+      await updateInquiryStatus(inquiry.id, 'declined', declineReason);
       setDeclineReasonFor(null);
       setDeclineReason('');
       await showAlert('INQUIRY DECLINED', `Request "${inquiry.id}" declined. System log updated.`, 'info');

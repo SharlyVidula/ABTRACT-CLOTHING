@@ -29,6 +29,7 @@ export default function Home() {
     genderMode,
     setGenderMode,
     reviews,
+    updateProfile,
   } = useStore();
 
   const [selectedCheckoutGarment, setSelectedCheckoutGarment] = useState<Garment | null>(null);
@@ -72,13 +73,17 @@ export default function Home() {
   };
 
   React.useEffect(() => {
-    const saved = localStorage.getItem('abstract_credits_balance');
-    if (saved) {
-      setCyberCredits(parseInt(saved));
+    if (user && user.credits !== undefined) {
+      setCyberCredits(user.credits);
     } else {
-      localStorage.setItem('abstract_credits_balance', '15000');
+      const saved = localStorage.getItem('abstract_credits_balance');
+      if (saved) {
+        setCyberCredits(parseInt(saved));
+      } else {
+        localStorage.setItem('abstract_credits_balance', '15000');
+      }
     }
-  }, []);
+  }, [user]);
 
   React.useEffect(() => {
     if (!isCartOpen) {
@@ -981,10 +986,13 @@ export default function Home() {
                               </p>
                               <button
                                 type="button"
-                                onClick={() => {
+                                onClick={async () => {
                                   const newCredits = cyberCredits + 5000;
                                   setCyberCredits(newCredits);
                                   localStorage.setItem('abstract_credits_balance', newCredits.toString());
+                                  if (user) {
+                                    await updateProfile({ credits: newCredits });
+                                  }
                                 }}
                                 className="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-mono text-[10px] font-bold rounded-lg border border-purple-400/30 transition-all cursor-pointer flex items-center justify-center gap-1.5"
                               >
@@ -1138,35 +1146,40 @@ export default function Home() {
                             setIsProcessingPayment(true);
                             setDeliveryError('');
 
-                            setTimeout(() => {
-                              if (method === 'Cyber-Credits') {
+                            setTimeout(async () => {
+                              if (method === 'Cyber-Credits' && !user) {
                                 const newBalance = cyberCredits - cartTotal;
                                 setCyberCredits(newBalance);
                                 localStorage.setItem('abstract_credits_balance', newBalance.toString());
                               }
 
-                              checkout({
-                                fullName: deliveryFullName.trim(),
-                                phone: deliveryPhone.trim(),
-                                address: deliveryAddress.trim(),
-                                city: deliveryCity.trim()
-                              });
+                              try {
+                                await checkout({
+                                  fullName: deliveryFullName.trim(),
+                                  phone: deliveryPhone.trim(),
+                                  address: deliveryAddress.trim(),
+                                  city: deliveryCity.trim()
+                                });
 
-                              showCustomAlert('ORDER PLACED', 'Your order has been placed successfully.', 'success');
-                              
-                              // Clean fields
-                              setDeliveryFullName('');
-                              setDeliveryPhone('');
-                              setDeliveryAddress('');
-                              setDeliveryCity('');
-                              setCardNumber('');
-                              setCardHolder('');
-                              setCardExpiry('');
-                              setCardCvv('');
-                              setSolanaWallet(null);
-                              setIsEnteringDelivery(false);
-                              setIsProcessingPayment(false);
-                              setDeliveryError('');
+                                showCustomAlert('ORDER PLACED', 'Your order has been placed successfully.', 'success');
+                                
+                                // Clean fields
+                                setDeliveryFullName('');
+                                setDeliveryPhone('');
+                                setDeliveryAddress('');
+                                setDeliveryCity('');
+                                setCardNumber('');
+                                setCardHolder('');
+                                setCardExpiry('');
+                                setCardCvv('');
+                                setSolanaWallet(null);
+                                setIsEnteringDelivery(false);
+                                setIsProcessingPayment(false);
+                                setDeliveryError('');
+                              } catch (err: any) {
+                                setDeliveryError(err.message || 'TRANSACTION ENCOUNTERED EXCEPTION PROTOCOL');
+                                setIsProcessingPayment(false);
+                              }
                             }, 2500);
                           }}
                           className="w-full py-4 rounded-xl font-mono text-sm tracking-wider font-semibold bg-white text-black hover:bg-white/90 active:scale-98 transition-all flex items-center justify-center gap-2 border border-white/20 cursor-pointer shadow-lg"

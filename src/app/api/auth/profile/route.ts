@@ -4,7 +4,7 @@ import { User } from '@/lib/models';
 
 export async function POST(req: Request) {
   try {
-    const { username, email, phone, address, city, gender, profilePicture } = await req.json();
+    const { username, email, phone, address, city, gender, profilePicture, credits } = await req.json();
 
     if (!username) {
       return NextResponse.json({ success: false, error: 'Username is required to update profile' }, { status: 400 });
@@ -24,6 +24,7 @@ export async function POST(req: Request) {
     if (city !== undefined) user.city = city.trim();
     if (gender !== undefined) user.gender = gender;
     if (profilePicture !== undefined) user.profilePicture = profilePicture;
+    if (credits !== undefined) user.credits = credits;
 
     await user.save();
 
@@ -37,7 +38,8 @@ export async function POST(req: Request) {
         phone: user.phone,
         address: user.address,
         city: user.city,
-        profilePicture: user.profilePicture
+        profilePicture: user.profilePicture,
+        credits: user.credits
       }
     }, { status: 200 });
 

@@ -50,7 +50,8 @@ export async function POST(req: Request) {
         phone: newUser.phone,
         address: newUser.address,
         city: newUser.city,
-        profilePicture: newUser.profilePicture
+        profilePicture: newUser.profilePicture,
+        credits: newUser.credits || 15000
       }
     }, { status: 201 });
 

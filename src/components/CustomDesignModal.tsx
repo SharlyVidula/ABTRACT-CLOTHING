@@ -91,11 +91,22 @@ export default function CustomDesignModal({ isOpen, onClose }: Props) {
       submittedAt:     new Date().toLocaleString(),
     };
 
-    // Persist to localStorage so admin can view
-    const existing: CustomDesignInquiry[] = JSON.parse(localStorage.getItem('abstract_custom_inquiries') || '[]');
-    localStorage.setItem('abstract_custom_inquiries', JSON.stringify([inquiry, ...existing]));
-
-    setSubmitted(true);
+    fetch('/api/inquiries', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'add', inquiry })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setSubmitted(true);
+        } else {
+          setError(data.error || 'Failed to submit design inquiry.');
+        }
+      })
+      .catch(err => {
+        setError('Network error occurred during submission.');
+      });
   };
 
   const handleClose = () => {

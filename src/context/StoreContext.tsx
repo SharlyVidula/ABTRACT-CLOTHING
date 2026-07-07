@@ -7,10 +7,10 @@ import { Garment, GARMENTS } from '@/lib/garments';
 
 export interface StoredUser {
   username: string;
-  password: string; // plain-text for demo purposes
   email?: string;
   role: 'Customer' | 'Admin';
   gender: 'Male' | 'Female';
+  credits?: number;
 }
 
 export interface CartItem {
@@ -59,6 +59,7 @@ export interface UserSession {
   address?: string;
   city?: string;
   profilePicture?: string;
+  credits?: number;
 }
 
 export type AuthResult = { success: boolean; error?: string };
@@ -83,15 +84,15 @@ interface StoreContextType {
   logout: () => void;
   addToCart: (garment: Garment, size: 'S' | 'M' | 'L' | 'XL' | '2XL', quantity: number, paymentMethod: string) => void;
   removeFromCart: (index: number) => void;
-  checkout: (deliveryDetails?: DeliveryDetails) => void;
-  updateOrderStatus: (orderId: string, status: Order['status'], declineReason?: string) => void;
+  checkout: (deliveryDetails?: DeliveryDetails) => Promise<void>;
+  updateOrderStatus: (orderId: string, status: Order['status'], declineReason?: string) => Promise<void>;
   addProduct: (garment: Garment) => void;
   updateProduct: (garment: Garment) => void;
   deleteProduct: (id: string) => void;
   setCartOpen: (open: boolean) => void;
-  updateProfile: (details: { email?: string; phone?: string; address?: string; city?: string; gender?: 'Male' | 'Female'; profilePicture?: string }) => Promise<AuthResult>;
-  addReview: (review: Omit<Review, 'id' | 'date' | 'published'>) => void;
-  toggleReviewPublish: (reviewId: string) => void;
+  updateProfile: (details: { email?: string; phone?: string; address?: string; city?: string; gender?: 'Male' | 'Female'; profilePicture?: string; credits?: number }) => Promise<AuthResult>;
+  addReview: (review: Omit<Review, 'id' | 'date' | 'published'>) => Promise<void>;
+  toggleReviewPublish: (reviewId: string) => Promise<void>;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -112,18 +113,8 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
   const [registeredUsers, setRegisteredUsers] = useState<StoredUser[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
 
-  // ── Hydrate from localStorage ──────────────────────────────────────────────
+  // ── Hydrate Session and Cart ──────────────────────────────────────────────
   useEffect(() => {
-    // Users list
-    const savedUsers = localStorage.getItem('abstract_users');
-    if (savedUsers) {
-      const parsed: StoredUser[] = JSON.parse(savedUsers);
-      setTimeout(() => setRegisteredUsers(parsed), 0);
-    } else {
-      setTimeout(() => setRegisteredUsers([]), 0);
-      localStorage.setItem('abstract_users', JSON.stringify([]));
-    }
-
     // Active session
     const savedSession = localStorage.getItem('abstract_session');
     if (savedSession) {
@@ -135,37 +126,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
     const savedCart = localStorage.getItem('abstract_cart');
     if (savedCart) setCart(JSON.parse(savedCart));
 
-    const savedOrders = localStorage.getItem('abstract_orders');
-    if (savedOrders) setOrders(JSON.parse(savedOrders));
-
-    const savedReviews = localStorage.getItem('abstract_reviews');
-    if (savedReviews) {
-      setReviews(JSON.parse(savedReviews));
-    } else {
-      const initialReviews: Review[] = [
-        {
-          id: 'REV_1',
-          orderId: 'TX_INV903',
-          username: 'Seraphina',
-          rating: 5,
-          comment: 'The Seraphina Top fits like an absolute glove! The fabric draping is extremely high quality.',
-          date: '7/5/2026 10:15 AM',
-          published: true
-        },
-        {
-          id: 'REV_2',
-          orderId: 'TX_INV904',
-          username: 'Lucian',
-          rating: 4,
-          comment: 'Impressed with the fast validation and dispatch. Blazer quality is premium.',
-          date: '7/4/2026 04:30 PM',
-          published: true
-        }
-      ];
-      setReviews(initialReviews);
-      localStorage.setItem('abstract_reviews', JSON.stringify(initialReviews));
-    }
-
+    // Load static reviews / products from database API
     const loadProducts = async () => {
       try {
         const res = await fetch('/api/products');
@@ -178,19 +139,52 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
       }
     };
     loadProducts();
+
+    const loadReviews = async () => {
+      try {
+        const res = await fetch('/api/reviews');
+        const data = await res.json();
+        if (data.success && data.reviews) {
+          setReviews(data.reviews);
+        }
+      } catch (err) {
+        console.error('Failed to load reviews from DB:', err);
+      }
+    };
+    loadReviews();
+
+    const loadUsers = async () => {
+      try {
+        const res = await fetch('/api/users');
+        const data = await res.json();
+        if (data.success && data.users) {
+          setRegisteredUsers(data.users);
+        }
+      } catch (err) {
+        console.error('Failed to load users from DB:', err);
+      }
+    };
+    loadUsers();
   }, []);
 
+  // ── Load Orders Dynamically when session loads ───────────────────────────────
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        const query = user ? `?username=${encodeURIComponent(user.username)}&role=${encodeURIComponent(user.role)}` : '';
+        const res = await fetch(`/api/orders${query}`);
+        const data = await res.json();
+        if (data.success && data.orders) {
+          setOrders(data.orders);
+        }
+      } catch (err) {
+        console.error('Failed to load orders from DB:', err);
+      }
+    };
+    loadOrders();
+  }, [user]);
+
   // ── Auth helpers ───────────────────────────────────────────────────────────
-  const getUsers = (): StoredUser[] => {
-    const raw = localStorage.getItem('abstract_users');
-    return raw ? JSON.parse(raw) : [];
-  };
-
-  const saveUsers = (users: StoredUser[]) => {
-    setRegisteredUsers(users);
-    localStorage.setItem('abstract_users', JSON.stringify(users));
-  };
-
   const login = async (username: string, password: string): Promise<AuthResult> => {
     try {
       const res = await fetch('/api/auth/login', {
@@ -201,7 +195,17 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
       const data = await res.json();
       if (!data.success) return { success: false, error: data.error };
       
-      const session: UserSession = { username: data.user.username, role: data.user.role, gender: data.user.gender, email: data.user.email };
+      const session: UserSession = { 
+        username: data.user.username, 
+        role: data.user.role, 
+        gender: data.user.gender, 
+        email: data.user.email,
+        phone: data.user.phone,
+        address: data.user.address,
+        city: data.user.city,
+        profilePicture: data.user.profilePicture,
+        credits: data.user.credits
+      };
       setUser(session);
       setGenderMode(data.user.gender);
       localStorage.setItem('abstract_session', JSON.stringify(session));
@@ -221,7 +225,17 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
       const data = await res.json();
       if (!data.success) return { success: false, error: data.error };
       
-      const session: UserSession = { username: data.user.username, role: data.user.role, gender: data.user.gender, email: data.user.email };
+      const session: UserSession = { 
+        username: data.user.username, 
+        role: data.user.role, 
+        gender: data.user.gender, 
+        email: data.user.email,
+        phone: data.user.phone,
+        address: data.user.address,
+        city: data.user.city,
+        profilePicture: data.user.profilePicture,
+        credits: data.user.credits
+      };
       setUser(session);
       setGenderMode(data.user.gender);
       localStorage.setItem('abstract_session', JSON.stringify(session));
@@ -246,10 +260,12 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
       const data = await res.json();
       if (!data.success) return { success: false, error: data.error };
       
-      // Update local storage so UI updates instantly
-      const users = getUsers();
-      const newAdmin: StoredUser = { username: username.trim(), password, role: 'Admin', gender };
-      saveUsers([newAdmin, ...users]);
+      // Reload registeredUsers list from database
+      const usersRes = await fetch('/api/users');
+      const usersData = await usersRes.json();
+      if (usersData.success && usersData.users) {
+        setRegisteredUsers(usersData.users);
+      }
       
       return { success: true };
     } catch (err: any) {
@@ -265,9 +281,20 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
       return { success: false, error: 'Cannot remove the default system administrator.' };
     }
     try {
-      const users = getUsers();
-      const updatedUsers = users.filter((u) => u.username !== username);
-      saveUsers(updatedUsers);
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', username })
+      });
+      const data = await res.json();
+      if (!data.success) return { success: false, error: data.error };
+
+      // Reload registeredUsers list from database
+      const usersRes = await fetch('/api/users');
+      const usersData = await usersRes.json();
+      if (usersData.success && usersData.users) {
+        setRegisteredUsers(usersData.users);
+      }
       
       if (user.username === username) {
         logout();
@@ -296,7 +323,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
     localStorage.setItem('abstract_cart', JSON.stringify(updated));
   };
 
-  const checkout = (deliveryDetails?: DeliveryDetails) => {
+  const checkout = async (deliveryDetails?: DeliveryDetails) => {
     if (cart.length === 0) return;
     const total = cart.reduce((sum, item) => sum + item.garment.price * item.quantity, 0);
     const newOrder: Order = {
@@ -310,20 +337,63 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
       status: 'Pending Approval',
       deliveryDetails,
     };
-    const updatedOrders = [newOrder, ...orders];
-    setOrders(updatedOrders);
-    localStorage.setItem('abstract_orders', JSON.stringify(updatedOrders));
-    setCart([]);
-    localStorage.removeItem('abstract_cart');
-    setCartOpen(false);
+
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create', order: newOrder })
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Refresh orders list
+        const query = user ? `?username=${encodeURIComponent(user.username)}&role=${encodeURIComponent(user.role)}` : '';
+        const ordersRes = await fetch(`/api/orders${query}`);
+        const ordersData = await ordersRes.json();
+        if (ordersData.success && ordersData.orders) {
+          setOrders(ordersData.orders);
+        }
+
+        // Update user credits balance in state if logged in
+        if (user && data.newBalance !== undefined) {
+          const updatedUser = { ...user, credits: data.newBalance };
+          setUser(updatedUser);
+          localStorage.setItem('abstract_session', JSON.stringify(updatedUser));
+        }
+
+        setCart([]);
+        localStorage.removeItem('abstract_cart');
+        setCartOpen(false);
+      } else {
+        console.error('Failed to submit order to DB:', data.error);
+        throw new Error(data.error);
+      }
+    } catch (err) {
+      console.error('Checkout error:', err);
+      throw err;
+    }
   };
 
-  const updateOrderStatus = (orderId: string, status: Order['status'], declineReason?: string) => {
-    const updated = orders.map((o) =>
-      o.id === orderId ? { ...o, status, declineReason } : o
-    );
-    setOrders(updated);
-    localStorage.setItem('abstract_orders', JSON.stringify(updated));
+  const updateOrderStatus = async (orderId: string, status: Order['status'], declineReason?: string) => {
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'updateStatus', orderId, status, declineReason })
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Refresh orders list
+        const query = user ? `?username=${encodeURIComponent(user.username)}&role=${encodeURIComponent(user.role)}` : '';
+        const ordersRes = await fetch(`/api/orders${query}`);
+        const ordersData = await ordersRes.json();
+        if (ordersData.success && ordersData.orders) {
+          setOrders(ordersData.orders);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to update order status in DB:', err);
+    }
   };
 
   // ── Products ───────────────────────────────────────────────────────────────
@@ -379,6 +449,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
     city?: string;
     gender?: 'Male' | 'Female';
     profilePicture?: string;
+    credits?: number;
   }): Promise<AuthResult> => {
     if (!user) return { success: false, error: 'No active session' };
 
@@ -398,21 +469,19 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
       const updatedUser: UserSession = {
         ...user,
         ...details,
+        credits: data.user.credits
       };
       setUser(updatedUser);
 
       // Sync to localStorage session
       localStorage.setItem('abstract_session', JSON.stringify(updatedUser));
 
-      // Sync to registeredUsers mock list in local storage
-      const updatedUsers = registeredUsers.map((u) => {
-        if (u.username.toLowerCase() === user.username.toLowerCase()) {
-          return { ...u, ...details };
-        }
-        return u;
-      });
-      setRegisteredUsers(updatedUsers);
-      localStorage.setItem('abstract_users', JSON.stringify(updatedUsers));
+      // Reload registeredUsers list
+      const usersRes = await fetch('/api/users');
+      const usersData = await usersRes.json();
+      if (usersData.success && usersData.users) {
+        setRegisteredUsers(usersData.users);
+      }
 
       return { success: true };
     } catch (err: any) {
@@ -421,24 +490,46 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
     }
   };
 
-  const addReview = (newReviewData: Omit<Review, 'id' | 'date' | 'published'>) => {
-    const newReview: Review = {
-      ...newReviewData,
-      id: 'REV_' + Math.random().toString(36).substring(3, 9).toUpperCase(),
-      date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      published: false
-    };
-    const updated = [newReview, ...reviews];
-    setReviews(updated);
-    localStorage.setItem('abstract_reviews', JSON.stringify(updated));
+  const addReview = async (newReviewData: Omit<Review, 'id' | 'date' | 'published'>) => {
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'add', review: newReviewData })
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Refresh reviews list
+        const reviewsRes = await fetch('/api/reviews');
+        const reviewsData = await reviewsRes.json();
+        if (reviewsData.success && reviewsData.reviews) {
+          setReviews(reviewsData.reviews);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to save review in DB:', err);
+    }
   };
 
-  const toggleReviewPublish = (reviewId: string) => {
-    const updated = reviews.map((r) =>
-      r.id === reviewId ? { ...r, published: !r.published } : r
-    );
-    setReviews(updated);
-    localStorage.setItem('abstract_reviews', JSON.stringify(updated));
+  const toggleReviewPublish = async (reviewId: string) => {
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'togglePublish', reviewId })
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Refresh reviews list
+        const reviewsRes = await fetch('/api/reviews');
+        const reviewsData = await reviewsRes.json();
+        if (reviewsData.success && reviewsData.reviews) {
+          setReviews(reviewsData.reviews);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to toggle review status in DB:', err);
+    }
   };
 
   return (
