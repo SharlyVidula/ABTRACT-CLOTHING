@@ -143,6 +143,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
   };
 
   const trackEvent = async (eventType: string, details?: any) => {
+    if (user?.role === 'Admin') return; // Exclude admin actions for organic traffic stats
     try {
       const { visitorToken, sessionToken } = getTokens();
       const activeUser = user?.username || 'Guest';

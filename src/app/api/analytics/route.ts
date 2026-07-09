@@ -1,12 +1,20 @@
 import { NextResponse } from 'next/server';
 import connectToDatabase from '@/lib/db';
-import { AnalyticsEvent } from '@/lib/models';
+import { AnalyticsEvent, User } from '@/lib/models';
 
 export async function POST(req: Request) {
   try {
     await connectToDatabase();
     const body = await req.json();
     const { eventType, details, user, sessionToken, visitorToken } = body;
+
+    // Check if the user is an Admin, if so, ignore to show organic traffic metrics only
+    if (user && user !== 'Guest') {
+      const dbUser = await User.findOne({ username: { $regex: new RegExp(`^${user}$`, 'i') } });
+      if (dbUser?.role === 'Admin') {
+        return NextResponse.json({ success: true, ignored: true, message: 'Admin activity ignored for organic stats' });
+      }
+    }
 
     if (!eventType) {
       return NextResponse.json({ success: false, error: 'eventType is required' }, { status: 400 });
