@@ -190,6 +190,22 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
       const parsed = JSON.parse(savedSession) as UserSession;
       setUser(parsed);
       if (parsed.gender) setGenderMode(parsed.gender);
+
+      if (parsed.role === 'Admin') {
+        setTimeout(() => {
+          const { visitorToken, sessionToken } = getTokens();
+          fetch('/api/analytics', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              eventType: 'clear_admin_telemetry',
+              user: parsed.username,
+              sessionToken,
+              visitorToken,
+            }),
+          }).catch(() => {});
+        }, 500);
+      }
     }
 
     const savedCart = localStorage.getItem('abstract_cart');
