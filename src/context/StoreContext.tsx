@@ -83,6 +83,7 @@ interface StoreContextType {
   setGenderMode: (gender: 'Male' | 'Female') => void;
   login: (username: string, password: string) => Promise<AuthResult>;
   register: (username: string, password: string, gender: 'Male' | 'Female', email?: string) => Promise<AuthResult>;
+  loginWithGoogle: (idToken: string) => Promise<AuthResult>;
   createAdminUser: (username: string, password: string, gender: 'Male' | 'Female') => Promise<AuthResult>;
   removeAdminUser: (username: string) => Promise<AuthResult>;
   logout: () => void;
@@ -281,6 +282,38 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message || 'Login failed' };
+    }
+  };
+
+  const loginWithGoogle = async (idToken: string): Promise<AuthResult> => {
+    try {
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken })
+      });
+      const data = await res.json();
+      if (!data.success) return { success: false, error: data.error };
+
+      const session: UserSession = { 
+        username: data.user.username, 
+        role: data.user.role, 
+        gender: data.user.gender, 
+        email: data.user.email,
+        phone: data.user.phone,
+        address: data.user.address,
+        city: data.user.city,
+        profilePicture: data.user.profilePicture,
+        credits: data.user.credits
+      };
+      setUser(session);
+      setGenderMode(data.user.gender);
+      localStorage.setItem('abstract_session', JSON.stringify(session));
+      showToast(`Welcome, ${session.username}! Google Identity Verified.`, 'success');
+      trackEvent('sign_in', { username: session.username, method: 'google' });
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Google authentication failed' };
     }
   };
 
@@ -644,6 +677,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
         setGenderMode,
         login,
         register,
+        loginWithGoogle,
         createAdminUser,
         removeAdminUser,
         logout,

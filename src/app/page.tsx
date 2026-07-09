@@ -11,7 +11,7 @@ import MyAccountModal from '@/components/MyAccountModal';
 import BackgroundScene from '@/components/BackgroundScene';
 import CustomDesignModal from '@/components/CustomDesignModal';
 import AIAssistant from '@/components/AIAssistant';
-import { Heart, Sparkles, ShoppingBag, X, Trash2, ArrowRight, ShieldCheck, LogIn, LogOut, Shield, Check, Crown, Zap, Palette, CreditCard, Coins, Database, Banknote, RefreshCw, Star } from 'lucide-react';
+import { Heart, Sparkles, ShoppingBag, X, Trash2, ArrowRight, ShieldCheck, LogIn, LogOut, Shield, Check, Crown, Zap, Palette, CreditCard, Coins, Database, Banknote, RefreshCw, Star, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Script from 'next/script';
@@ -30,12 +30,24 @@ export default function Home() {
     setGenderMode,
     reviews,
     updateProfile,
+    login,
+    register,
+    loginWithGoogle,
   } = useStore();
 
   const [selectedCheckoutGarment, setSelectedCheckoutGarment] = useState<Garment | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isCustomDesignOpen, setIsCustomDesignOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [cartAuthTab, setCartAuthTab] = useState<'login' | 'register' | null>(null);
+
+  // Inline Auth Form States
+  const [inlineUsername, setInlineUsername] = useState('');
+  const [inlinePassword, setInlinePassword] = useState('');
+  const [inlineEmail, setInlineEmail] = useState('');
+  const [inlineGender, setInlineGender] = useState<'Male' | 'Female'>('Female');
+  const [inlineError, setInlineError] = useState('');
+  const [inlineLoading, setInlineLoading] = useState(false);
   type Collection = 'ALL' | 'EXCLUSIVE' | 'UNIVERSE' | 'DELUX';
   const [activeCollection, setActiveCollection] = useState<Collection>('ALL');
 
@@ -88,6 +100,7 @@ export default function Home() {
   React.useEffect(() => {
     if (!isCartOpen) {
       setIsEnteringDelivery(false);
+      setCartAuthTab(null);
       setDeliveryError('');
       setCardNumber('');
       setCardHolder('');
@@ -95,6 +108,41 @@ export default function Home() {
       setCardCvv('');
     }
   }, [isCartOpen]);
+
+  // Google Login loader inside cart
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && cartAuthTab) {
+      const initGoogle = () => {
+        if ((window as any).google?.accounts?.id) {
+          (window as any).google.accounts.id.initialize({
+            client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "your-google-client-id",
+            callback: async (response: any) => {
+              setInlineLoading(true);
+              setInlineError('');
+              const res = await loginWithGoogle(response.credential);
+              if (res.success) {
+                setCartAuthTab(null);
+                setIsEnteringDelivery(true);
+              } else {
+                setInlineError(res.error || 'Google login failed');
+              }
+              setInlineLoading(false);
+            }
+          });
+          const btnElem = document.getElementById("google-signin-btn-cart");
+          if (btnElem) {
+            (window as any).google.accounts.id.renderButton(
+              btnElem,
+              { theme: "dark", size: "large", width: btnElem.clientWidth || 350 }
+            );
+          }
+        } else {
+          setTimeout(initGoogle, 300);
+        }
+      };
+      initGoogle();
+    }
+  }, [cartAuthTab, loginWithGoogle]);
 
   const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let value = e.target.value.replace(/\D/g, ''); // digits only
@@ -715,10 +763,10 @@ export default function Home() {
                   <ShoppingBag className="w-5 h-5 text-[var(--theme-primary)]" />
                   <div>
                     <h3 className="font-mono text-sm tracking-widest text-[var(--theme-primary)] font-semibold">
-                      {isEnteringDelivery ? 'DELIVERY DETAILS' : 'SELECTED ITEMS'}
+                      {cartAuthTab ? 'IDENTITY VERIFY' : isEnteringDelivery ? 'DELIVERY DETAILS' : 'SELECTED ITEMS'}
                     </h3>
                     <p className="text-[9px] text-white/30 uppercase tracking-wider font-mono">
-                      {isEnteringDelivery ? 'SHIPPING TELEMETRY MATRIX' : 'Total chosen units'}
+                      {cartAuthTab ? 'SECURITY CONTROL PORTAL' : isEnteringDelivery ? 'SHIPPING TELEMETRY MATRIX' : 'Total chosen units'}
                     </p>
                   </div>
                 </div>
@@ -731,7 +779,183 @@ export default function Home() {
                 </button>
               </div>
 
-              {isEnteringDelivery ? (
+              {cartAuthTab ? (
+                /* Inline Authentication Form */
+                <div className="flex-1 overflow-y-auto py-6 space-y-4">
+                  <div className="space-y-4 pt-2">
+                    <div className="text-center pb-2">
+                      <p className="font-mono text-[10px] tracking-widest text-[var(--theme-primary)] uppercase font-semibold">AUTHENTICATION REQUIRED</p>
+                      <h4 className="text-sm font-bold text-white mt-1 uppercase">Sign up or Log in to proceed</h4>
+                      <p className="text-[11px] text-white/40 mt-1">Please sign in or create an account to finalize your couture transaction.</p>
+                    </div>
+
+                    {inlineError && (
+                      <div className="text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/20 p-2.5 rounded-lg flex items-center gap-2">
+                        <AlertCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                        <span>{inlineError}</span>
+                      </div>
+                    )}
+
+                    <div className="flex p-1 rounded-xl bg-white/[0.03] border border-white/8 gap-1">
+                      {(['login', 'register'] as const).map((t) => (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => { setCartAuthTab(t); setInlineError(''); }}
+                          className={`flex-1 py-2.5 rounded-lg text-[11px] font-mono tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 focus:outline-none ${
+                            cartAuthTab === t
+                              ? 'bg-white text-black shadow-md'
+                              : 'text-white/50 hover:text-white'
+                          }`}
+                        >
+                          {t === 'login' ? 'SIGN IN' : 'REGISTER'}
+                        </button>
+                      ))}
+                    </div>
+
+                    <form onSubmit={async (e) => {
+                      e.preventDefault();
+                      setInlineError('');
+                      setInlineLoading(true);
+
+                      if (cartAuthTab === 'login') {
+                        if (!inlineUsername.trim() || !inlinePassword.trim()) {
+                          setInlineError('All fields are required');
+                          setInlineLoading(false);
+                          return;
+                        }
+                        const res = await login(inlineUsername, inlinePassword);
+                        if (res.success) {
+                          setCartAuthTab(null);
+                          setIsEnteringDelivery(true);
+                        } else {
+                          setInlineError(res.error || 'Authentication failed');
+                        }
+                      } else {
+                        if (!inlineUsername.trim() || !inlinePassword.trim() || !inlineEmail.trim()) {
+                          setInlineError('All fields are required');
+                          setInlineLoading(false);
+                          return;
+                        }
+                        const res = await register(inlineUsername, inlinePassword, inlineGender, inlineEmail);
+                        if (res.success) {
+                          // Simulate sending welcome notice
+                          fetch('/api/newsletter', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: inlineEmail })
+                          }).catch(() => {});
+
+                          setCartAuthTab(null);
+                          setIsEnteringDelivery(true);
+                        } else {
+                          setInlineError(res.error || 'Registration failed');
+                        }
+                      }
+                      setInlineLoading(false);
+                    }} className="space-y-4">
+                      
+                      <div className="flex flex-col gap-2">
+                        <label className="font-mono text-[10px] tracking-wider text-white/50 uppercase">USERNAME</label>
+                        <input
+                          type="text"
+                          required
+                          value={inlineUsername}
+                          onChange={(e) => setInlineUsername(e.target.value)}
+                          placeholder="e.g. cyber_operator"
+                          className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-2.5 text-xs font-mono focus:outline-none focus:border-[var(--theme-primary)] transition-colors placeholder:text-white/20 text-white"
+                        />
+                      </div>
+
+                      {cartAuthTab === 'register' && (
+                        <>
+                          <div className="flex flex-col gap-2">
+                            <label className="font-mono text-[10px] tracking-wider text-white/50 uppercase">EMAIL ADDRESS</label>
+                            <input
+                              type="email"
+                              required
+                              value={inlineEmail}
+                              onChange={(e) => setInlineEmail(e.target.value)}
+                              placeholder="e.g. operator@abstract.net"
+                              className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-2.5 text-xs font-mono focus:outline-none focus:border-[var(--theme-primary)] transition-colors placeholder:text-white/20 text-white"
+                            />
+                          </div>
+
+                          <div className="flex flex-col gap-2">
+                            <label className="font-mono text-[10px] tracking-wider text-white/50 uppercase">GENDER TELEMETRY</label>
+                            <div className="flex gap-2">
+                              {(['Female', 'Male'] as const).map((g) => (
+                                <button
+                                  key={g}
+                                  type="button"
+                                  onClick={() => setInlineGender(g)}
+                                  className={`flex-1 py-2 rounded-xl border text-xs font-mono transition-all cursor-pointer focus:outline-none ${
+                                    inlineGender === g
+                                      ? 'border-[var(--theme-primary)] bg-[var(--theme-primary)]/10 text-white font-bold'
+                                      : 'border-white/10 text-white/40 hover:text-white/60'
+                                  }`}
+                                >
+                                  {g.toUpperCase()}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      <div className="flex flex-col gap-2">
+                        <label className="font-mono text-[10px] tracking-wider text-white/50 uppercase">PASSWORD</label>
+                        <input
+                          type="password"
+                          required
+                          value={inlinePassword}
+                          onChange={(e) => setInlinePassword(e.target.value)}
+                          placeholder="••••••••"
+                          className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-2.5 text-xs font-mono focus:outline-none focus:border-[var(--theme-primary)] transition-colors placeholder:text-white/20 text-white"
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={inlineLoading}
+                        className="w-full py-3 mt-2 rounded-xl font-mono text-xs tracking-widest font-bold bg-white text-black hover:bg-white/90 active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-lg disabled:opacity-50"
+                      >
+                        {inlineLoading ? (
+                          <>
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            PROCESSING PROFILE...
+                          </>
+                        ) : (
+                          cartAuthTab === 'login' ? 'AUTHORIZE & SECURE' : 'REGISTER PROFILE'
+                        )}
+                      </button>
+                    </form>
+
+                    {/* Google OAuth Separator */}
+                    <div className="relative flex py-2 items-center">
+                      <div className="flex-grow border-t border-white/10"></div>
+                      <span className="flex-shrink mx-4 text-[9px] font-mono text-white/30 uppercase tracking-widest">SECURE OAUTH</span>
+                      <div className="flex-grow border-t border-white/10"></div>
+                    </div>
+
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <div id="google-signin-btn-cart" className="w-full max-w-[350px] min-h-[40px] flex justify-center items-center"></div>
+                      <p className="text-[8px] font-mono text-white/20 text-center uppercase tracking-widest">Verify identity with Google Cryptographic Core</p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCartAuthTab(null);
+                        setInlineError('');
+                      }}
+                      className="w-full py-2.5 rounded-xl font-mono text-[10px] tracking-widest border border-white/5 hover:border-white/10 bg-white/[0.01] hover:bg-white/[0.03] transition-all flex items-center justify-center gap-2 text-white/40 hover:text-white cursor-pointer"
+                    >
+                      ABORT AUTHENTICATION
+                    </button>
+                  </div>
+                </div>
+              ) : isEnteringDelivery ? (
                 /* Delivery details input form */
                 <div className="flex-1 overflow-y-auto py-6 space-y-4">
                   <div className="space-y-4 pt-2">
@@ -1202,8 +1426,12 @@ export default function Home() {
                   ) : (
                     <button
                       onClick={() => {
-                        setIsEnteringDelivery(true);
-                        setDeliveryError('');
+                        if (!user) {
+                          setCartAuthTab('login');
+                        } else {
+                          setIsEnteringDelivery(true);
+                          setDeliveryError('');
+                        }
                       }}
                       className="w-full py-4 rounded-xl font-mono text-sm tracking-wider font-semibold bg-white text-black hover:bg-white/90 active:scale-98 transition-all flex items-center justify-center gap-2 border border-white/20 cursor-pointer shadow-lg"
                     >

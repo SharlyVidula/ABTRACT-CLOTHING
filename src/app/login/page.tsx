@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 type Tab = 'login' | 'register';
 
 export default function LoginPage() {
-  const { login, register } = useStore();
+  const { login, register, loginWithGoogle } = useStore();
   const router = useRouter();
 
   const [tab, setTab] = useState<Tab>('login');
@@ -34,6 +34,41 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Google Login loader inside login page
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const initGoogle = () => {
+        if ((window as any).google?.accounts?.id) {
+          (window as any).google.accounts.id.initialize({
+            client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "your-google-client-id",
+            callback: async (response: any) => {
+              setLoading(true);
+              setError('');
+              const res = await loginWithGoogle(response.credential);
+              if (res.success) {
+                setSuccess(true);
+                setTimeout(() => router.push('/'), 1100);
+              } else {
+                setError(res.error || 'Google login failed');
+              }
+              setLoading(false);
+            }
+          });
+          const btnElem = document.getElementById("google-signin-btn-loginpage");
+          if (btnElem) {
+            (window as any).google.accounts.id.renderButton(
+              btnElem,
+              { theme: "dark", size: "large", width: btnElem.clientWidth || 350 }
+            );
+          }
+        } else {
+          setTimeout(initGoogle, 300);
+        }
+      };
+      initGoogle();
+    }
+  }, [loginWithGoogle, router]);
 
   // ── Submit: Login ──────────────────────────────────────────────────────────
   const handleLogin = async (e: React.FormEvent) => {
@@ -351,6 +386,22 @@ export default function LoginPage() {
             </motion.form>
           )}
         </AnimatePresence>
+
+        {!success && (
+          <div className="flex flex-col gap-4">
+            {/* Google OAuth Separator */}
+            <div className="relative flex items-center">
+              <div className="flex-grow border-t border-white/10"></div>
+              <span className="flex-shrink mx-4 text-[9px] font-mono text-white/30 uppercase tracking-widest">SECURE OAUTH</span>
+              <div className="flex-grow border-t border-white/10"></div>
+            </div>
+
+            <div className="flex flex-col items-center justify-center gap-2">
+              <div id="google-signin-btn-loginpage" className="w-full max-w-[350px] min-h-[40px] flex justify-center items-center"></div>
+              <p className="text-[8px] font-mono text-white/20 text-center uppercase tracking-widest">Verify identity with Google Cryptographic Core</p>
+            </div>
+          </div>
+        )}
       </motion.div>
     </div>
   );

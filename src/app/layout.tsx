@@ -6,6 +6,7 @@ import { StoreProvider } from "@/context/StoreContext";
 import connectToDatabase from "@/lib/db";
 import { Product } from "@/lib/models";
 import { GARMENTS } from "@/lib/garments";
+import Script from "next/script";
 
 export const dynamic = 'force-dynamic';
 
@@ -58,6 +59,7 @@ export default async function RootLayout({
       className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-[var(--theme-bg)] text-white">
+        <Script src="https://accounts.google.com/gsi/client" strategy="lazyOnload" />
         <StoreProvider initialProducts={initialProducts}>
           <AtelierProvider>
             {children}
