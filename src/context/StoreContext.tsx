@@ -275,11 +275,27 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
         profilePicture: data.user.profilePicture,
         credits: data.user.credits
       };
+      if (session.role === 'Admin') {
+        const { visitorToken, sessionToken } = getTokens();
+        await fetch('/api/analytics', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventType: 'clear_admin_telemetry',
+            user: session.username,
+            sessionToken,
+            visitorToken,
+          }),
+        }).catch(() => {});
+      }
+
       setUser(session);
       setGenderMode(data.user.gender);
       localStorage.setItem('abstract_session', JSON.stringify(session));
       showToast(`Welcome back, ${session.username}!`, 'success');
-      trackEvent('sign_in', { username: session.username });
+      if (session.role !== 'Admin') {
+        trackEvent('sign_in', { username: session.username });
+      }
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message || 'Login failed' };
@@ -307,11 +323,27 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
         profilePicture: data.user.profilePicture,
         credits: data.user.credits
       };
+      if (session.role === 'Admin') {
+        const { visitorToken, sessionToken } = getTokens();
+        await fetch('/api/analytics', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            eventType: 'clear_admin_telemetry',
+            user: session.username,
+            sessionToken,
+            visitorToken,
+          }),
+        }).catch(() => {});
+      }
+
       setUser(session);
       setGenderMode(data.user.gender);
       localStorage.setItem('abstract_session', JSON.stringify(session));
       showToast(`Welcome, ${session.username}! Google Identity Verified.`, 'success');
-      trackEvent('sign_in', { username: session.username, method: 'google' });
+      if (session.role !== 'Admin') {
+        trackEvent('sign_in', { username: session.username, method: 'google' });
+      }
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message || 'Google authentication failed' };

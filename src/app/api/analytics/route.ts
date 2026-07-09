@@ -9,11 +9,35 @@ export async function POST(req: Request) {
     const { eventType, details, user, sessionToken, visitorToken } = body;
 
     // Check if the user is an Admin, if so, ignore to show organic traffic metrics only
+    let isAdmin = false;
     if (user && user !== 'Guest') {
       const dbUser = await User.findOne({ username: { $regex: new RegExp(`^${user}$`, 'i') } });
       if (dbUser?.role === 'Admin') {
-        return NextResponse.json({ success: true, ignored: true, message: 'Admin activity ignored for organic stats' });
+        isAdmin = true;
       }
+    }
+
+    const pathLower = details?.path?.toLowerCase() || '';
+    const isAdminPath = eventType === 'page_view' && 
+      (pathLower === '/admin' || pathLower === '/admin/' || pathLower.startsWith('/admin/') || pathLower.startsWith('/admin?'));
+
+    if (eventType === 'clear_admin_telemetry' || isAdmin || isAdminPath) {
+      // 15 seconds tolerance: delete all records for this visitor/session/user in the last 15 seconds
+      const fifteenSecondsAgo = new Date(Date.now() - 15 * 1000);
+      
+      const filterConditions: any[] = [];
+      if (sessionToken) filterConditions.push({ sessionToken });
+      if (visitorToken) filterConditions.push({ visitorToken });
+      if (user && user !== 'Guest') filterConditions.push({ user });
+
+      if (filterConditions.length > 0) {
+        await AnalyticsEvent.deleteMany({
+          $or: filterConditions,
+          createdAt: { $gte: fifteenSecondsAgo }
+        });
+      }
+      
+      return NextResponse.json({ success: true, ignored: true, message: 'Admin telemetry cleared within tolerance window.' });
     }
 
     if (!eventType) {
