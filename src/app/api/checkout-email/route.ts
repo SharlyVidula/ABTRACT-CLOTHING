@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.EMAIL_PORT || '587'),
+  secure: process.env.EMAIL_SECURE === 'true',
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
@@ -29,7 +31,7 @@ export async function POST(req: Request) {
 
     // Send the checkout email via Nodemailer
     const mailOptions = {
-      from: `"ABSTRACT Orders" <${process.env.EMAIL_USER}>`,
+      from: process.env.EMAIL_FROM || `"ABSTRACT Orders" <${process.env.EMAIL_USER}>`,
       to: [email],
       subject: `Order Confirmation - Thank you ${title} ${username}`,
       html: `
