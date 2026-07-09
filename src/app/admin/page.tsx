@@ -3567,7 +3567,7 @@ export default function AdminPage() {
 
       {/* Footer */}
       <footer className="relative z-30 border-t border-white/5 bg-cyber-dark/80 backdrop-blur-md py-6 px-6 text-center text-white/30 text-[10px] font-mono">
-        <span>&copy; 2026 AETHER OVERRIDE CORE LOGS. AUTHORIZED ADMINISTRATOR ONLY.</span>
+        <span>&copy; 2026 ABSTRACT OVERRIDE CORE LOGS. AUTHORIZED ADMINISTRATOR ONLY.</span>
       </footer>
 
     </div>
