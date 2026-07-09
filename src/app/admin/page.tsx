@@ -10,7 +10,7 @@ import {
   Heart, Sparkles, Palette, Download, Check, X, Search, 
   SlidersHorizontal, Trash2, Edit3, AlertTriangle, Coins, 
   Package, BarChart3, ChevronRight, Settings,
-  UploadCloud, Loader2, Star, Clock
+  UploadCloud, Loader2, Star, Clock, RefreshCw, Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -47,7 +47,7 @@ export default function AdminPage() {
   const router = useRouter();
 
   // Active dashboard tab state
-  const [activeTab, setActiveTab] = useState<'diagnostics' | 'inventory' | 'injector' | 'orders' | 'reviews' | 'inquiries' | 'security'>('diagnostics');
+  const [activeTab, setActiveTab] = useState<'diagnostics' | 'inventory' | 'injector' | 'orders' | 'reviews' | 'inquiries' | 'security' | 'analytics'>('diagnostics');
 
   // Custom themed Modal Alert/Confirm state
   const [modalAlert, setModalAlert] = useState<{
@@ -216,6 +216,31 @@ export default function AdminPage() {
   const [processingOrder, setProcessingOrder] = useState<string | null>(null);
   const [declineReasonForOrder, setDeclineReasonForOrder] = useState<string | null>(null);
   const [declineOrderReasonText, setDeclineOrderReasonText] = useState('');
+
+  // Analytics States
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(false);
+
+  const fetchAnalytics = async () => {
+    setIsAnalyticsLoading(true);
+    try {
+      const res = await fetch(`/api/analytics?role=${user?.role || 'Guest'}`);
+      const data = await res.json();
+      if (data.success) {
+        setAnalyticsData(data.data);
+      }
+    } catch (err) {
+      console.error('Failed to load analytics data:', err);
+    } finally {
+      setIsAnalyticsLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (activeTab === 'analytics') {
+      fetchAnalytics();
+    }
+  }, [activeTab, user]);
 
   React.useEffect(() => {
     const loadInquiries = async () => {
@@ -952,6 +977,7 @@ export default function AdminPage() {
         <div className="max-w-7xl mx-auto flex flex-wrap gap-2">
           {[
             { id: 'diagnostics', label: 'SYSTEM DIAGNOSTICS', icon: Cpu },
+            { id: 'analytics', label: 'ANALYTICS FEED', icon: BarChart3 },
             { id: 'inventory', label: 'INVENTORY DATABASE', icon: Package },
             { id: 'injector', label: 'CATALOG INJECTOR', icon: Plus },
             { id: 'orders', label: 'ORDER STREAM', icon: ClipboardList },
@@ -991,6 +1017,297 @@ export default function AdminPage() {
             className="w-full space-y-8"
           >
             
+            
+            {/* ─────────────── TAB: ANALYTICS FEED ─────────────── */}
+            {activeTab === 'analytics' && (
+              <div className="space-y-8 animate-fadeIn">
+                {/* Refresh Trigger */}
+                <div className="flex justify-between items-center border-b border-white/10 pb-4">
+                  <div>
+                    <h2 className="font-mono text-lg font-bold text-cyber-purple tracking-wider uppercase flex items-center gap-2">
+                      <BarChart3 className="w-5 h-5" /> Web Intelligence & Telemetry
+                    </h2>
+                    <p className="text-xs text-white/40 font-sans mt-0.5">Real-time system reach, traffic, session logs, and product interaction vectors</p>
+                  </div>
+                  <button
+                    onClick={fetchAnalytics}
+                    disabled={isAnalyticsLoading}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/10 text-xs font-mono tracking-wider cursor-pointer bg-white/[0.02] hover:bg-white/[0.07] disabled:opacity-50 transition-all select-none"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isAnalyticsLoading ? 'animate-spin' : ''}`} />
+                    REFRESH DATA
+                  </button>
+                </div>
+
+                {isAnalyticsLoading && !analyticsData ? (
+                  <div className="h-64 flex flex-col items-center justify-center text-white/40 gap-3">
+                    <Loader2 className="w-8 h-8 animate-spin text-cyber-purple" />
+                    <span className="font-mono text-xs tracking-wider uppercase">Loading web analytics node...</span>
+                  </div>
+                ) : !analyticsData ? (
+                  <div className="h-64 flex flex-col items-center justify-center text-white/20 gap-2">
+                    <AlertTriangle className="w-8 h-8 text-amber-500 animate-bounce" />
+                    <span className="font-mono text-xs tracking-wider uppercase">Failed to retrieve analytics matrix.</span>
+                  </div>
+                ) : (
+                  <>
+                    {/* Key Metrics Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                      <div className="glass p-6 rounded-3xl border border-white/5 flex justify-between items-center relative overflow-hidden">
+                        <div className="space-y-1">
+                          <span className="font-mono text-[11px] text-white/40 tracking-wider">TOTAL TRAFFIC (VIEWS)</span>
+                          <div className="font-mono text-2xl font-bold text-cyber-blue text-glow-blue">
+                            {analyticsData.metrics.totalPageViews}
+                          </div>
+                          <p className="text-[9px] text-white/30">Total logged page view events</p>
+                        </div>
+                        <Eye className="w-8 h-8 text-cyber-blue opacity-30" />
+                        <div className="absolute inset-x-0 bottom-0 h-0.5 bg-cyber-blue opacity-50" />
+                      </div>
+
+                      <div className="glass p-6 rounded-3xl border border-white/5 flex justify-between items-center relative overflow-hidden">
+                        <div className="space-y-1">
+                          <span className="font-mono text-[11px] text-white/40 tracking-wider">WEBSITE REACH (VISITORS)</span>
+                          <div className="font-mono text-2xl font-bold text-cyber-purple text-glow-purple">
+                            {analyticsData.metrics.uniqueVisitors}
+                          </div>
+                          <p className="text-[9px] text-white/30">Unique visitor keys cached</p>
+                        </div>
+                        <Zap className="w-8 h-8 text-cyber-purple opacity-30" />
+                        <div className="absolute inset-x-0 bottom-0 h-0.5 bg-cyber-purple opacity-50" />
+                      </div>
+
+                      <div className="glass p-6 rounded-3xl border border-white/5 flex justify-between items-center relative overflow-hidden">
+                        <div className="space-y-1">
+                          <span className="font-mono text-[11px] text-white/40 tracking-wider">SESSIONS ONLINE</span>
+                          <div className="font-mono text-2xl font-bold text-cyber-green text-glow-green">
+                            {analyticsData.metrics.uniqueSessions}
+                          </div>
+                          <p className="text-[9px] text-white/30">Distinct browsing instances</p>
+                        </div>
+                        <Clock className="w-8 h-8 text-cyber-green opacity-30" />
+                        <div className="absolute inset-x-0 bottom-0 h-0.5 bg-cyber-green opacity-50" />
+                      </div>
+
+                      <div className="glass p-6 rounded-3xl border border-white/5 flex justify-between items-center relative overflow-hidden">
+                        <div className="space-y-1">
+                          <span className="font-mono text-[11px] text-white/40 tracking-wider">REGISTERED SIGN-INS</span>
+                          <div className="font-mono text-2xl font-bold text-amber-400">
+                            {analyticsData.metrics.totalSignIns}
+                          </div>
+                          <p className="text-[9px] text-white/30">Unique accounts: {analyticsData.metrics.uniqueSignedUsers}</p>
+                        </div>
+                        <UserCog className="w-8 h-8 text-amber-500 opacity-30" />
+                        <div className="absolute inset-x-0 bottom-0 h-0.5 bg-amber-500 opacity-50" />
+                      </div>
+                    </div>
+
+                    {/* Chart Layout: Interaction matrix + popular models */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                      {/* Left: Interactions breakdown */}
+                      <div className="lg:col-span-1 glass rounded-3xl p-6 border border-white/5 flex flex-col gap-5">
+                        <div className="border-b border-white/10 pb-3">
+                          <h3 className="font-mono text-xs tracking-widest text-cyber-purple font-semibold">
+                            USER INTERACTION Breakdown
+                          </h3>
+                          <p className="text-[10px] text-white/30">Distribution of specific customer actions</p>
+                        </div>
+
+                        <div className="space-y-4 font-mono text-xs flex-1">
+                          {[
+                            { label: 'DETAIL VIEWS', count: analyticsData.interactionCounts.view_details || 0, color: 'bg-cyber-blue', text: 'text-cyber-blue' },
+                            { label: 'TRY-ON SIMULATIONS', count: analyticsData.interactionCounts.try_on || 0, color: 'bg-cyber-purple', text: 'text-cyber-purple' },
+                            { label: 'CART ADDITIONS', count: analyticsData.interactionCounts.add_to_cart || 0, color: 'bg-cyber-green', text: 'text-cyber-green' },
+                            { label: 'CHECKOUTS', count: analyticsData.interactionCounts.checkout || 0, color: 'bg-emerald-500', text: 'text-emerald-400' },
+                            { label: 'AI ASSISTANT DIALOGS', count: analyticsData.interactionCounts.assistant_query || 0, color: 'bg-indigo-500', text: 'text-indigo-400' },
+                            { label: 'BESPOKE INQUIRIES', count: analyticsData.interactionCounts.custom_inquiry || 0, color: 'bg-amber-500', text: 'text-amber-400' },
+                            { label: 'REVIEW SUBMISSIONS', count: analyticsData.interactionCounts.submit_review || 0, color: 'bg-pink-500', text: 'text-pink-400' }
+                          ].map((item, idx) => {
+                            const total = Object.values(analyticsData.interactionCounts).reduce((s: number, c: any) => s + (c || 0), 0) as number;
+                            const percentage = total > 0 ? Math.round((item.count / total) * 100) : 0;
+                            return (
+                              <div key={idx} className="space-y-1.5">
+                                <div className="flex justify-between text-[11px]">
+                                  <span className="text-white/60">{item.label}</span>
+                                  <span className={`font-bold ${item.text}`}>{item.count} ({percentage}%)</span>
+                                </div>
+                                <div className="h-2 w-full bg-white/[0.03] rounded-full overflow-hidden border border-white/5">
+                                  <div className={`h-full ${item.color} rounded-full`} style={{ width: `${percentage}%` }} />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Right: Traffic Trend over time + Popular items */}
+                      <div className="lg:col-span-2 flex flex-col gap-8">
+                        {/* Daily Trend (Past 7 Days) */}
+                        <div className="glass rounded-3xl p-6 border border-white/5 flex flex-col gap-4">
+                          <div className="border-b border-white/10 pb-3">
+                            <h3 className="font-mono text-xs tracking-widest text-cyber-blue font-semibold">
+                              7-DAY TRAFFIC MATRIX
+                            </h3>
+                            <p className="text-[10px] text-white/30">Visits & page views trend</p>
+                          </div>
+
+                          {analyticsData.trafficTrend && analyticsData.trafficTrend.length > 0 ? (
+                            <div className="h-44 flex items-end gap-3 pt-6 border-b border-white/10 pb-2">
+                              {analyticsData.trafficTrend.map((t: any, idx: number) => {
+                                const maxViews = Math.max(...analyticsData.trafficTrend.map((d: any) => d.pageViews || 1)) as number;
+                                const viewHeight = `${Math.max(10, Math.round((t.pageViews / maxViews) * 100))}%`;
+                                const visitorHeight = `${Math.max(5, Math.round((t.visitors / maxViews) * 100))}%`;
+                                return (
+                                  <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end relative group">
+                                    {/* Tooltip */}
+                                    <div className="absolute bottom-full mb-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/90 border border-white/15 px-2 py-1 rounded font-mono text-[9px] text-center z-25 min-w-[70px] pointer-events-none">
+                                      <p className="text-cyber-blue">Views: {t.pageViews}</p>
+                                      <p className="text-cyber-purple">Visits: {t.visitors}</p>
+                                    </div>
+                                    <div className="w-full flex items-end gap-1 h-full max-w-[45px] justify-center">
+                                      {/* PageViews Bar */}
+                                      <div className="w-3.5 bg-cyber-blue rounded-t" style={{ height: viewHeight }} />
+                                      {/* Visitors Bar */}
+                                      <div className="w-3.5 bg-cyber-purple rounded-t" style={{ height: visitorHeight }} />
+                                    </div>
+                                    <span className="font-mono text-[9px] text-white/30 mt-2 block">
+                                      {t.date.split('-').slice(1).join('/')}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <div className="h-44 flex flex-col items-center justify-center text-white/20 font-mono text-[10px]">
+                              NO RECENT TRAFFIC TREND DATA RECORDED
+                            </div>
+                          )}
+                          <div className="flex gap-4 font-mono text-[10px] text-white/40 justify-center">
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-2.5 h-2.5 bg-cyber-blue rounded-sm" /> PAGE VIEWS
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="w-2.5 h-2.5 bg-cyber-purple rounded-sm" /> UNIQUE VISITORS
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Popular Garments */}
+                        <div className="glass rounded-3xl p-6 border border-white/5 flex flex-col gap-4">
+                          <div className="border-b border-white/10 pb-3">
+                            <h3 className="font-mono text-xs tracking-widest text-amber-500 font-semibold">
+                              POPULAR GARMENTS TELEMETRY
+                            </h3>
+                            <p className="text-[10px] text-white/30">Garments with highest visitor engagement metrics</p>
+                          </div>
+
+                          <div className="space-y-2 overflow-y-auto max-h-[220px] pr-1">
+                            {analyticsData.popularGarments && analyticsData.popularGarments.length > 0 ? (
+                              analyticsData.popularGarments.map((item: any, idx: number) => (
+                                <div key={idx} className="flex justify-between items-center p-2.5 rounded-xl border border-white/5 bg-white/[0.01] font-mono text-xs">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-bold text-white/30">#0{idx+1}</span>
+                                    <span className="font-bold text-white uppercase text-glow-purple">{item.name || item.id}</span>
+                                  </div>
+                                  <div className="flex gap-4 text-[10px] text-white/40">
+                                    <span>Views: <strong className="text-white/80">{item.detailViews}</strong></span>
+                                    <span>Simulations: <strong className="text-cyber-purple">{item.tryOns}</strong></span>
+                                    <span>Added: <strong className="text-cyber-green">{item.addCarts}</strong></span>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="text-center text-white/20 py-8 font-mono text-[10px]">
+                                NO ENGAGEMENT DATA YET
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bottom row: Live Audit Trail Log */}
+                    <div className="glass rounded-3xl p-6 border border-white/5 flex flex-col gap-4">
+                      <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                        <div className="flex items-center gap-2">
+                          <Terminal className="w-4 h-4 text-cyber-purple" />
+                          <div>
+                            <h3 className="font-mono text-xs tracking-widest text-cyber-purple font-semibold">
+                              LIVE AUDIT FEED
+                            </h3>
+                            <p className="text-[10px] text-white/30">Chronological telemetry audit feed logs</p>
+                          </div>
+                        </div>
+                        <span className="font-mono text-[9px] bg-cyber-purple/15 border border-cyber-purple/30 text-cyber-purple px-2 py-0.5 rounded uppercase font-semibold">
+                          MATRIX MONITORING ACTIVE
+                        </span>
+                      </div>
+
+                      <div className="font-mono text-[11px] text-white/50 space-y-2 max-h-[350px] overflow-y-auto pr-1 font-sans selection:bg-cyber-purple/30 selection:text-white">
+                        {analyticsData.recentEvents && analyticsData.recentEvents.length > 0 ? (
+                          analyticsData.recentEvents.map((evt: any, idx: number) => {
+                            const timeStr = new Date(evt.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                            const dateStr = new Date(evt.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' });
+                            
+                            let text = `Event: ${evt.eventType}`;
+                            let color = 'text-white/55';
+                            if (evt.eventType === 'page_view') {
+                              text = `Page View: ${evt.details?.path || '/'}`;
+                              color = 'text-cyber-blue/70';
+                            } else if (evt.eventType === 'sign_in') {
+                              text = `User "${evt.details?.username || evt.user}" session initiated`;
+                              color = 'text-amber-400 font-bold';
+                            } else if (evt.eventType === 'sign_up') {
+                              text = `New account registered: "${evt.details?.username || evt.user}" (${evt.details?.gender || ''})`;
+                              color = 'text-amber-500 font-extrabold';
+                            } else if (evt.eventType === 'sign_out') {
+                              text = `User "${evt.details?.username || evt.user}" session terminated`;
+                              color = 'text-white/30';
+                            } else if (evt.eventType === 'add_to_cart') {
+                              text = `Garment added to cart: ${evt.details?.garmentName} (Size: ${evt.details?.size}, Qty: ${evt.details?.quantity})`;
+                              color = 'text-cyber-green/70';
+                            } else if (evt.eventType === 'checkout') {
+                              text = `Cyber checkout verification complete: Order ${evt.details?.orderId} for LKR ${evt.details?.total?.toLocaleString()} (${evt.details?.paymentMethod})`;
+                              color = 'text-emerald-400 font-bold';
+                            } else if (evt.eventType === 'try_on') {
+                              text = `Bespoke simulation run for "${evt.details?.garmentName}" (Size: ${evt.details?.size})`;
+                              color = 'text-cyber-purple/70';
+                            } else if (evt.eventType === 'custom_inquiry') {
+                              text = `Bespoke Inquiry submitted: ${evt.details?.inquiryId} - Garment: ${evt.details?.garmentType} (Budget: ${evt.details?.budget})`;
+                              color = 'text-amber-400/90';
+                            } else if (evt.eventType === 'assistant_query') {
+                              text = `AI Tailer Stylist queried (Query size: ${evt.details?.queryLength} chars)`;
+                              color = 'text-indigo-400/80';
+                            } else if (evt.eventType === 'view_details') {
+                              text = `Viewed item details: "${evt.details?.garmentName}"`;
+                              color = 'text-white/60';
+                            }
+
+                            return (
+                              <div key={idx} className="flex justify-between items-start gap-4 p-1.5 border-b border-white/[0.02] hover:bg-white/[0.01]">
+                                <div className="flex gap-2">
+                                  <span className="text-white/30">[{dateStr} {timeStr}]</span>
+                                  <span className="text-cyber-purple font-bold">[{evt.user}]</span>
+                                  <span className={color}>{text}</span>
+                                </div>
+                                <span className="text-[9px] text-white/20 select-none hidden sm:block">
+                                  ID: {evt._id.substring(evt._id.length - 8)}
+                                </span>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <div className="text-center py-8 text-white/25">
+                            [NO SYSTEM LOG FEED ENTRIES RECORDED]
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+
             {/* ─────────────── TAB: DIAGNOSTICS ─────────────── */}
             {activeTab === 'diagnostics' && (
               <div className="space-y-8">

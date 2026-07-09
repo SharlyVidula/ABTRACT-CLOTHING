@@ -181,3 +181,25 @@ const CustomInquirySchema = new Schema<ICustomInquiry>({
 });
 
 export const CustomInquiry = mongoose.models.CustomInquiry || mongoose.model<ICustomInquiry>('CustomInquiry', CustomInquirySchema);
+
+// ─── Analytics Event Model ──────────────────────────────────────────────────
+export interface IAnalyticsEvent extends Document {
+  eventType: string; // 'page_view' | 'sign_in' | 'sign_out' | 'search' | 'add_to_cart' | 'checkout' | 'try_on' | 'custom_inquiry' | 'submit_review' | 'assistant_query' | 'view_details'
+  details?: Record<string, any>;
+  user?: string; // username or 'Guest'
+  sessionToken?: string; // session key
+  visitorToken?: string; // browser visitor key
+  createdAt: Date;
+}
+
+const AnalyticsEventSchema = new Schema<IAnalyticsEvent>({
+  eventType: { type: String, required: true },
+  details: { type: Schema.Types.Mixed },
+  user: { type: String, default: 'Guest' },
+  sessionToken: { type: String },
+  visitorToken: { type: String },
+  createdAt: { type: Date, default: Date.now },
+});
+
+export const AnalyticsEvent = mongoose.models.AnalyticsEvent || mongoose.model<IAnalyticsEvent>('AnalyticsEvent', AnalyticsEventSchema);
+

@@ -3,6 +3,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Palette, Send, CheckCircle2, AlertCircle, User, Phone, FileText, Layers, ImagePlus, XCircle } from 'lucide-react';
+import { useStore } from '@/context/StoreContext';
 
 interface CustomDesignInquiry {
   id: string;
@@ -28,6 +29,7 @@ const inputClass =
 const labelClass = 'text-[11px] font-mono font-semibold tracking-wider text-white/55 uppercase';
 
 export default function CustomDesignModal({ isOpen, onClose }: Props) {
+  const { trackEvent } = useStore();
   const [name, setName]                   = useState('');
   const [contact, setContact]             = useState('');
   const [garmentType, setGarmentType]     = useState('Frock');
@@ -100,6 +102,7 @@ export default function CustomDesignModal({ isOpen, onClose }: Props) {
       .then(data => {
         if (data.success) {
           setSubmitted(true);
+          trackEvent('custom_inquiry', { inquiryId: inquiry.id, garmentType: inquiry.garmentType, budget: inquiry.budget });
         } else {
           setError(data.error || 'Failed to submit design inquiry.');
         }

@@ -4,6 +4,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Garment, GARMENTS } from '@/lib/garments';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -96,6 +98,7 @@ interface StoreContextType {
   addReview: (review: Omit<Review, 'id' | 'date' | 'published'>) => Promise<void>;
   toggleReviewPublish: (reviewId: string) => Promise<void>;
   showToast: (message: string, type?: 'success' | 'info' | 'error') => void;
+  trackEvent: (eventType: string, details?: any) => Promise<void>;
 }
 
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
@@ -116,6 +119,54 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
   const [registeredUsers, setRegisteredUsers] = useState<StoredUser[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' | 'error' } | null>(null);
+
+  // ── Analytics Event Logging ──────────────────────────────────────────────────
+  const pathname = usePathname();
+
+  const getTokens = () => {
+    if (typeof window === 'undefined') return { visitorToken: '', sessionToken: '' };
+    
+    let visitorToken = localStorage.getItem('abstract_visitor_token');
+    if (!visitorToken) {
+      visitorToken = 'v_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      localStorage.setItem('abstract_visitor_token', visitorToken);
+    }
+
+    let sessionToken = sessionStorage.getItem('abstract_session_token');
+    if (!sessionToken) {
+      sessionToken = 's_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      sessionStorage.setItem('abstract_session_token', sessionToken);
+    }
+
+    return { visitorToken, sessionToken };
+  };
+
+  const trackEvent = async (eventType: string, details?: any) => {
+    try {
+      const { visitorToken, sessionToken } = getTokens();
+      const activeUser = user?.username || 'Guest';
+
+      await fetch('/api/analytics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          eventType,
+          details,
+          user: activeUser,
+          sessionToken,
+          visitorToken,
+        }),
+      });
+    } catch (err) {
+      console.error('Failed to log analytics event:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (pathname) {
+      trackEvent('page_view', { path: pathname, referrer: typeof document !== 'undefined' ? document.referrer : '' });
+    }
+  }, [pathname]);
 
   // ── Toast Timer Auto-dismiss ─────────────────────────────────────────────────
   useEffect(() => {
@@ -226,6 +277,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
       setGenderMode(data.user.gender);
       localStorage.setItem('abstract_session', JSON.stringify(session));
       showToast(`Welcome back, ${session.username}!`, 'success');
+      trackEvent('sign_in', { username: session.username });
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message || 'Login failed' };
@@ -257,6 +309,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
       setGenderMode(data.user.gender);
       localStorage.setItem('abstract_session', JSON.stringify(session));
       showToast(`Profile registration verified. Welcome, ${session.username}!`, 'success');
+      trackEvent('sign_up', { username: session.username, gender: session.gender });
       return { success: true };
     } catch (err: any) {
       return { success: false, error: err.message || 'Registration failed' };
@@ -327,6 +380,9 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
   };
 
   const logout = () => {
+    if (user) {
+      trackEvent('sign_out', { username: user.username });
+    }
     showToast(`Terminal session logged out.`, 'info');
     setUser(null);
     localStorage.removeItem('abstract_session');
@@ -338,6 +394,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
     setCart(updated);
     localStorage.setItem('abstract_cart', JSON.stringify(updated));
     showToast(`"${garment.name}" added to cart successfully.`, 'success');
+    trackEvent('add_to_cart', { garmentId: garment.id, garmentName: garment.name, size, quantity, price: garment.price });
   };
 
   const removeFromCart = (index: number) => {
@@ -373,6 +430,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
       });
       const data = await res.json();
       if (data.success) {
+        trackEvent('checkout', { orderId: newOrder.id, total: newOrder.total, paymentMethod: newOrder.paymentMethod, itemsCount: newOrder.items.length });
         // Refresh orders list
         const query = user ? `?username=${encodeURIComponent(user.username)}&role=${encodeURIComponent(user.role)}` : '';
         const ordersRes = await fetch(`/api/orders${query}`);
@@ -601,6 +659,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
         addReview,
         toggleReviewPublish,
         showToast,
+        trackEvent,
       }}
     >
       {children}

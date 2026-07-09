@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, X, Send, Cpu, Loader2 } from 'lucide-react';
+import { useStore } from '@/context/StoreContext';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -10,6 +11,7 @@ interface Message {
 }
 
 export default function AIAssistant() {
+  const { trackEvent } = useStore();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: 'Greetings. I am the ABSTRACT A.I. Tailor. How may I assist you with your wardrobe or fit telemetry today?' }
@@ -34,6 +36,10 @@ export default function AIAssistant() {
     setInput('');
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setIsLoading(true);
+    trackEvent('assistant_query', {
+      queryLength: userMessage.length,
+      messageCount: messages.length + 1,
+    });
 
     try {
       const res = await fetch('/api/assistant', {

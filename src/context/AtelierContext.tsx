@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Garment, GARMENTS } from '@/lib/garments';
+import { useStore } from '@/context/StoreContext';
 
 export interface UserMeasurements {
   height: number;
@@ -55,6 +56,7 @@ export function AtelierProvider({ children }: { children: React.ReactNode }) {
   const [fitAdvisory, setFitAdvisory] = useState<FitAdvisoryData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isAtelierOpen, setIsAtelierOpen] = useState(false);
+  const { trackEvent } = useStore();
 
   // Auto-calculate size recommendation based on waist & chest
   useEffect(() => {
@@ -121,6 +123,12 @@ export function AtelierProvider({ children }: { children: React.ReactNode }) {
         recommendedSize: data.recommendedSize,
         fitAndFeel: data.fitAndFeel,
         sizeComparisons: data.sizeComparisons,
+      });
+      trackEvent('try_on', {
+        garmentId: selectedGarment.id,
+        garmentName: selectedGarment.name,
+        measurements,
+        size: selectedSize,
       });
     } catch (error) {
       console.error('Virtual Atelier pipeline execution error:', error);

@@ -6,6 +6,7 @@ import { useAtelier } from '@/context/AtelierContext';
 import { Eye, ShoppingCart, Sparkles, Crown, Zap, MonitorPlay } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ProductGalleryModal from './ProductGalleryModal';
+import { useStore } from '@/context/StoreContext';
 
 interface ProductCardProps {
   garment: Garment;
@@ -14,6 +15,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ garment, onAddToCartClick }: ProductCardProps) {
   const { setSelectedGarment, setIsAtelierOpen } = useAtelier();
+  const { trackEvent } = useStore();
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [showOverlay, setShowOverlay] = useState(false);
 
@@ -152,7 +154,7 @@ export default function ProductCard({ garment, onAddToCartClick }: ProductCardPr
         {/* CTA buttons */}
         <div className="flex flex-col gap-2.5 w-full max-w-[185px]">
           <button
-            onClick={(e) => { e.stopPropagation(); setIsGalleryOpen(true); }}
+            onClick={(e) => { e.stopPropagation(); setIsGalleryOpen(true); trackEvent('view_details', { garmentId: garment.id, garmentName: garment.name }); }}
             className="w-full py-2 rounded-xl font-mono text-[10px] font-bold tracking-wider transition-all border flex items-center justify-center gap-1.5 cursor-pointer focus:outline-none bg-black/50 hover:bg-white/10"
             style={{ borderColor: 'rgba(255,255,255,0.2)', color: 'white' }}
           >
