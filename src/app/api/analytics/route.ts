@@ -22,8 +22,9 @@ export async function POST(req: Request) {
       (pathLower === '/admin' || pathLower === '/admin/' || pathLower.startsWith('/admin/') || pathLower.startsWith('/admin?'));
 
     if (eventType === 'clear_admin_telemetry' || isAdmin || isAdminPath) {
-      // 15 seconds tolerance: delete all records for this visitor/session/user in the last 15 seconds
-      const fifteenSecondsAgo = new Date(Date.now() - 15 * 1000);
+      // 24 hours purge window: delete all prior records for this visitor/session/user in the last 24 hours
+      // to ensure any prior guest page views before logging in or restoring session are fully scrubbed
+      const purgeWindow = new Date(Date.now() - 24 * 60 * 60 * 1000);
       
       const filterConditions: any[] = [];
       if (sessionToken) filterConditions.push({ sessionToken });
@@ -33,11 +34,11 @@ export async function POST(req: Request) {
       if (filterConditions.length > 0) {
         await AnalyticsEvent.deleteMany({
           $or: filterConditions,
-          createdAt: { $gte: fifteenSecondsAgo }
+          createdAt: { $gte: purgeWindow }
         });
       }
       
-      return NextResponse.json({ success: true, ignored: true, message: 'Admin telemetry cleared within tolerance window.' });
+      return NextResponse.json({ success: true, ignored: true, message: 'Admin telemetry cleared within purge window.' });
     }
 
     if (!eventType) {
