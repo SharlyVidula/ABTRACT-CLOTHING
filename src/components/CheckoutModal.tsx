@@ -16,7 +16,7 @@ export default function CheckoutModal({ garment, isOpen, onClose }: CheckoutModa
   const { addToCart, setCartOpen, user } = useStore();
   const [size, setSize] = useState<'S' | 'M' | 'L' | 'XL' | '2XL'>('M');
   const [quantity, setQuantity] = useState(1);
-  const [paymentMethod, setPaymentMethod] = useState('Cyber-Credits');
+  const [paymentMethod, setPaymentMethod] = useState('Cash on Delivery');
 
   React.useEffect(() => {
     if (garment) {
@@ -50,10 +50,10 @@ export default function CheckoutModal({ garment, isOpen, onClose }: CheckoutModa
   };
 
   const paymentOptions = [
-    { name: 'Cyber-Credits', icon: Coins, desc: 'Store digital credits' },
-    { name: 'Credit Card', icon: CreditCard, desc: 'Visa/MC Secure Auth' },
-    { name: 'Solana Network', icon: Database, desc: 'Web3 transaction matrix' },
-    { name: 'Cash on Delivery', icon: Banknote, desc: 'Pay with cash upon package arrival' },
+    { name: 'Cyber-Credits', icon: Coins, desc: 'Store digital credits', comingSoon: true },
+    { name: 'Credit Card', icon: CreditCard, desc: 'Visa/MC Secure Auth', comingSoon: true },
+    { name: 'Solana Network', icon: Database, desc: 'Web3 transaction matrix', comingSoon: true },
+    { name: 'Cash on Delivery', icon: Banknote, desc: 'Pay with cash upon package arrival', comingSoon: false },
   ];
 
   const glowColor = garment.colorTheme.primary;
@@ -153,26 +153,36 @@ export default function CheckoutModal({ garment, isOpen, onClose }: CheckoutModa
                     <button
                       key={opt.name}
                       type="button"
-                      onClick={() => setPaymentMethod(opt.name)}
-                      className={`w-full p-3 rounded-xl border flex items-center justify-between transition-all duration-300 text-left focus:outline-none cursor-pointer ${
-                        isSelected
-                          ? 'border-white bg-white/[0.04] shadow-[0_0_10px_rgba(255,255,255,0.05)]'
-                          : 'border-white/5 hover:border-white/10 text-white/60 hover:text-white bg-white/[0.01]'
+                      disabled={opt.comingSoon}
+                      onClick={() => !opt.comingSoon && setPaymentMethod(opt.name)}
+                      className={`w-full p-3 rounded-xl border flex items-center justify-between transition-all duration-300 text-left focus:outline-none ${
+                        opt.comingSoon
+                          ? 'border-white/5 opacity-40 cursor-not-allowed'
+                          : isSelected
+                          ? 'border-white bg-white/[0.04] shadow-[0_0_10px_rgba(255,255,255,0.05)] cursor-pointer'
+                          : 'border-white/5 hover:border-white/10 text-white/60 hover:text-white bg-white/[0.01] cursor-pointer'
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <Icon className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-white/40'}`} />
                         <div className="flex flex-col">
-                          <span className="font-mono text-xs font-semibold">{opt.name}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-xs font-semibold">{opt.name}</span>
+                            {opt.comingSoon && (
+                              <span className="text-[8px] font-mono font-bold bg-white/10 text-white/50 px-1 py-0.5 rounded tracking-wide uppercase">
+                                Coming Soon
+                              </span>
+                            )}
+                          </div>
                           <span className="text-[9px] text-white/30">{opt.desc}</span>
                         </div>
                       </div>
                       <div 
                         className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center ${
-                          isSelected ? 'border-white' : 'border-white/20'
+                          opt.comingSoon ? 'border-white/10 bg-transparent' : isSelected ? 'border-white' : 'border-white/20'
                         }`}
                       >
-                        {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
+                        {isSelected && !opt.comingSoon && <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />}
                       </div>
                     </button>
                   );
