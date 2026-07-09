@@ -240,3 +240,30 @@ export async function GET(req: Request) {
     );
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const role = searchParams.get('role');
+
+    if (role !== 'Admin') {
+      return NextResponse.json({ success: false, error: 'Unauthorized — admin status required' }, { status: 403 });
+    }
+
+    await connectToDatabase();
+    const result = await AnalyticsEvent.deleteMany({});
+    
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Analytics database reset successfully', 
+      deletedCount: result.deletedCount 
+    });
+  } catch (error: any) {
+    console.error('Analytics DELETE error:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to reset analytics database', details: error.message },
+      { status: 500 }
+    );
+  }
+}
+

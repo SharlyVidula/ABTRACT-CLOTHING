@@ -236,6 +236,34 @@ export default function AdminPage() {
     }
   };
 
+  const handleResetAnalytics = async () => {
+    const confirmed = await showConfirm(
+      'RESET TELEMETRY',
+      'Are you sure you want to completely purge and reset all traffic and activity values? This action cannot be undone.',
+      'warning'
+    );
+    if (!confirmed) return;
+
+    setIsAnalyticsLoading(true);
+    try {
+      const res = await fetch(`/api/analytics?role=${user?.role || 'Guest'}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (data.success) {
+        await showAlert('DATABASE PURGED', 'All organic traffic metrics have been successfully reset to zero.', 'success');
+        fetchAnalytics();
+      } else {
+        await showAlert('RESET FAILED', data.error || 'Failed to clear analytics metrics.', 'error');
+      }
+    } catch (err: any) {
+      console.error('Failed to reset analytics data:', err);
+      await showAlert('RESET EXCEPTION', err.message || 'An error occurred during database reset.', 'error');
+    } finally {
+      setIsAnalyticsLoading(false);
+    }
+  };
+
   React.useEffect(() => {
     if (activeTab === 'analytics') {
       fetchAnalytics();
@@ -1029,14 +1057,24 @@ export default function AdminPage() {
                     </h2>
                     <p className="text-xs text-white/40 font-sans mt-0.5">Real-time system reach, traffic, session logs, and product interaction vectors</p>
                   </div>
-                  <button
-                    onClick={fetchAnalytics}
-                    disabled={isAnalyticsLoading}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/10 text-xs font-mono tracking-wider cursor-pointer bg-white/[0.02] hover:bg-white/[0.07] disabled:opacity-50 transition-all select-none"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 ${isAnalyticsLoading ? 'animate-spin' : ''}`} />
-                    REFRESH DATA
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={fetchAnalytics}
+                      disabled={isAnalyticsLoading}
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-white/10 text-xs font-mono tracking-wider cursor-pointer bg-white/[0.02] hover:bg-white/[0.07] disabled:opacity-50 transition-all select-none"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${isAnalyticsLoading ? 'animate-spin' : ''}`} />
+                      REFRESH DATA
+                    </button>
+                    <button
+                      onClick={handleResetAnalytics}
+                      disabled={isAnalyticsLoading}
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-red-500/20 text-xs font-mono tracking-wider cursor-pointer bg-red-500/5 hover:bg-red-500/15 text-red-400 disabled:opacity-50 transition-all select-none font-bold"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      RESET VALUES
+                    </button>
+                  </div>
                 </div>
 
                 {isAnalyticsLoading && !analyticsData ? (
