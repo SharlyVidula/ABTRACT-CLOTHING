@@ -15,6 +15,7 @@ import { Heart, Sparkles, ShoppingBag, X, Trash2, ArrowRight, ShieldCheck, LogIn
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Script from 'next/script';
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export default function Home() {
   const {
@@ -181,7 +182,7 @@ export default function Home() {
 
     try {
       const orderId = 'TX_PH_' + Math.random().toString(36).substring(3, 9).toUpperCase();
-      
+
       const res = await fetch('/api/payhere-hash', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -199,7 +200,7 @@ export default function Home() {
       if (!payhereObj) {
         console.log('PayHere SDK not found on window. Attempting dynamic load...');
         const scriptUrl = 'https://www.payhere.lk/lib/payhere.js';
-        
+
         try {
           await new Promise<void>((resolve, reject) => {
             const script = document.createElement('script');
@@ -235,7 +236,7 @@ export default function Home() {
           'Your payment was processed securely and your order has been placed successfully via PayHere.',
           'success'
         );
-        
+
         setDeliveryFullName('');
         setDeliveryPhone('');
         setDeliveryAddress('');
@@ -302,17 +303,17 @@ export default function Home() {
   const genderFilteredProducts = products.filter(p => p.gender === genderMode || p.gender === 'Unisex');
   const filteredProducts = genderFilteredProducts.filter((p) => {
     if (activeCollection === 'EXCLUSIVE') return p.price >= 5000 && p.brand !== 'Universe';
-    if (activeCollection === 'UNIVERSE')  return p.brand === 'Universe';
-    if (activeCollection === 'DELUX')     return p.price < 5000 && p.brand !== 'Universe';
+    if (activeCollection === 'UNIVERSE') return p.brand === 'Universe';
+    if (activeCollection === 'DELUX') return p.price < 5000 && p.brand !== 'Universe';
     return true;
   });
 
   // Collection definitions with counts
   const COLLECTIONS: { id: Collection; name: string; subtitle: string; icon: React.ReactNode; count: number }[] = [
-    { id: 'ALL',       name: 'ALL LINES',  subtitle: 'Full catalogue',            icon: <Sparkles className="w-3.5 h-3.5" />, count: genderFilteredProducts.length },
-    { id: 'EXCLUSIVE', name: 'EXCLUSIVE',  subtitle: '≥ LKR 5,000 · Premium',    icon: <Crown    className="w-3.5 h-3.5" />, count: genderFilteredProducts.filter(p => p.price >= 5000 && p.brand !== 'Universe').length },
-    { id: 'UNIVERSE',  name: 'UNIVERSE',   subtitle: 'Collab Brand · Streetwear', icon: <Zap      className="w-3.5 h-3.5" />, count: genderFilteredProducts.filter(p => p.brand === 'Universe').length },
-    { id: 'DELUX',     name: 'DELUX',      subtitle: '< LKR 5,000 · Accessible',  icon: <Heart    className="w-3.5 h-3.5" />, count: genderFilteredProducts.filter(p => p.price < 5000 && p.brand !== 'Universe').length },
+    { id: 'ALL', name: 'ALL LINES', subtitle: 'Full catalogue', icon: <Sparkles className="w-3.5 h-3.5" />, count: genderFilteredProducts.length },
+    { id: 'EXCLUSIVE', name: 'EXCLUSIVE', subtitle: '≥ LKR 5,000 · Premium', icon: <Crown className="w-3.5 h-3.5" />, count: genderFilteredProducts.filter(p => p.price >= 5000 && p.brand !== 'Universe').length },
+    { id: 'UNIVERSE', name: 'UNIVERSE', subtitle: 'Collab Brand · Streetwear', icon: <Zap className="w-3.5 h-3.5" />, count: genderFilteredProducts.filter(p => p.brand === 'Universe').length },
+    { id: 'DELUX', name: 'DELUX', subtitle: '< LKR 5,000 · Accessible', icon: <Heart className="w-3.5 h-3.5" />, count: genderFilteredProducts.filter(p => p.price < 5000 && p.brand !== 'Universe').length },
   ];
 
   const navLinks = [
@@ -328,7 +329,7 @@ export default function Home() {
         src="https://www.payhere.lk/lib/payhere.js"
         strategy="afterInteractive"
       />
-      
+
       {/* Themed animated background scene */}
       <BackgroundScene mode={genderMode} />
 
@@ -365,7 +366,7 @@ export default function Home() {
                 </span>
               )}
             </button>
-            <Link 
+            <Link
               href="/our-story"
               className="font-mono text-[9px] tracking-wider border border-white/10 px-2 py-1 rounded-lg bg-white/[0.01] text-white/60 hover:text-white"
             >
@@ -389,26 +390,24 @@ export default function Home() {
 
         {/* Dynamic Gender Filter Toggles & Cart Connect Widgets */}
         <div className="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto justify-between md:justify-end">
-          
+
           {/* Dashboard Gender Filter Toggles */}
           <div className="flex w-full sm:w-auto justify-center gap-1 p-0.5 rounded-xl border border-white/10 bg-white/[0.02]">
             <button
               onClick={() => setGenderMode('Female')}
-              className={`flex-1 sm:flex-initial justify-center px-3 py-1.5 rounded-lg text-[9px] font-mono font-bold tracking-wider transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none ${
-                genderMode === 'Female'
+              className={`flex-1 sm:flex-initial justify-center px-3 py-1.5 rounded-lg text-[9px] font-mono font-bold tracking-wider transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none ${genderMode === 'Female'
                   ? 'bg-rose-400 text-black font-extrabold shadow-md'
                   : 'text-white/40 hover:text-white/80'
-              }`}
+                }`}
             >
               <Heart className="w-3 h-3 fill-current" /> FEMALE ♀
             </button>
             <button
               onClick={() => setGenderMode('Male')}
-              className={`flex-1 sm:flex-initial justify-center px-3 py-1.5 rounded-lg text-[9px] font-mono font-bold tracking-wider transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none ${
-                genderMode === 'Male'
+              className={`flex-1 sm:flex-initial justify-center px-3 py-1.5 rounded-lg text-[9px] font-mono font-bold tracking-wider transition-all flex items-center gap-1.5 cursor-pointer focus:outline-none ${genderMode === 'Male'
                   ? 'bg-amber-500 text-black font-extrabold shadow-md'
                   : 'text-white/40 hover:text-white/80'
-              }`}
+                }`}
             >
               <Sparkles className="w-3 h-3" /> MALE ♂
             </button>
@@ -441,8 +440,8 @@ export default function Home() {
                     <Shield className="w-3.5 h-3.5" />
                   </Link>
                 )}
-                <button 
-                  onClick={logout} 
+                <button
+                  onClick={logout}
                   className="p-2.5 border border-white/5 hover:border-red-500/30 rounded-xl bg-white/[0.01] hover:bg-red-500/5 text-white/50 hover:text-red-400 transition-all cursor-pointer"
                   title="Disconnect Profile"
                 >
@@ -450,8 +449,8 @@ export default function Home() {
                 </button>
               </div>
             ) : (
-              <Link 
-                href="/login" 
+              <Link
+                href="/login"
                 className="flex items-center gap-1.5 font-mono text-[10px] tracking-wider border border-white/10 hover:border-[var(--theme-primary)] px-3 py-1.5 rounded-lg bg-white/[0.01] transition-all text-white/70 hover:text-white"
               >
                 <LogIn className="w-3.5 h-3.5" />
@@ -477,7 +476,7 @@ export default function Home() {
 
       {/* Main Grid Content */}
       <main className="relative z-10 flex-1 w-full px-6 md:px-10 lg:px-16 py-10 md:py-16 flex flex-col gap-12">
-        
+
         {/* Banner editorial */}
         <section className="text-center md:text-left max-w-3xl flex flex-col gap-3">
           <motion.div
@@ -502,7 +501,7 @@ export default function Home() {
               </>
             )}
           </motion.div>
-          
+
           {genderMode === 'Female' ? (
             <>
               <h1 className="text-3xl md:text-5xl font-black tracking-tight leading-none bg-gradient-to-r from-white via-rose-100 to-rose-200/50 bg-clip-text text-transparent">
@@ -526,7 +525,7 @@ export default function Home() {
 
         {/* Product Catalog Display with filter tabs */}
         <section id="collection" className="space-y-6">
-          
+
           {/* ── Collection Line Tabs ─────────────────────────────────────────── */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-white/8 pb-5">
             <div className="flex flex-wrap gap-1.5 md:gap-2">
@@ -536,24 +535,21 @@ export default function Home() {
                   <button
                     key={col.id}
                     onClick={() => setActiveCollection(col.id)}
-                    className={`flex items-center gap-2 py-2 px-3 md:py-2.5 md:px-4 rounded-xl md:rounded-2xl border transition-all focus:outline-none cursor-pointer ${
-                      isActive
+                    className={`flex items-center gap-2 py-2 px-3 md:py-2.5 md:px-4 rounded-xl md:rounded-2xl border transition-all focus:outline-none cursor-pointer ${isActive
                         ? 'bg-white/[0.07] border-white/25 shadow-inner'
                         : 'border-white/6 hover:border-white/18 bg-white/[0.01]'
-                    }`}
+                      }`}
                   >
                     <span className={`transition-colors ${isActive ? 'text-[var(--theme-primary)]' : 'text-white/35'}`}>
                       {col.icon}
                     </span>
                     <span className="flex flex-col items-start gap-0">
-                      <span className={`font-mono text-[10px] font-bold tracking-widest leading-tight ${
-                        isActive ? 'text-[var(--theme-primary)]' : 'text-white/60'
-                      }`}>{col.name}</span>
+                      <span className={`font-mono text-[10px] font-bold tracking-widest leading-tight ${isActive ? 'text-[var(--theme-primary)]' : 'text-white/60'
+                        }`}>{col.name}</span>
                       <span className="font-sans text-[9px] text-white/30">{col.subtitle}</span>
                     </span>
-                    <span className={`font-mono text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
-                      isActive ? 'bg-white/10 text-white/80' : 'bg-white/[0.03] text-white/25'
-                    }`}>{col.count}</span>
+                    <span className={`font-mono text-[9px] font-bold px-1.5 py-0.5 rounded-md ${isActive ? 'bg-white/10 text-white/80' : 'bg-white/[0.03] text-white/25'
+                      }`}>{col.count}</span>
                   </button>
                 );
               })}
@@ -640,7 +636,7 @@ export default function Home() {
                   </div>
                   <span className="text-[9px] font-mono text-white/20 mt-4 md:mt-0">TRANSMISSION: ONLINE</span>
                 </div>
-                
+
                 <div className="flex-1 space-y-3.5 font-mono text-xs border-t md:border-t-0 md:border-l border-white/5 pt-4 md:pt-0 md:pl-6 text-white/60">
                   <div className="flex items-start gap-2.5">
                     <span className="text-[var(--theme-primary)] font-bold">01/</span>
@@ -771,7 +767,7 @@ export default function Home() {
                     </p>
                   </div>
                 </div>
-                
+
                 <button
                   onClick={() => setCartOpen(false)}
                   className="p-2 rounded-full border border-white/10 hover:border-white/20 text-white/50 hover:text-white transition-all bg-white/[0.01] focus:outline-none cursor-pointer"
@@ -803,11 +799,10 @@ export default function Home() {
                           key={t}
                           type="button"
                           onClick={() => { setCartAuthTab(t); setInlineError(''); }}
-                          className={`flex-1 py-2.5 rounded-lg text-[11px] font-mono tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 focus:outline-none ${
-                            cartAuthTab === t
+                          className={`flex-1 py-2.5 rounded-lg text-[11px] font-mono tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 focus:outline-none ${cartAuthTab === t
                               ? 'bg-white text-black shadow-md'
                               : 'text-white/50 hover:text-white'
-                          }`}
+                            }`}
                         >
                           {t === 'login' ? 'SIGN IN' : 'REGISTER'}
                         </button>
@@ -845,7 +840,7 @@ export default function Home() {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ email: inlineEmail })
-                          }).catch(() => {});
+                          }).catch(() => { });
 
                           setCartAuthTab(null);
                           setIsEnteringDelivery(true);
@@ -855,7 +850,7 @@ export default function Home() {
                       }
                       setInlineLoading(false);
                     }} className="space-y-4">
-                      
+
                       <div className="flex flex-col gap-2">
                         <label className="font-mono text-[10px] tracking-wider text-white/50 uppercase">USERNAME</label>
                         <input
@@ -890,11 +885,10 @@ export default function Home() {
                                   key={g}
                                   type="button"
                                   onClick={() => setInlineGender(g)}
-                                  className={`flex-1 py-2 rounded-xl border text-xs font-mono transition-all cursor-pointer focus:outline-none ${
-                                    inlineGender === g
+                                  className={`flex-1 py-2 rounded-xl border text-xs font-mono transition-all cursor-pointer focus:outline-none ${inlineGender === g
                                       ? 'border-[var(--theme-primary)] bg-[var(--theme-primary)]/10 text-white font-bold'
                                       : 'border-white/10 text-white/40 hover:text-white/60'
-                                  }`}
+                                    }`}
                                 >
                                   {g.toUpperCase()}
                                 </button>
@@ -1006,14 +1000,14 @@ export default function Home() {
 
                     {/* Payment Gateway Form Separator */}
                     <div className="border-t border-white/10 pt-4 mt-6" />
-                    
+
                     {/* Dynamic Payment Gateways */}
                     {cart[0]?.paymentMethod === 'Credit Card' && (
                       <div className="space-y-4">
                         <span className="font-mono text-[10px] text-white/40 tracking-widest font-semibold uppercase">
                           CREDIT CARD
                         </span>
-                        
+
                         {/* 3D Glassmorphic Card Preview */}
                         <div className="w-full h-44 [perspective:1000px] mb-4">
                           <div className="relative w-full h-full animate-fade-in" style={{
@@ -1023,12 +1017,12 @@ export default function Home() {
                           }}>
                             {/* FRONT OF THE CARD */}
                             <div className="absolute inset-0 w-full h-full rounded-2xl p-5 flex flex-col justify-between overflow-hidden border border-white/10 shadow-2xl"
-                                 style={{
-                                   backfaceVisibility: 'hidden',
-                                   WebkitBackfaceVisibility: 'hidden',
-                                   background: `linear-gradient(135deg, rgba(var(--theme-glow-rgb),0.25) 0%, rgba(15,15,25,0.85) 100%)`,
-                                   backdropFilter: 'blur(10px)',
-                                 }}
+                              style={{
+                                backfaceVisibility: 'hidden',
+                                WebkitBackfaceVisibility: 'hidden',
+                                background: `linear-gradient(135deg, rgba(var(--theme-glow-rgb),0.25) 0%, rgba(15,15,25,0.85) 100%)`,
+                                backdropFilter: 'blur(10px)',
+                              }}
                             >
                               <div className="absolute -top-10 -left-10 w-32 h-32 rounded-full bg-[rgba(var(--theme-glow-rgb),0.3)] blur-2xl pointer-events-none" />
                               <div className="flex justify-between items-center relative z-10">
@@ -1057,16 +1051,16 @@ export default function Home() {
                                 </div>
                               </div>
                             </div>
-                            
+
                             {/* BACK OF THE CARD */}
                             <div className="absolute inset-0 w-full h-full rounded-2xl flex flex-col justify-between overflow-hidden border border-white/10 shadow-2xl"
-                                 style={{
-                                   backfaceVisibility: 'hidden',
-                                   WebkitBackfaceVisibility: 'hidden',
-                                   transform: 'rotateY(180deg)',
-                                   background: 'linear-gradient(135deg, rgba(15,15,25,0.95) 0%, rgba(var(--theme-glow-rgb),0.1) 100%)',
-                                   backdropFilter: 'blur(10px)',
-                                 }}
+                              style={{
+                                backfaceVisibility: 'hidden',
+                                WebkitBackfaceVisibility: 'hidden',
+                                transform: 'rotateY(180deg)',
+                                background: 'linear-gradient(135deg, rgba(15,15,25,0.95) 0%, rgba(var(--theme-glow-rgb),0.1) 100%)',
+                                backdropFilter: 'blur(10px)',
+                              }}
                             >
                               <div className="w-full h-8 bg-black/90 mt-4" />
                               <div className="px-5 mt-2 flex items-center gap-3">
@@ -1188,7 +1182,7 @@ export default function Home() {
                             <span className="font-mono text-[10px] text-purple-400 font-bold">STORE CREDITS</span>
                             <span className="font-mono text-[10px] text-white/30">YOUR BALANCE</span>
                           </div>
-                          
+
                           <div className="flex justify-between items-center mt-1">
                             <div className="flex flex-col">
                               <span className="text-[9px] text-white/40 font-mono">AVAILABLE</span>
@@ -1254,8 +1248,8 @@ export default function Home() {
                         <div className="text-center space-y-1">
                           <span className="font-mono text-[10px] tracking-widest text-[var(--theme-primary)] font-semibold uppercase animate-pulse">
                             {cart[0]?.paymentMethod === 'Credit Card' ? 'AUTHORISING YOUR PAYMENT...' :
-                             cart[0]?.paymentMethod === 'Solana Network' ? 'CONFIRMING TRANSACTION...' :
-                             'PLACING YOUR ORDER...'}
+                              cart[0]?.paymentMethod === 'Solana Network' ? 'CONFIRMING TRANSACTION...' :
+                                'PLACING YOUR ORDER...'}
                           </span>
                           <p className="font-mono text-[8px] text-white/30 tracking-widest uppercase">
                             PLEASE WAIT A MOMENT
@@ -1299,7 +1293,7 @@ export default function Home() {
                                 <ShoppingBag className="w-4 h-4" style={{ color: primaryColor }} />
                               )}
                             </div>
-                            
+
                             <div className="flex flex-col min-w-0">
                               <span className="font-mono text-[11px] font-bold text-white truncate uppercase">
                                 {item.garment.name}
@@ -1316,7 +1310,7 @@ export default function Home() {
                             <span className="font-mono text-xs font-semibold text-white/80">
                               {item.garment.price * item.quantity} LKR
                             </span>
-                            
+
                             <button
                               onClick={() => removeFromCart(index)}
                               className="p-2 rounded-lg border border-white/5 hover:border-red-500/20 bg-white/[0.01] hover:bg-red-500/5 text-white/40 hover:text-red-400 transition-all cursor-pointer"
@@ -1350,10 +1344,10 @@ export default function Home() {
                       {cart[0]?.paymentMethod !== 'Credit Card' && (
                         <button
                           onClick={() => {
-                        if (!deliveryFullName.trim() || !deliveryPhone.trim() || !deliveryAddress.trim() || !deliveryCity.trim()) {
-                               setDeliveryError('Please fill in all delivery details above.');
-                               return;
-                             }
+                            if (!deliveryFullName.trim() || !deliveryPhone.trim() || !deliveryAddress.trim() || !deliveryCity.trim()) {
+                              setDeliveryError('Please fill in all delivery details above.');
+                              return;
+                            }
 
                             const method = cart[0]?.paymentMethod || 'Cyber-Credits';
                             if (method === 'Solana Network') {
@@ -1387,7 +1381,7 @@ export default function Home() {
                                 });
 
                                 showCustomAlert('ORDER PLACED', 'Your order has been placed successfully.', 'success');
-                                
+
                                 // Clean fields
                                 setDeliveryFullName('');
                                 setDeliveryPhone('');
@@ -1534,7 +1528,8 @@ export default function Home() {
           </div>
         )}
       </AnimatePresence>
-      
+
+      <SpeedInsights />
     </div>
   );
 }
