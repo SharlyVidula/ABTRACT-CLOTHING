@@ -149,6 +149,13 @@ export default function AdminPage() {
   const [editHipsXL, setEditHipsXL] = useState(114);
   const [editHips2XL, setEditHips2XL] = useState(122);
 
+  // Edit sizing inventory quantity states
+  const [editQtyS, setEditQtyS] = useState(10);
+  const [editQtyM, setEditQtyM] = useState(10);
+  const [editQtyL, setEditQtyL] = useState(10);
+  const [editQtyXL, setEditQtyXL] = useState(10);
+  const [editQty2XL, setEditQty2XL] = useState(10);
+
   // Product creator states
   const [name, setName] = useState('');
   const [selectedCatName, setSelectedCatName] = useState('T-Shirt');
@@ -197,6 +204,13 @@ export default function AdminPage() {
   const [hipsL, setHipsL] = useState(106);
   const [hipsXL, setHipsXL] = useState(114);
   const [hips2XL, setHips2XL] = useState(122);
+
+  // Product creator sizing inventory quantity states
+  const [qtyS, setQtyS] = useState(10);
+  const [qtyM, setQtyM] = useState(10);
+  const [qtyL, setQtyL] = useState(10);
+  const [qtyXL, setQtyXL] = useState(10);
+  const [qty2XL, setQty2XL] = useState(10);
 
   // Admin creation states
   const [adminUsername, setAdminUsername] = useState('');
@@ -671,11 +685,11 @@ export default function AdminPage() {
       technicalDetails: details.split(',').map((d) => d.trim()).filter(Boolean),
       sizes,
       inventory: { 
-        S: availS ? 10 : 0, 
-        M: availM ? 10 : 0, 
-        L: availL ? 10 : 0, 
-        XL: availXL ? 10 : 0,
-        '2XL': avail2XL ? 10 : 0
+        S: availS ? qtyS : 0, 
+        M: availM ? qtyM : 0, 
+        L: availL ? qtyL : 0, 
+        XL: availXL ? qtyXL : 0,
+        '2XL': avail2XL ? qty2XL : 0
       },
       colorTheme: {
         primary: primaryGlow,
@@ -713,6 +727,11 @@ export default function AdminPage() {
     setChest2XL(122);
     setWaist2XL(102);
     setHips2XL(122);
+    setQtyS(10);
+    setQtyM(10);
+    setQtyL(10);
+    setQtyXL(10);
+    setQty2XL(10);
     setSelectedCatName('T-Shirt');
     setCatSearch('');
     setImagePath('');
@@ -777,6 +796,12 @@ export default function AdminPage() {
     setEditHipsL(p.sizes.L.hips || 106);
     setEditHipsXL(p.sizes.XL.hips || 114);
     setEditHips2XL(p.sizes['2XL']?.hips || 122);
+
+    setEditQtyS(p.inventory?.S || 0);
+    setEditQtyM(p.inventory?.M || 0);
+    setEditQtyL(p.inventory?.L || 0);
+    setEditQtyXL(p.inventory?.XL || 0);
+    setEditQty2XL(p.inventory?.['2XL'] || 0);
   };
 
   // Save Edits Handler
@@ -841,11 +866,11 @@ export default function AdminPage() {
         },
       },
       inventory: {
-        S: editAvailS ? (editingGarment.inventory.S || 0) : 0,
-        M: editAvailM ? (editingGarment.inventory.M || 0) : 0,
-        L: editAvailL ? (editingGarment.inventory.L || 0) : 0,
-        XL: editAvailXL ? (editingGarment.inventory.XL || 0) : 0,
-        '2XL': editAvail2XL ? (editingGarment.inventory['2XL'] || 0) : 0,
+        S: editAvailS ? editQtyS : 0,
+        M: editAvailM ? editQtyM : 0,
+        L: editAvailL ? editQtyL : 0,
+        XL: editAvailXL ? editQtyXL : 0,
+        '2XL': editAvail2XL ? editQty2XL : 0,
       },
       colorTheme: {
         primary: editPrimaryGlow,
@@ -1969,11 +1994,12 @@ export default function AdminPage() {
                       </span>
 
                       {/* Sizing Guides Grid */}
-                      <div className="grid grid-cols-4 gap-4 text-center">
+                      <div className="grid grid-cols-5 gap-4 text-center">
                         <span className="font-mono text-[10px] text-white/30 self-center">AVAIL SIZE</span>
                         <span className="font-mono text-[10px] text-white/50 font-bold">CHEST</span>
                         <span className="font-mono text-[10px] text-white/50 font-bold">WAIST</span>
                         <span className="font-mono text-[10px] text-white/50 font-bold">HIPS</span>
+                        <span className="font-mono text-[10px] text-white/50 font-bold">QTY</span>
 
                         {/* Size S */}
                         <div className="flex items-center gap-1.5 justify-center">
@@ -2026,6 +2052,19 @@ export default function AdminPage() {
                               : 'border-transparent text-white/15 bg-transparent'
                           }`}
                           placeholder={!catConfig.needsHips ? 'N/A' : ''}
+                        />
+                        <input
+                          type="number"
+                          value={qtyS}
+                          disabled={!availS}
+                          onChange={(e) => setQtyS(parseInt(e.target.value) || 0)}
+                          className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
+                            availS
+                              ? 'border-white/10 focus:border-cyber-green'
+                              : 'border-transparent text-white/15 bg-transparent'
+                          }`}
+                          placeholder="Stock"
+                          min={0}
                         />
 
                         {/* Size M */}
@@ -2080,6 +2119,19 @@ export default function AdminPage() {
                           }`}
                           placeholder={!catConfig.needsHips ? 'N/A' : ''}
                         />
+                        <input
+                          type="number"
+                          value={qtyM}
+                          disabled={!availM}
+                          onChange={(e) => setQtyM(parseInt(e.target.value) || 0)}
+                          className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
+                            availM
+                              ? 'border-white/10 focus:border-cyber-green'
+                              : 'border-transparent text-white/15 bg-transparent'
+                          }`}
+                          placeholder="Stock"
+                          min={0}
+                        />
 
                         {/* Size L */}
                         <div className="flex items-center gap-1.5 justify-center">
@@ -2132,6 +2184,19 @@ export default function AdminPage() {
                               : 'border-transparent text-white/15 bg-transparent'
                           }`}
                           placeholder={!catConfig.needsHips ? 'N/A' : ''}
+                        />
+                        <input
+                          type="number"
+                          value={qtyL}
+                          disabled={!availL}
+                          onChange={(e) => setQtyL(parseInt(e.target.value) || 0)}
+                          className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
+                            availL
+                              ? 'border-white/10 focus:border-cyber-green'
+                              : 'border-transparent text-white/15 bg-transparent'
+                          }`}
+                          placeholder="Stock"
+                          min={0}
                         />
 
                         {/* Size XL */}
@@ -2186,6 +2251,19 @@ export default function AdminPage() {
                           }`}
                           placeholder={!catConfig.needsHips ? 'N/A' : ''}
                         />
+                        <input
+                          type="number"
+                          value={qtyXL}
+                          disabled={!availXL}
+                          onChange={(e) => setQtyXL(parseInt(e.target.value) || 0)}
+                          className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
+                            availXL
+                              ? 'border-white/10 focus:border-cyber-green'
+                              : 'border-transparent text-white/15 bg-transparent'
+                          }`}
+                          placeholder="Stock"
+                          min={0}
+                        />
 
                         {/* Size 2XL */}
                         <div className="flex items-center gap-1.5 justify-center">
@@ -2238,6 +2316,19 @@ export default function AdminPage() {
                               : 'border-transparent text-white/15 bg-transparent'
                           }`}
                           placeholder={!catConfig.needsHips ? 'N/A' : ''}
+                        />
+                        <input
+                          type="number"
+                          value={qty2XL}
+                          disabled={!avail2XL}
+                          onChange={(e) => setQty2XL(parseInt(e.target.value) || 0)}
+                          className={`bg-white/[0.02] border py-1.5 px-1 rounded font-mono text-xs text-center text-white focus:outline-none transition-all ${
+                            avail2XL
+                              ? 'border-white/10 focus:border-cyber-green'
+                              : 'border-transparent text-white/15 bg-transparent'
+                          }`}
+                          placeholder="Stock"
+                          min={0}
                         />
                       </div>
                     </div>
@@ -3230,11 +3321,12 @@ export default function AdminPage() {
                     </span>
 
                     {/* Sizing Guides Grid */}
-                    <div className="grid grid-cols-4 gap-4 text-center">
+                    <div className="grid grid-cols-5 gap-4 text-center">
                       <span className="text-white/30 self-center font-bold">AVAIL SIZE</span>
                       <span className="text-white/50 font-bold">CHEST</span>
                       <span className="text-white/50 font-bold">WAIST</span>
                       <span className="text-white/50 font-bold">HIPS</span>
+                      <span className="text-white/50 font-bold">QTY</span>
 
                       {/* Size S */}
                       <div className="flex items-center gap-1.5 justify-center">
@@ -3287,6 +3379,19 @@ export default function AdminPage() {
                             : 'border-transparent text-white/10 bg-transparent'
                         }`}
                         placeholder={!editCatConfig.needsHips ? 'N/A' : ''}
+                      />
+                      <input
+                        type="number"
+                        value={editQtyS}
+                        disabled={!editAvailS}
+                        onChange={(e) => setEditQtyS(parseInt(e.target.value) || 0)}
+                        className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
+                          editAvailS
+                            ? 'border-white/10 focus:border-cyber-blue'
+                            : 'border-transparent text-white/10 bg-transparent'
+                        }`}
+                        placeholder="Stock"
+                        min={0}
                       />
 
                       {/* Size M */}
@@ -3341,6 +3446,19 @@ export default function AdminPage() {
                         }`}
                         placeholder={!editCatConfig.needsHips ? 'N/A' : ''}
                       />
+                      <input
+                        type="number"
+                        value={editQtyM}
+                        disabled={!editAvailM}
+                        onChange={(e) => setEditQtyM(parseInt(e.target.value) || 0)}
+                        className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
+                          editAvailM
+                            ? 'border-white/10 focus:border-cyber-blue'
+                            : 'border-transparent text-white/10 bg-transparent'
+                        }`}
+                        placeholder="Stock"
+                        min={0}
+                      />
 
                       {/* Size L */}
                       <div className="flex items-center gap-1.5 justify-center">
@@ -3393,6 +3511,19 @@ export default function AdminPage() {
                             : 'border-transparent text-white/10 bg-transparent'
                         }`}
                         placeholder={!editCatConfig.needsHips ? 'N/A' : ''}
+                      />
+                      <input
+                        type="number"
+                        value={editQtyL}
+                        disabled={!editAvailL}
+                        onChange={(e) => setEditQtyL(parseInt(e.target.value) || 0)}
+                        className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
+                          editAvailL
+                            ? 'border-white/10 focus:border-cyber-blue'
+                            : 'border-transparent text-white/10 bg-transparent'
+                        }`}
+                        placeholder="Stock"
+                        min={0}
                       />
 
                       {/* Size XL */}
@@ -3447,6 +3578,19 @@ export default function AdminPage() {
                         }`}
                         placeholder={!editCatConfig.needsHips ? 'N/A' : ''}
                       />
+                      <input
+                        type="number"
+                        value={editQtyXL}
+                        disabled={!editAvailXL}
+                        onChange={(e) => setEditQtyXL(parseInt(e.target.value) || 0)}
+                        className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
+                          editAvailXL
+                            ? 'border-white/10 focus:border-cyber-blue'
+                            : 'border-transparent text-white/10 bg-transparent'
+                        }`}
+                        placeholder="Stock"
+                        min={0}
+                      />
 
                       {/* Size 2XL */}
                       <div className="flex items-center gap-1.5 justify-center">
@@ -3499,6 +3643,19 @@ export default function AdminPage() {
                             : 'border-transparent text-white/10 bg-transparent'
                         }`}
                         placeholder={!editCatConfig.needsHips ? 'N/A' : ''}
+                      />
+                      <input
+                        type="number"
+                        value={editQty2XL}
+                        disabled={!editAvail2XL}
+                        onChange={(e) => setEditQty2XL(parseInt(e.target.value) || 0)}
+                        className={`bg-white/[0.02] border py-2 px-1 rounded text-center text-white focus:outline-none transition-all ${
+                          editAvail2XL
+                            ? 'border-white/10 focus:border-cyber-blue'
+                            : 'border-transparent text-white/10 bg-transparent'
+                        }`}
+                        placeholder="Stock"
+                        min={0}
                       />
                     </div>
                   </div>
