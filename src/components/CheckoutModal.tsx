@@ -50,10 +50,10 @@ export default function CheckoutModal({ garment, isOpen, onClose }: CheckoutModa
   };
 
   const paymentOptions = [
-    { name: 'Cyber-Credits', icon: Coins, desc: 'Store digital credits', comingSoon: true },
-    { name: 'Credit Card', icon: CreditCard, desc: 'Visa/MC Secure Auth', comingSoon: true },
-    { name: 'Solana Network', icon: Database, desc: 'Web3 transaction matrix', comingSoon: true },
-    { name: 'Cash on Delivery', icon: Banknote, desc: 'Pay with cash upon package arrival', comingSoon: false },
+    { name: 'Gift Card', icon: Coins, desc: 'Use your store balance', comingSoon: true },
+    { name: 'Credit Card', icon: CreditCard, desc: 'Secure card checkout', comingSoon: true },
+    { name: 'Bank Transfer', icon: Database, desc: 'Direct secure deposit', comingSoon: true },
+    { name: 'Cash on Delivery', icon: Banknote, desc: 'Pay at your doorstep', comingSoon: false },
   ];
 
   const glowColor = garment.colorTheme.primary;
@@ -80,20 +80,20 @@ export default function CheckoutModal({ garment, isOpen, onClose }: CheckoutModa
           {/* Item description */}
           <div className="flex flex-col gap-1 border-b border-white/10 pb-4">
             <span className="font-mono text-[9px] text-white/40 tracking-widest font-semibold uppercase">
-              TRANSACTION PARAMETERS
+              ORDER DETAILS
             </span>
             <h3 className="text-xl font-bold tracking-tight uppercase" style={{ color: glowColor }}>
               {garment.name}
             </h3>
             <span className="font-mono text-sm font-semibold text-white/80 mt-1">
-              ${garment.price * quantity} <span className="text-[10px] text-white/30 font-light">CREDITS</span>
+              {garment.price * quantity} LKR
             </span>
           </div>
 
           <div className="space-y-5 mt-5">
             {/* Size Selector */}
             <div className="flex flex-col gap-2">
-              <span className="font-mono text-xs tracking-wider text-white/60">SIZE MATRIX</span>
+              <span className="font-mono text-xs tracking-wider text-white/60">SELECT SIZE</span>
               <div className="grid grid-cols-5 gap-2">
                 {(['S', 'M', 'L', 'XL', '2XL'] as const).map((sz) => {
                   const isSelected = size === sz;
@@ -138,13 +138,13 @@ export default function CheckoutModal({ garment, isOpen, onClose }: CheckoutModa
                 >
                   +
                 </button>
-                <span className="text-[10px] text-white/30 font-mono self-center">MAXIMUM: 10 UNITS</span>
+                <span className="text-[10px] text-white/30 font-mono self-center">MAX: 10 PER ORDER</span>
               </div>
             </div>
 
             {/* Payment Method Selector */}
             <div className="flex flex-col gap-2">
-              <span className="font-mono text-xs tracking-wider text-white/60">PAYMENT ROUTE</span>
+              <span className="font-mono text-xs tracking-wider text-white/60">PAYMENT METHOD</span>
               <div className="space-y-2">
                 {paymentOptions.map((opt) => {
                   const isSelected = paymentMethod === opt.name;
@@ -196,12 +196,12 @@ export default function CheckoutModal({ garment, isOpen, onClose }: CheckoutModa
               className="w-full py-4 mt-2 rounded-xl font-mono text-sm tracking-wider font-semibold bg-white text-black hover:bg-white/95 active:scale-98 transition-all flex items-center justify-center gap-2 border border-white/20"
             >
               <ShoppingBag className="w-4 h-4" />
-              CONFIRM CART INGESTION
+              ADD TO BAG
             </button>
             
             <div className="flex items-center justify-center gap-1.5 text-[9px] font-mono text-white/20">
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>TRANSACTIONS ROUTED THROUGH SECURE CORE PROTOCOL</span>
+              <span>Safe & Secure Checkout</span>
             </div>
           </div>
           

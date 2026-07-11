@@ -14,7 +14,7 @@ export default function AIAssistant() {
   const { trackEvent } = useStore();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
-    { role: 'assistant', content: 'Greetings. I am the ABSTRACT A.I. Tailor. How may I assist you with your wardrobe or fit telemetry today?' }
+    { role: 'assistant', content: 'Hi! I\'m the ABSTRACT Style Assistant. How can I help you today? I can help with sizing, styling tips, or anything about our collection.' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -54,10 +54,10 @@ export default function AIAssistant() {
       if (data.message) {
         setMessages(prev => [...prev, { role: 'assistant', content: data.message }]);
       } else {
-        setMessages(prev => [...prev, { role: 'assistant', content: 'Network error. Telemetry stream interrupted.' }]);
+        setMessages(prev => [...prev, { role: 'assistant', content: 'Something went wrong. Please try again.' }]);
       }
     } catch (error) {
-      setMessages(prev => [...prev, { role: 'assistant', content: 'System error. AI core offline.' }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, I ran into an error. Please try again.' }]);
     } finally {
       setIsLoading(false);
     }
@@ -93,9 +93,9 @@ export default function AIAssistant() {
                   <Cpu className="w-4 h-4 text-[var(--theme-primary)]" />
                 </div>
                 <div>
-                  <h3 className="font-mono text-sm font-bold text-white tracking-widest">A.I. STYLIST</h3>
+                  <h3 className="font-mono text-sm font-bold text-white tracking-widest">STYLE ASSISTANT</h3>
                   <span className="font-sans text-[10px] text-[var(--theme-primary)] font-semibold flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--theme-primary)] animate-pulse" /> ONLINE
+                    <span className="w-1.5 h-1.5 rounded-full bg-[var(--theme-primary)] animate-pulse" /> Available
                   </span>
                 </div>
               </div>

@@ -80,10 +80,10 @@ export default function MeasurementForm() {
       <div className="flex items-center gap-3 border-b border-white/10 pb-4">
         <Ruler className="w-5 h-5 text-cyber-green" />
         <div>
-          <h3 className="font-mono text-sm tracking-widest text-cyber-green uppercase font-semibold">
-            BIOMETRIC TELEMETRY
+          <h3 className="font-mono text-sm tracking-widest text-[var(--theme-primary)] uppercase font-semibold">
+            YOUR MEASUREMENTS
           </h3>
-          <p className="text-xs text-white/40">Adjust parameters to calibrate digital fit</p>
+          <p className="text-xs text-white/40">Drag the sliders to match your body measurements</p>
         </div>
       </div>
 
@@ -98,7 +98,7 @@ export default function MeasurementForm() {
                 <span className="font-mono text-xs tracking-wider text-white/80 font-medium">
                   {slider.label}
                 </span>
-                <span className="font-mono text-sm font-semibold text-cyber-green text-glow-green">
+                <span className="font-mono text-sm font-semibold text-[var(--theme-primary)]">
                   {value}
                   <span className="text-[10px] text-white/50 ml-0.5">{slider.unit}</span>
                 </span>
@@ -108,7 +108,7 @@ export default function MeasurementForm() {
                 {/* Custom glowing track background fill */}
                 <div className="absolute left-0 right-0 h-1 bg-white/10 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-gradient-to-r from-cyber-purple to-cyber-green"
+                    className="h-full bg-gradient-to-r from-[var(--theme-secondary)] to-[var(--theme-primary)]"
                     style={{ width: `${percent}%` }}
                   />
                 </div>
@@ -124,7 +124,7 @@ export default function MeasurementForm() {
                 
                 {/* Visual custom thumb tracker */}
                 <div 
-                  className="absolute pointer-events-none w-3.5 h-3.5 rounded-full bg-cyber-green border border-black shadow-[0_0_8px_#00ffaa] transition-all"
+                  className="absolute pointer-events-none w-3.5 h-3.5 rounded-full bg-[var(--theme-primary)] border border-black shadow-[0_0_8px_var(--theme-glow)] transition-all"
                   style={{ left: `calc(${percent}% - 7px)` }}
                 />
               </div>
@@ -139,17 +139,17 @@ export default function MeasurementForm() {
 
       {/* Sizing Intel Box */}
       <div className="mt-4 p-4 rounded-xl border border-white/5 bg-white/[0.02] flex items-start gap-3">
-        <Activity className="w-5 h-5 text-cyber-purple shrink-0 mt-0.5" />
+        <Activity className="w-5 h-5 text-[var(--theme-primary)] shrink-0 mt-0.5" />
         <div className="flex flex-col gap-1">
-          <span className="font-mono text-[10px] tracking-wider text-cyber-purple font-semibold uppercase">
-            CALIBRATOR ADVISORY
+          <span className="font-mono text-[10px] tracking-wider text-[var(--theme-primary)] font-semibold uppercase">
+            SIZE SUGGESTION
           </span>
           <p className="text-xs text-white/60 leading-normal">
-            Based on current biometrics, the optimal configuration is size{' '}
-            <span className="text-cyber-green font-bold font-mono text-sm px-1.5 py-0.5 rounded border border-cyber-green/20 bg-cyber-green/5 text-glow-green">
+            Based on your measurements, we suggest size{' '}
+            <span className="text-[var(--theme-primary)] font-bold font-mono text-sm px-1.5 py-0.5 rounded border border-[var(--theme-primary)]/20 bg-[var(--theme-primary)]/5">
               {selectedSize}
             </span>
-            . Adjusting values dynamically updates virtual draping simulations.
+            . Changing your measurements will update the recommendation.
           </p>
         </div>
       </div>

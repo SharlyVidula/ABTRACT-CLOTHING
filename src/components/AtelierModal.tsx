@@ -59,7 +59,7 @@ export default function AtelierModal() {
                   : 'border-transparent text-white/40'
               }`}
             >
-              1. CALIBRATOR
+              1. MEASUREMENTS
             </button>
             <button
               onClick={() => setMobileTab('advisory')}
@@ -69,7 +69,7 @@ export default function AtelierModal() {
                   : 'border-transparent text-white/40'
               }`}
             >
-              2. AI ADVISORY
+              2. FIT RECOMMENDATION
             </button>
           </div>
           {/* Close & Reset Controls */}
@@ -94,10 +94,10 @@ export default function AtelierModal() {
             <div className="flex flex-col gap-6">
               <div className="pr-20 md:pr-0">
                 <span className="font-mono text-[10px] tracking-widest text-[var(--theme-primary)] uppercase font-semibold">
-                  STUDIO ATELIER V2.0
+                  SIZE GUIDE
                 </span>
                 <h2 className="text-xl md:text-2xl font-bold tracking-tight mt-1 bg-gradient-to-r from-white via-white to-white/60 bg-clip-text text-transparent">
-                  CALIBRATOR
+                  YOUR MEASUREMENTS
                 </h2>
               </div>
 
@@ -106,7 +106,7 @@ export default function AtelierModal() {
 
               {/* Sizing Grid Custom Selector */}
               <div className="flex flex-col gap-3 border-t border-white/10 pt-5">
-                <span className="font-mono text-xs tracking-wider text-white/50">CHOOSE TARGET FIT SIZE</span>
+                <span className="font-mono text-xs tracking-wider text-white/50">SELECT YOUR SIZE</span>
                 <div className="grid grid-cols-5 gap-2">
                   {(['S', 'M', 'L', 'XL', '2XL'] as const).map((size) => {
                     const isSelected = selectedSize === size;
@@ -142,7 +142,7 @@ export default function AtelierModal() {
                 className="md:hidden w-full py-4 mt-4 rounded-xl font-mono text-xs tracking-wider font-bold bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-secondary)] text-white hover:brightness-110 active:scale-98 transition-all flex items-center justify-center gap-2 border border-[var(--theme-border)] shadow-[0_4px_12px_var(--theme-glow)] cursor-pointer disabled:opacity-50"
               >
                 <Cpu className="w-4 h-4" />
-                {isLoading ? 'ANALYSING BIOMETRICS...' : 'GENERATE AI FIT ADVISORY'}
+                {isLoading ? 'FINDING YOUR FIT...' : 'GET FIT RECOMMENDATION'}
               </button>
             </div>
           </div>
@@ -177,10 +177,10 @@ export default function AtelierModal() {
                     </div>
                     <div className="flex flex-col gap-1.5">
                       <span className="font-mono text-[10px] tracking-widest text-[var(--theme-primary)] font-semibold">
-                        A.I. COMPILING FIT ANALYSIS...
+                        FINDING YOUR BEST FIT...
                       </span>
                       <span className="font-mono text-[9px] text-white/40 tracking-wider">
-                        EVALUATING FABRIC WEIGHT & BIOMETRICS
+                        CHECKING YOUR MEASUREMENTS
                       </span>
                     </div>
                   </div>
@@ -197,7 +197,7 @@ export default function AtelierModal() {
                       </div>
                       <div>
                         <span className="font-mono text-[9px] tracking-widest text-[var(--theme-primary)] font-semibold uppercase">
-                          AI RECOMMENDATION
+                          OUR RECOMMENDATION
                         </span>
                         <h4 className="text-sm font-bold text-white mt-0.5">
                           Optimal size for your metrics is{' '}
@@ -211,7 +211,7 @@ export default function AtelierModal() {
                     {/* Fit & Feel Narrative */}
                     <div className="flex flex-col gap-2 p-5 rounded-2xl border border-white/5 bg-white/[0.01]">
                       <span className="font-mono text-[10px] tracking-wider text-white/40 font-semibold">
-                        MATERIAL FIT & FEEL SIMULATION
+                        FIT & FEEL
                       </span>
                       <p className="text-sm text-white/80 leading-relaxed font-light">
                         {fitAdvisory.fitAndFeel}
@@ -221,7 +221,7 @@ export default function AtelierModal() {
                     {/* Comparative Fit Matrices */}
                     <div className="flex flex-col gap-3">
                       <span className="font-mono text-[10px] tracking-wider text-white/40 font-semibold">
-                        FIT VARIATION BY SIZE
+                        SIZE COMPARISON
                       </span>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         {/* Size Down */}
@@ -255,10 +255,10 @@ export default function AtelierModal() {
                     <Cpu className="w-8 h-8 text-white/20 animate-pulse" />
                     <div className="flex flex-col gap-1">
                       <span className="font-mono text-[10px] tracking-widest text-white/40 font-semibold uppercase">
-                        SYSTEM STANDBY
+                        READY WHEN YOU ARE
                       </span>
                       <p className="text-xs text-white/30 max-w-[280px] leading-relaxed mt-1">
-                        Calibrate your biometric measurements on the left panel, select your target fit size, and generate an AI report.
+                        Enter your measurements on the left, choose a size, then tap Get Fit Recommendation.
                       </p>
                     </div>
                   </div>
@@ -274,13 +274,13 @@ export default function AtelierModal() {
                 className="flex-1 py-4 rounded-xl font-mono text-sm tracking-wider font-semibold bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-secondary)] text-white hover:brightness-110 active:scale-98 transition-all shadow-[0_4px_15px_var(--theme-glow)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 border border-[var(--theme-border)] theme-glow-text cursor-pointer"
               >
                 <Cpu className="w-4 h-4" />
-                {fitAdvisory ? 'RE-GENERATE FIT ANALYSIS' : 'GENERATE AI FIT ADVISORY'}
+                {fitAdvisory ? 'REFRESH RECOMMENDATION' : 'GET FIT RECOMMENDATION'}
               </button>
 
               <button
                 onClick={() => {
                   setQuantity(1);
-                  setPaymentMethod('Cyber-Credits');
+                  setPaymentMethod('Cash on Delivery');
                   setShowStudioCheckout(true);
                 }}
                 className="py-4 px-6 rounded-xl font-mono text-sm tracking-wider font-semibold border border-white/10 hover:border-[var(--theme-primary)] hover:bg-white/[0.02] active:scale-98 transition-all flex items-center justify-center gap-2 text-white/80 hover:text-white bg-black/35 cursor-pointer"
@@ -318,7 +318,7 @@ export default function AtelierModal() {
                   {/* Header */}
                   <div className="flex flex-col gap-1 border-b border-white/10 pb-4">
                     <span className="font-mono text-[9px] text-[var(--theme-primary)] tracking-widest font-semibold uppercase">
-                      STUDIO PARAMETERS SELECTOR
+                      ORDER DETAILS
                     </span>
                     <h3 className="text-xl font-bold tracking-tight uppercase" style={{ color: selectedGarment.colorTheme.primary }}>
                       {selectedGarment.name}
@@ -328,7 +328,7 @@ export default function AtelierModal() {
                         {selectedGarment.price * quantity} LKR
                       </span>
                       <span className="font-mono text-[10px] bg-white/15 px-2 py-0.5 rounded text-white/90">
-                        CALIBRATED SIZE: {selectedSize}
+                        SELECTED SIZE: {selectedSize}
                       </span>
                     </div>
                   </div>
@@ -358,13 +358,13 @@ export default function AtelierModal() {
 
                   {/* Payment Method Selector */}
                   <div className="flex flex-col gap-2">
-                    <span className="font-mono text-xs tracking-wider text-white/60">PAYMENT ROUTE</span>
+                    <span className="font-mono text-xs tracking-wider text-white/60">PAYMENT METHOD</span>
                     <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
                       {[
-                        { name: 'Cyber-Credits', icon: Coins, desc: 'Store digital credits', comingSoon: true },
-                        { name: 'Credit Card', icon: CreditCard, desc: 'Visa/MC Secure Auth', comingSoon: true },
-                        { name: 'Solana Network', icon: Database, desc: 'Web3 transaction matrix', comingSoon: true },
-                        { name: 'Cash on Delivery', icon: Banknote, desc: 'Pay with cash upon package arrival', comingSoon: false },
+                        { name: 'Gift Card', icon: Coins, desc: 'Use store balance', comingSoon: true },
+                        { name: 'Credit Card', icon: CreditCard, desc: 'Secure checkout', comingSoon: true },
+                        { name: 'Bank Transfer', icon: Database, desc: 'Direct secure deposit', comingSoon: true },
+                        { name: 'Cash on Delivery', icon: Banknote, desc: 'Pay at your doorstep', comingSoon: false },
                       ].map((opt) => {
                         const isSelected = paymentMethod === opt.name;
                         const Icon = opt.icon;

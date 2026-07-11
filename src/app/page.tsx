@@ -764,10 +764,10 @@ export default function Home() {
                   <ShoppingBag className="w-5 h-5 text-[var(--theme-primary)]" />
                   <div>
                     <h3 className="font-mono text-sm tracking-widest text-[var(--theme-primary)] font-semibold">
-                      {cartAuthTab ? 'IDENTITY VERIFY' : isEnteringDelivery ? 'DELIVERY DETAILS' : 'SELECTED ITEMS'}
+                      {cartAuthTab ? 'SIGN IN' : isEnteringDelivery ? 'DELIVERY DETAILS' : 'YOUR BAG'}
                     </h3>
                     <p className="text-[9px] text-white/30 uppercase tracking-wider font-mono">
-                      {cartAuthTab ? 'SECURITY CONTROL PORTAL' : isEnteringDelivery ? 'SHIPPING TELEMETRY MATRIX' : 'Total chosen units'}
+                      {cartAuthTab ? 'Create an account or log in' : isEnteringDelivery ? 'Shipping & payment details' : 'Total chosen items'}
                     </p>
                   </div>
                 </div>
@@ -785,9 +785,9 @@ export default function Home() {
                 <div className="flex-1 overflow-y-auto py-6 space-y-4">
                   <div className="space-y-4 pt-2">
                     <div className="text-center pb-2">
-                      <p className="font-mono text-[10px] tracking-widest text-[var(--theme-primary)] uppercase font-semibold">AUTHENTICATION REQUIRED</p>
-                      <h4 className="text-sm font-bold text-white mt-1 uppercase">Sign up or Log in to proceed</h4>
-                      <p className="text-[11px] text-white/40 mt-1">Please sign in or create an account to finalize your couture transaction.</p>
+                      <p className="font-mono text-[10px] tracking-widest text-[var(--theme-primary)] uppercase font-semibold">SIGN IN TO CONTINUE</p>
+                      <h4 className="text-sm font-bold text-white mt-1">Log In or Create an Account</h4>
+                      <p className="text-[11px] text-white/40 mt-1">Please sign in or register to complete your order.</p>
                     </div>
 
                     {inlineError && (
@@ -863,7 +863,7 @@ export default function Home() {
                           required
                           value={inlineUsername}
                           onChange={(e) => setInlineUsername(e.target.value)}
-                          placeholder="e.g. cyber_operator"
+                          placeholder="e.g. sharly_vidula"
                           className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-2.5 text-xs font-mono focus:outline-none focus:border-[var(--theme-primary)] transition-colors placeholder:text-white/20 text-white"
                         />
                       </div>
@@ -877,13 +877,13 @@ export default function Home() {
                               required
                               value={inlineEmail}
                               onChange={(e) => setInlineEmail(e.target.value)}
-                              placeholder="e.g. operator@abstract.net"
+                              placeholder="e.g. yourname@gmail.com"
                               className="w-full bg-white/[0.02] border border-white/10 rounded-xl px-4 py-2.5 text-xs font-mono focus:outline-none focus:border-[var(--theme-primary)] transition-colors placeholder:text-white/20 text-white"
                             />
                           </div>
 
                           <div className="flex flex-col gap-2">
-                            <label className="font-mono text-[10px] tracking-wider text-white/50 uppercase">GENDER TELEMETRY</label>
+                            <label className="font-mono text-[10px] tracking-wider text-white/50 uppercase">GENDER</label>
                             <div className="flex gap-2">
                               {(['Female', 'Male'] as const).map((g) => (
                                 <button
@@ -924,10 +924,10 @@ export default function Home() {
                         {inlineLoading ? (
                           <>
                             <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                            PROCESSING PROFILE...
+                            PROCESSING...
                           </>
                         ) : (
-                          cartAuthTab === 'login' ? 'AUTHORIZE & SECURE' : 'REGISTER PROFILE'
+                          cartAuthTab === 'login' ? 'SIGN IN' : 'CREATE ACCOUNT'
                         )}
                       </button>
                     </form>
@@ -935,13 +935,13 @@ export default function Home() {
                     {/* Google OAuth Separator */}
                     <div className="relative flex py-2 items-center">
                       <div className="flex-grow border-t border-white/10"></div>
-                      <span className="flex-shrink mx-4 text-[9px] font-mono text-white/30 uppercase tracking-widest">SECURE OAUTH</span>
+                      <span className="flex-shrink mx-4 text-[9px] font-mono text-white/30 uppercase tracking-widest">OR CONTINUE WITH</span>
                       <div className="flex-grow border-t border-white/10"></div>
                     </div>
 
                     <div className="flex flex-col items-center justify-center gap-2">
                       <div id="google-signin-btn-cart" className="w-full max-w-[350px] min-h-[40px] flex justify-center items-center"></div>
-                      <p className="text-[8px] font-mono text-white/20 text-center uppercase tracking-widest">Verify identity with Google Cryptographic Core</p>
+                      <p className="text-[8px] font-mono text-white/20 text-center uppercase tracking-widest">Sign in with your Google account</p>
                     </div>
 
                     <button
@@ -952,7 +952,7 @@ export default function Home() {
                       }}
                       className="w-full py-2.5 rounded-xl font-mono text-[10px] tracking-widest border border-white/5 hover:border-white/10 bg-white/[0.01] hover:bg-white/[0.03] transition-all flex items-center justify-center gap-2 text-white/40 hover:text-white cursor-pointer"
                     >
-                      ABORT AUTHENTICATION
+                      CANCEL
                     </button>
                   </div>
                 </div>
@@ -1011,7 +1011,7 @@ export default function Home() {
                     {cart[0]?.paymentMethod === 'Credit Card' && (
                       <div className="space-y-4">
                         <span className="font-mono text-[10px] text-white/40 tracking-widest font-semibold uppercase">
-                          CREDIT CARD GATEWAY
+                          CREDIT CARD
                         </span>
                         
                         {/* 3D Glassmorphic Card Preview */}
@@ -1037,7 +1037,7 @@ export default function Home() {
                                   <div className="h-0.5 bg-black/20 rounded" />
                                   <div className="h-0.5 bg-black/20 rounded" />
                                 </div>
-                                <span className="font-mono text-[9px] font-black tracking-widest text-white/50">ABSTRACT DEBIT</span>
+                                <span className="font-mono text-[9px] font-black tracking-widest text-white/50">DEBIT CARD</span>
                               </div>
                               <div className="font-mono text-base tracking-[0.16em] text-white/95 mt-4 drop-shadow-md">
                                 {cardNumber || '•••• •••• •••• ••••'}
@@ -1046,7 +1046,7 @@ export default function Home() {
                                 <div className="flex flex-col">
                                   <span className="text-[6px] text-white/40 tracking-wider font-mono">CARDHOLDER</span>
                                   <span className="font-mono text-[9px] font-bold text-white/80 uppercase truncate max-w-[150px]">
-                                    {cardHolder || 'SHARLY VIDULA'}
+                                    {cardHolder || 'NAME SURNAME'}
                                   </span>
                                 </div>
                                 <div className="flex flex-col text-right">
@@ -1071,15 +1071,15 @@ export default function Home() {
                               <div className="w-full h-8 bg-black/90 mt-4" />
                               <div className="px-5 mt-2 flex items-center gap-3">
                                 <div className="flex-1 h-7 bg-white/10 rounded border border-white/5 flex items-center pl-3 font-mono text-[9px] text-white/30 italic">
-                                  ABSTRACT COUTURE ACCESS
+                                  ABSTRACT ACCESS
                                 </div>
                                 <div className="w-10 h-6 bg-white rounded flex items-center justify-center font-mono text-[10px] font-black text-black shadow-inner">
                                   {cardCvv || '•••'}
                                 </div>
                               </div>
                               <div className="px-5 pb-3 flex justify-between items-center text-[6px] font-mono text-white/20">
-                                <span>AUTHENTICATION MATRIX v2.4</span>
-                                <span>SECURE TRANS</span>
+                                <span>ABSTRACT</span>
+                                <span>SECURE</span>
                               </div>
                             </div>
                           </div>
@@ -1088,8 +1088,8 @@ export default function Home() {
                         {/* Dynamic PayHere Secure Input Form */}
                         {(!deliveryFullName.trim() || !deliveryPhone.trim() || !deliveryAddress.trim() || !deliveryCity.trim()) ? (
                           <div className="p-4 border border-dashed border-white/10 rounded-2xl bg-white/[0.01] text-center">
-                            <span className="font-mono text-[9px] text-white/50 uppercase tracking-wider">RESOLVE SHIPPING TELEMETRY TO UNLOCK</span>
-                            <p className="text-[11px] text-white/30 mt-1">Please enter your shipping address details above to initialize the PayHere payment channel.</p>
+                            <span className="font-mono text-[9px] text-white/50 uppercase tracking-wider">ENTER SHIPPING DETAILS</span>
+                            <p className="text-[11px] text-white/30 mt-1">Fill in your delivery details above to unlock the payment section.</p>
                           </div>
                         ) : (
                           <div className="space-y-4 animate-fade-in">
@@ -1102,7 +1102,7 @@ export default function Home() {
                               {isProcessingPayment ? (
                                 <>
                                   <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                                  INITIALIZING SECURE PORTAL...
+                                  PROCESSING...
                                 </>
                               ) : (
                                 <>
@@ -1112,7 +1112,7 @@ export default function Home() {
                             </button>
                             <div className="flex items-center justify-center gap-1.5 text-[8px] font-mono text-white/20">
                               <ShieldCheck className="w-3 h-3 text-emerald-500" />
-                              <span>PROCESSED SECURELY BY PAYHERE AGGREGATOR</span>
+                              <span>SECURE PAYMENT</span>
                             </div>
                           </div>
                         )}
@@ -1122,14 +1122,14 @@ export default function Home() {
                     {cart[0]?.paymentMethod === 'Solana Network' && (
                       <div className="space-y-4">
                         <span className="font-mono text-[10px] text-white/40 tracking-widest font-semibold uppercase">
-                          WEB3 WALLET INTEGRATION
+                          CRYPTO WALLET (SOLANA)
                         </span>
                         {!solanaWallet ? (
                           <div className="flex flex-col items-center justify-center p-6 border border-dashed border-white/10 rounded-2xl bg-white/[0.01] gap-4">
                             <Database className="w-8 h-8 text-cyan-400 animate-pulse" />
                             <div className="text-center">
-                              <span className="font-mono text-[10px] text-cyan-400 font-bold uppercase tracking-wider">SOLANA PAYMENT NODE</span>
-                              <p className="text-[11px] text-white/40 mt-1 max-w-[240px]">Connect your Web3 cryptographic ledger to authorize on-chain transaction logs.</p>
+                              <span className="font-mono text-[10px] text-cyan-400 font-bold uppercase tracking-wider">SOLANA PAYMENT</span>
+                              <p className="text-[11px] text-white/40 mt-1 max-w-[240px]">Connect your Solana crypto wallet to pay for your order.</p>
                             </div>
                             <button
                               type="button"
@@ -1149,7 +1149,7 @@ export default function Home() {
                                   CONNECTING...
                                 </>
                               ) : (
-                                'CONNECT WEB3 WALLET'
+                                'CONNECT WALLET'
                               )}
                             </button>
                           </div>
@@ -1158,7 +1158,7 @@ export default function Home() {
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                                <span className="font-mono text-[10px] text-cyan-400 font-bold">SOLANA NODE: CONNECTED</span>
+                                <span className="font-mono text-[10px] text-cyan-400 font-bold">WALLET CONNECTED</span>
                               </div>
                               <button
                                 type="button"
@@ -1169,11 +1169,11 @@ export default function Home() {
                               </button>
                             </div>
                             <div className="flex justify-between items-baseline font-mono text-[11px] mt-1">
-                              <span className="text-white/40">LEDGER KEY:</span>
+                              <span className="text-white/40">ADDRESS:</span>
                               <span className="text-white/80 font-bold">{solanaWallet}</span>
                             </div>
                             <div className="flex justify-between items-baseline font-mono text-[11px]">
-                              <span className="text-white/40">WALLET BALANCE:</span>
+                              <span className="text-white/40">BALANCE:</span>
                               <span className="text-cyan-400 font-bold">4.20 SOL</span>
                             </div>
                           </div>
@@ -1185,19 +1185,19 @@ export default function Home() {
                       <div className="space-y-4">
                         <div className="p-4 rounded-xl border border-purple-500/20 bg-purple-500/5 flex flex-col gap-2">
                           <div className="flex justify-between items-center">
-                            <span className="font-mono text-[10px] text-purple-400 font-bold">CYBER-CREDITS LEDGER</span>
-                            <span className="font-mono text-[10px] text-white/30">SECURE STORE PORTAL</span>
+                            <span className="font-mono text-[10px] text-purple-400 font-bold">STORE CREDITS</span>
+                            <span className="font-mono text-[10px] text-white/30">YOUR BALANCE</span>
                           </div>
                           
                           <div className="flex justify-between items-center mt-1">
                             <div className="flex flex-col">
-                              <span className="text-[9px] text-white/40 font-mono">YOUR CREDITS</span>
+                              <span className="text-[9px] text-white/40 font-mono">AVAILABLE</span>
                               <span className={`font-mono text-base font-bold ${cyberCredits < cartTotal ? 'text-rose-400' : 'text-purple-300'}`}>
                                 {cyberCredits.toLocaleString()} LKR
                               </span>
                             </div>
                             <div className="flex flex-col text-right">
-                              <span className="text-[9px] text-white/40 font-mono">TOTAL COST</span>
+                              <span className="text-[9px] text-white/40 font-mono">COST</span>
                               <span className="font-mono text-base font-bold text-white">
                                 {cartTotal.toLocaleString()} LKR
                               </span>
@@ -1207,7 +1207,7 @@ export default function Home() {
                           {cyberCredits < cartTotal ? (
                             <div className="mt-2 flex flex-col gap-2">
                               <p className="text-[10px] font-mono text-rose-400 bg-rose-500/10 border border-rose-500/25 p-2 rounded-lg">
-                                INSUFFICIENT FUNDS. RECHARGE LEDGER CREDITS.
+                                NOT ENOUGH CREDITS. CLAIM MORE BELOW.
                               </p>
                               <button
                                 type="button"
@@ -1221,12 +1221,12 @@ export default function Home() {
                                 }}
                                 className="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white font-mono text-[10px] font-bold rounded-lg border border-purple-400/30 transition-all cursor-pointer flex items-center justify-center gap-1.5"
                               >
-                                <Coins className="w-3.5 h-3.5" /> CLAIM +5,000 CYBER-CREDITS
+                                <Coins className="w-3.5 h-3.5" /> CLAIM +5,000 CREDITS
                               </button>
                             </div>
                           ) : (
                             <div className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 p-2 rounded-lg text-center">
-                              FUNDS DECREE RESOLVED: SYSTEM IS READY TO SETTLE
+                              ENOUGH CREDITS — READY TO PLACE ORDER
                             </div>
                           )}
                         </div>
@@ -1236,9 +1236,9 @@ export default function Home() {
                     {cart[0]?.paymentMethod === 'Cash on Delivery' && (
                       <div className="space-y-4">
                         <div className="p-4 rounded-xl border border-white/5 bg-white/[0.01] flex flex-col gap-1.5">
-                          <span className="font-mono text-[10px] text-amber-500 font-bold uppercase">PHYSICAL DISPATCH DECREE</span>
+                          <span className="font-mono text-[10px] text-amber-500 font-bold uppercase">CASH ON DELIVERY</span>
                           <p className="text-[11px] text-white/50 leading-relaxed font-sans">
-                            Settle the total of <strong className="text-white font-mono">{cartTotal} LKR</strong> in cash when our security transport courier hand-delivers your package.
+                            Pay <strong className="text-white font-mono">{cartTotal} LKR</strong> in cash when our courier delivers your order to your door.
                           </p>
                         </div>
                       </div>
@@ -1253,12 +1253,12 @@ export default function Home() {
                         </div>
                         <div className="text-center space-y-1">
                           <span className="font-mono text-[10px] tracking-widest text-[var(--theme-primary)] font-semibold uppercase animate-pulse">
-                            {cart[0]?.paymentMethod === 'Credit Card' ? 'AUTHORIZING CYBER-PORT...' :
-                             cart[0]?.paymentMethod === 'Solana Network' ? 'SIGNING TRANSACTION BLOCK...' :
-                             'RECONCILING LEDGER BALANCES...'}
+                            {cart[0]?.paymentMethod === 'Credit Card' ? 'AUTHORISING YOUR PAYMENT...' :
+                             cart[0]?.paymentMethod === 'Solana Network' ? 'CONFIRMING TRANSACTION...' :
+                             'PLACING YOUR ORDER...'}
                           </span>
                           <p className="font-mono text-[8px] text-white/30 tracking-widest uppercase">
-                            TRANSACTING WITH SECURE ROUTER CORE
+                            PLEASE WAIT A MOMENT
                           </p>
                         </div>
                       </div>
@@ -1350,20 +1350,20 @@ export default function Home() {
                       {cart[0]?.paymentMethod !== 'Credit Card' && (
                         <button
                           onClick={() => {
-                            if (!deliveryFullName.trim() || !deliveryPhone.trim() || !deliveryAddress.trim() || !deliveryCity.trim()) {
-                              setDeliveryError('ALL TELEMETRY FIELDS MUST BE FULLY RESOLVED');
-                              return;
-                            }
+                        if (!deliveryFullName.trim() || !deliveryPhone.trim() || !deliveryAddress.trim() || !deliveryCity.trim()) {
+                               setDeliveryError('Please fill in all delivery details above.');
+                               return;
+                             }
 
                             const method = cart[0]?.paymentMethod || 'Cyber-Credits';
                             if (method === 'Solana Network') {
                               if (!solanaWallet) {
-                                setDeliveryError('PLEASE CONNECT SOLANA WEB3 WALLET LEDGER');
+                                setDeliveryError('Please connect your Solana wallet first.');
                                 return;
                               }
                             } else if (method === 'Cyber-Credits') {
                               if (cyberCredits < cartTotal) {
-                                setDeliveryError('INSUFFICIENT CYBER-CREDITS BALANCE');
+                                setDeliveryError('Not enough store credits to complete this order.');
                                 return;
                               }
                             }
@@ -1402,7 +1402,7 @@ export default function Home() {
                                 setIsProcessingPayment(false);
                                 setDeliveryError('');
                               } catch (err: any) {
-                                setDeliveryError(err.message || 'TRANSACTION ENCOUNTERED EXCEPTION PROTOCOL');
+                                setDeliveryError(err.message || 'Something went wrong. Please try again.');
                                 setIsProcessingPayment(false);
                               }
                             }, 2500);
@@ -1476,7 +1476,7 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-1.5">
             <Check className="w-3.5 h-3.5 text-emerald-500" />
-            <span>SYS: ABSTRACT_CHECKOUT_CORE // CERTIFIED_TRANSACTIONS</span>
+            <span>Trusted & Secure Checkout · All Rights Protected</span>
           </div>
           <div className="flex flex-col items-center md:items-end gap-2.5">
             <div className="flex flex-wrap justify-center gap-3 text-white/40">

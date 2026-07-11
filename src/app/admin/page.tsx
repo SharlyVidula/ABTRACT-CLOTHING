@@ -252,7 +252,7 @@ export default function AdminPage() {
 
   const handleResetAnalytics = async () => {
     const confirmed = await showConfirm(
-      'RESET TELEMETRY',
+      'RESET FILTERS',
       'Are you sure you want to completely purge and reset all traffic and activity values? This action cannot be undone.',
       'warning'
     );
@@ -484,10 +484,10 @@ export default function AdminPage() {
           
           <div className="space-y-2">
             <h2 className="font-mono text-xl font-bold tracking-widest text-red-400">
-              UNAUTHORIZED ROUTE
+              ACCESS DENIED
             </h2>
             <p className="text-xs text-white/50 leading-relaxed font-mono">
-              CREDENTIAL FAILURE: ROOT PRIVILEGES REQUIRED. ESTABLISH MATRIX LOGIN AS ADMIN ROLE FIRST.
+              You must be logged in as an Admin to access this page.
             </p>
           </div>
 
@@ -1012,7 +1012,7 @@ export default function AdminPage() {
               ADMIN CONTROL PANEL
             </h1>
             <span className="font-mono text-[10px] text-white/30 tracking-widest">
-              OVERRIDE PERMISSIONS ACQUIRED
+              Admin Access Granted
             </span>
           </div>
         </div>
@@ -1209,7 +1209,7 @@ export default function AdminPage() {
                         <div className="glass rounded-3xl p-6 border border-white/5 flex flex-col gap-4">
                           <div className="border-b border-white/10 pb-3">
                             <h3 className="font-mono text-xs tracking-widest text-cyber-blue font-semibold">
-                              7-DAY TRAFFIC MATRIX
+                              7-Day Traffic Overview
                             </h3>
                             <p className="text-[10px] text-white/30">Visits & page views trend</p>
                           </div>
@@ -1259,7 +1259,7 @@ export default function AdminPage() {
                         <div className="glass rounded-3xl p-6 border border-white/5 flex flex-col gap-4">
                           <div className="border-b border-white/10 pb-3">
                             <h3 className="font-mono text-xs tracking-widest text-amber-500 font-semibold">
-                              POPULAR GARMENTS TELEMETRY
+                              POPULAR PRODUCTS
                             </h3>
                             <p className="text-[10px] text-white/30">Garments with highest visitor engagement metrics</p>
                           </div>
@@ -1302,7 +1302,7 @@ export default function AdminPage() {
                           </div>
                         </div>
                         <span className="font-mono text-[9px] bg-cyber-purple/15 border border-cyber-purple/30 text-cyber-purple px-2 py-0.5 rounded uppercase font-semibold">
-                          MATRIX MONITORING ACTIVE
+                          ANALYTICS ACTIVE
                         </span>
                       </div>
 
@@ -1470,14 +1470,14 @@ export default function AdminPage() {
                       <Terminal className="w-4 h-4 text-cyber-purple" />
                       <div>
                         <h3 className="font-mono text-xs tracking-widest text-cyber-purple font-semibold">
-                          TELEMETRY FEED
+                          ACTIVITY LOG
                         </h3>
                         <p className="text-[10px] text-white/30">System processes and queue telemetry log</p>
                       </div>
                     </div>
 
                     <div className="flex-1 font-mono text-[11px] text-white/50 space-y-2 max-h-[350px] overflow-y-auto pr-1">
-                      <div className="text-cyber-green">[SYSTEM] MATRIX INTERFACE SECURED</div>
+                      <div className="text-cyber-green">[SYSTEM] Admin Panel Ready</div>
                       <div className="text-white/30">[SYS_LOG] Core config loaded from db.ts</div>
                       <div className="text-cyber-blue">[METRICS] Active catalog contains {products.length} active models</div>
                       <div className="text-cyber-purple">[ORDERS] Transaction log stream initialized</div>
@@ -1570,7 +1570,7 @@ export default function AdminPage() {
                           <tr>
                             <td colSpan={5} className="py-12 text-center text-white/20">
                               <Terminal className="w-8 h-8 mx-auto mb-2 text-white/20 animate-pulse" />
-                              <span>NO PRODUCTS DETECTED IN SELECTED TELEMETRY GRID</span>
+                              <span>No products found</span>
                             </td>
                           </tr>
                         ) : (
@@ -1690,7 +1690,7 @@ export default function AdminPage() {
                   <Plus className="w-5 h-5 text-cyber-green" />
                   <div>
                     <h3 className="font-mono text-sm tracking-widest text-cyber-green font-semibold">
-                      CATALOG MATRIX INJECTOR
+                      ADD NEW PRODUCT
                     </h3>
                     <p className="text-xs text-white/40">Append custom garments to store catalog database</p>
                   </div>
@@ -1702,7 +1702,7 @@ export default function AdminPage() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="p-4 rounded-xl border border-cyber-green/30 bg-cyber-green/5 text-center font-mono text-xs text-cyber-green font-bold tracking-wider"
                   >
-                    [+] INVENTORY TELEMETRY SUCCESSFULLY MOUNTED
+                    [+] Product added to catalogue successfully
                   </motion.div>
                 )}
 
@@ -2425,7 +2425,7 @@ export default function AdminPage() {
 
                             {order.deliveryDetails && (
                               <div className="pt-2 border-t border-white/5 space-y-1 text-[11px] text-white/50 bg-black/20 p-2.5 rounded-xl">
-                                <div className="text-[9px] text-cyber-purple font-bold tracking-wider mb-1 uppercase">DELIVERY TELEMETRY</div>
+                                <div className="text-[9px] text-cyber-purple font-bold tracking-wider mb-1 uppercase">DELIVERY DETAILS</div>
                                 <div className="flex justify-between">
                                   <span>RECIPIENT:</span>
                                   <span className="text-white">{order.deliveryDetails.fullName}</span>
@@ -2589,7 +2589,7 @@ export default function AdminPage() {
 
                             {order.deliveryDetails && (
                               <div className="pt-2 border-t border-white/5 space-y-1 text-[11px] text-white/40 bg-black/10 p-2.5 rounded-xl">
-                                <div className="text-[9px] text-white/40 font-bold tracking-wider mb-1 uppercase">DELIVERY TELEMETRY</div>
+                                <div className="text-[9px] text-white/40 font-bold tracking-wider mb-1 uppercase">DELIVERY DETAILS</div>
                                 <div className="flex justify-between">
                                   <span>RECIPIENT:</span>
                                   <span className="text-white/80">{order.deliveryDetails.fullName}</span>
@@ -3023,7 +3023,7 @@ export default function AdminPage() {
                 <div>
                   <h3 className="font-mono text-sm tracking-widest text-cyber-blue font-bold flex items-center gap-2">
                     <Settings className="w-4 h-4 animate-spin-slow" />
-                    EDIT GARMENT TELEMETRY
+                    EDIT PRODUCT DETAILS
                   </h3>
                   <p className="font-mono text-xs text-white/40 uppercase mt-0.5">Model: {editingGarment.id}</p>
                 </div>
@@ -3673,7 +3673,7 @@ export default function AdminPage() {
                       className="flex-1 py-3.5 rounded-xl font-mono text-xs tracking-wider font-bold bg-cyber-blue text-black hover:brightness-110 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <Check className="w-4 h-4" />
-                      SAVE TELEMETRY
+                      SAVE CHANGES
                     </button>
                   </div>
                 </div>
@@ -3762,7 +3762,7 @@ export default function AdminPage() {
 
       {/* Footer */}
       <footer className="relative z-30 border-t border-white/5 bg-cyber-dark/80 backdrop-blur-md py-6 px-6 text-center text-white/30 text-[10px] font-mono">
-        <span>&copy; 2026 ABSTRACT OVERRIDE CORE LOGS. AUTHORIZED ADMINISTRATOR ONLY.</span>
+        <span>&copy; 2026 ABSTRACT Admin Panel. Authorised Personnel Only.</span>
       </footer>
 
     </div>
