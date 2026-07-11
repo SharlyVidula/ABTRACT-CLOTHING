@@ -211,19 +211,9 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
     const savedCart = localStorage.getItem('abstract_cart');
     if (savedCart) setCart(JSON.parse(savedCart));
 
-    // Load static reviews / products from database API
-    const loadProducts = async () => {
-      try {
-        const res = await fetch('/api/products');
-        const data = await res.json();
-        if (data.success && data.products) {
-          setProducts(data.products);
-        }
-      } catch (err) {
-        console.error('Failed to load products from database API:', err);
-      }
-    };
-    loadProducts();
+    // Products are already provided via `initialProducts` from the server layout —
+    // no need to re-fetch them here. This removes a redundant cold DB round-trip
+    // that was adding 2–5 s to every page load for every visitor.
 
     const loadReviews = async () => {
       try {

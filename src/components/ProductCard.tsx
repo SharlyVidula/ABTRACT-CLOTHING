@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Garment } from '@/lib/garments';
 import { useAtelier } from '@/context/AtelierContext';
 import { Eye, ShoppingCart, Sparkles, Crown, Zap, MonitorPlay } from 'lucide-react';
@@ -11,9 +12,10 @@ import { useStore } from '@/context/StoreContext';
 interface ProductCardProps {
   garment: Garment;
   onAddToCartClick: (garment: Garment) => void;
+  priority?: boolean;
 }
 
-export default function ProductCard({ garment, onAddToCartClick }: ProductCardProps) {
+export default function ProductCard({ garment, onAddToCartClick, priority = false }: ProductCardProps) {
   const { setSelectedGarment, setIsAtelierOpen } = useAtelier();
   const { trackEvent } = useStore();
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
@@ -50,10 +52,13 @@ export default function ProductCard({ garment, onAddToCartClick }: ProductCardPr
       {/* ── Image (full-bleed hero) ───────────────────────────────────────── */}
       <div className="absolute inset-0">
         {garment.image ? (
-          <img
+          <Image
             src={garment.image}
             alt={garment.name}
-            className={`w-full h-full object-cover transition-all duration-700 ease-out ${
+            fill
+            sizes="(max-width: 480px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            priority={priority}
+            className={`object-cover transition-all duration-700 ease-out ${
               showOverlay
                 ? 'opacity-30 scale-105'
                 : 'opacity-80 group-hover:opacity-30 group-hover:scale-105'

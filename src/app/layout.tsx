@@ -8,7 +8,10 @@ import { Product } from "@/lib/models";
 import { GARMENTS } from "@/lib/garments";
 import Script from "next/script";
 
-export const dynamic = 'force-dynamic';
+// Revalidate the layout (and its DB fetch) at most once per 60 seconds.
+// Visitors within that window get an instant cached response instead of
+// waiting for a fresh MongoDB round-trip on every request.
+export const revalidate = 60;
 
 const inter = Inter({
   variable: "--font-sans",
