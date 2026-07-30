@@ -91,9 +91,9 @@ interface StoreContextType {
   removeFromCart: (index: number) => void;
   checkout: (deliveryDetails?: DeliveryDetails) => Promise<void>;
   updateOrderStatus: (orderId: string, status: Order['status'], declineReason?: string) => Promise<void>;
-  addProduct: (garment: Garment) => void;
-  updateProduct: (garment: Garment) => void;
-  deleteProduct: (id: string) => void;
+  addProduct: (garment: Garment) => Promise<boolean>;
+  updateProduct: (garment: Garment) => Promise<boolean>;
+  deleteProduct: (id: string) => Promise<boolean>;
   setCartOpen: (open: boolean) => void;
   updateProfile: (details: { email?: string; phone?: string; address?: string; city?: string; gender?: 'Male' | 'Female'; profilePicture?: string; credits?: number }) => Promise<AuthResult>;
   addReview: (review: Omit<Review, 'id' | 'date' | 'published'>) => Promise<void>;
@@ -555,7 +555,7 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
   };
 
   // ── Products ───────────────────────────────────────────────────────────────
-  const addProduct = async (garment: Garment) => {
+  const addProduct = async (garment: Garment): Promise<boolean> => {
     try {
       const res = await fetch('/api/products', {
         method: 'POST',
@@ -565,18 +565,20 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
       const data = await res.json();
       if (!res.ok || !data.success) {
         showToast(data.error || 'Failed to save product to database', 'error');
-        return;
+        return false;
       }
       const savedGarment = data.product || garment;
       setProducts((prev) => [savedGarment, ...prev]);
       showToast(`Product "${savedGarment.name}" added successfully.`, 'success');
+      return true;
     } catch (err) {
       console.error('Failed to save product to database:', err);
       showToast('Network error while saving product.', 'error');
+      return false;
     }
   };
 
-  const updateProduct = async (garment: Garment) => {
+  const updateProduct = async (garment: Garment): Promise<boolean> => {
     try {
       const res = await fetch('/api/products', {
         method: 'POST',
@@ -586,17 +588,20 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
       const data = await res.json();
       if (!res.ok || !data.success) {
         showToast(data.error || 'Failed to update product in database', 'error');
-        return;
+        return false;
       }
-      setProducts((prev) => prev.map((p) => (p.id === garment.id ? garment : p)));
-      showToast(`Product "${garment.name}" updated successfully.`, 'success');
+      const savedGarment = data.product || garment;
+      setProducts((prev) => prev.map((p) => (p.id === garment.id ? savedGarment : p)));
+      showToast(`Product "${savedGarment.name}" updated successfully.`, 'success');
+      return true;
     } catch (err) {
       console.error('Failed to update product in database:', err);
       showToast('Network error while updating product.', 'error');
+      return false;
     }
   };
 
-  const deleteProduct = async (id: string) => {
+  const deleteProduct = async (id: string): Promise<boolean> => {
     try {
       const res = await fetch('/api/products', {
         method: 'POST',
@@ -606,13 +611,15 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
       const data = await res.json();
       if (!res.ok || !data.success) {
         showToast(data.error || 'Failed to delete product from database', 'error');
-        return;
+        return false;
       }
       setProducts((prev) => prev.filter((p) => p.id !== id));
       showToast(`Product deleted successfully.`, 'info');
+      return true;
     } catch (err) {
       console.error('Failed to delete product from database:', err);
       showToast('Network error while deleting product.', 'error');
+      return false;
     }
   };
 

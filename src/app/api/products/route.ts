@@ -50,23 +50,27 @@ export async function POST(req: Request) {
         product.id = `${product.id}-${Date.now().toString().slice(-4)}`;
       }
 
-      const newProduct = new Product(product);
+      const { _id, ...cleanProduct } = product;
+      const newProduct = new Product(cleanProduct);
       await newProduct.save();
       return NextResponse.json({ success: true, product: newProduct }, { status: 201 });
     }
 
     if (action === 'update') {
-      if (!product) {
-        return NextResponse.json({ success: false, error: 'Product details required for update' }, { status: 400 });
+      if (!product || !product.id) {
+        return NextResponse.json({ success: false, error: 'Product ID is required for update' }, { status: 400 });
       }
 
       if (!product.image || product.image.trim() === '') {
         product.image = '/logo.png';
       }
 
+      // Strip _id from update payload to prevent MongoDB immutable field error
+      const { _id, ...updateData } = product;
+
       const updated = await Product.findOneAndUpdate(
         { id: product.id },
-        { $set: product },
+        { $set: updateData },
         { new: true, upsert: true }
       );
 

@@ -663,7 +663,7 @@ export default function AdminPage() {
   };
 
   // Create Product Handler
-  const handleCreateProduct = (e: React.FormEvent) => {
+  const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
 
@@ -752,37 +752,39 @@ export default function AdminPage() {
       disabledSizes,
     };
 
-    addProduct(newGarment);
-    setIsSuccess(true);
-    
-    // Reset Form
-    setName('');
-    setDescription('');
-    setDetails('');
-    setCost(180);
-    setPrice(250);
-    setAvailS(true);
-    setAvailM(true);
-    setAvailL(true);
-    setAvailXL(true);
-    setAvail2XL(true);
-    setChest2XL(122);
-    setWaist2XL(102);
-    setHips2XL(122);
-    setQtyS(10);
-    setQtyM(10);
-    setQtyL(10);
-    setQtyXL(10);
-    setQty2XL(10);
-    setSelectedCatName('T-Shirt');
-    setCatSearch('');
-    setImagePath('');
-    setImages([]);
-    setVideo('');
-    
-    setTimeout(() => {
-      setIsSuccess(false);
-    }, 2000);
+    const ok = await addProduct(newGarment);
+    if (ok) {
+      setIsSuccess(true);
+      
+      // Reset Form
+      setName('');
+      setDescription('');
+      setDetails('');
+      setCost(180);
+      setPrice(250);
+      setAvailS(true);
+      setAvailM(true);
+      setAvailL(true);
+      setAvailXL(true);
+      setAvail2XL(true);
+      setChest2XL(122);
+      setWaist2XL(102);
+      setHips2XL(122);
+      setQtyS(10);
+      setQtyM(10);
+      setQtyL(10);
+      setQtyXL(10);
+      setQty2XL(10);
+      setSelectedCatName('T-Shirt');
+      setCatSearch('');
+      setImagePath('');
+      setImages([]);
+      setVideo('');
+      
+      setTimeout(() => {
+        setIsSuccess(false);
+      }, 2000);
+    }
   };
 
   // Edit Product Trigger
@@ -933,9 +935,11 @@ export default function AdminPage() {
       disabledSizes,
     };
 
-    updateProduct(updated);
-    setEditingGarment(null);
-    await showAlert('DATABASE SYNCHRONIZATION', `Garment "${updated.name}" specifications updated successfully!`, 'success');
+    const ok = await updateProduct(updated);
+    if (ok) {
+      setEditingGarment(null);
+      await showAlert('DATABASE SYNCHRONIZATION', `Garment "${updated.name}" specifications updated successfully!`, 'success');
+    }
   };
 
   // Delete Product Handler
@@ -946,13 +950,15 @@ export default function AdminPage() {
       'error'
     );
     if (confirmed) {
-      deleteProduct(p.id);
-      await showAlert('DATABASE STATUS', `Garment "${p.name}" removed from catalogue.`, 'success');
+      const ok = await deleteProduct(p.id);
+      if (ok) {
+        await showAlert('DATABASE STATUS', `Garment "${p.name}" removed from catalogue.`, 'success');
+      }
     }
   };
 
   // Inline Stock Adjuster
-  const handleUpdateStock = (p: Garment, size: 'S' | 'M' | 'L' | 'XL' | '2XL', newQty: number) => {
+  const handleUpdateStock = async (p: Garment, size: 'S' | 'M' | 'L' | 'XL' | '2XL', newQty: number) => {
     if (newQty < 0) return;
     const updated = {
       ...p,
@@ -961,7 +967,7 @@ export default function AdminPage() {
         [size]: newQty
       }
     };
-    updateProduct(updated);
+    await updateProduct(updated);
   };
 
   // Global Valuation Calculations
