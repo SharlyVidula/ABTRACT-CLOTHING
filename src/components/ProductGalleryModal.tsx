@@ -23,7 +23,7 @@ export default function ProductGalleryModal({ isOpen, onClose, garment }: Produc
 
   const minSwipeDistance = 50;
 
-  const isExclusive = !garment.brand || garment.brand !== 'Universe' ? garment.price >= 5000 : false;
+  const isExclusive = garment.price >= 5000;
   
   const baseImages = garment.images && garment.images.length > 0 ? garment.images : [garment.image];
   const mediaItems: any[] = baseImages.map(img => ({ type: 'image', src: img }));

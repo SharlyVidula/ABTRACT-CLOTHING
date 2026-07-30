@@ -11,7 +11,7 @@ import MyAccountModal from '@/components/MyAccountModal';
 import BackgroundScene from '@/components/BackgroundScene';
 import CustomDesignModal from '@/components/CustomDesignModal';
 import AIAssistant from '@/components/AIAssistant';
-import { Heart, Sparkles, ShoppingBag, X, Trash2, ArrowRight, ShieldCheck, LogIn, LogOut, Shield, Check, Crown, Zap, Palette, CreditCard, Coins, Database, Banknote, RefreshCw, Star, AlertCircle } from 'lucide-react';
+import { Heart, Sparkles, ShoppingBag, X, Trash2, ArrowRight, ShieldCheck, LogIn, LogOut, Shield, Check, Crown, Palette, CreditCard, Coins, Database, Banknote, RefreshCw, Star, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Script from 'next/script';
@@ -49,7 +49,7 @@ export default function Home() {
   const [inlineGender, setInlineGender] = useState<'Male' | 'Female'>('Female');
   const [inlineError, setInlineError] = useState('');
   const [inlineLoading, setInlineLoading] = useState(false);
-  type Collection = 'ALL' | 'EXCLUSIVE' | 'UNIVERSE' | 'DELUX';
+  type Collection = 'ALL' | 'EXCLUSIVE' | 'DELUX';
   const [activeCollection, setActiveCollection] = useState<Collection>('ALL');
 
   const [isEnteringDelivery, setIsEnteringDelivery] = useState(false);
@@ -302,18 +302,16 @@ export default function Home() {
   // Collection-based filter
   const genderFilteredProducts = products.filter(p => p.gender === genderMode || p.gender === 'Unisex');
   const filteredProducts = genderFilteredProducts.filter((p) => {
-    if (activeCollection === 'EXCLUSIVE') return p.price >= 5000 && p.brand !== 'Universe';
-    if (activeCollection === 'UNIVERSE') return p.brand === 'Universe';
-    if (activeCollection === 'DELUX') return p.price < 5000 && p.brand !== 'Universe';
+    if (activeCollection === 'EXCLUSIVE') return p.price >= 5000;
+    if (activeCollection === 'DELUX') return p.price < 5000;
     return true;
   });
 
   // Collection definitions with counts
   const COLLECTIONS: { id: Collection; name: string; subtitle: string; icon: React.ReactNode; count: number }[] = [
     { id: 'ALL', name: 'ALL LINES', subtitle: 'Full catalogue', icon: <Sparkles className="w-3.5 h-3.5" />, count: genderFilteredProducts.length },
-    { id: 'EXCLUSIVE', name: 'EXCLUSIVE', subtitle: '≥ LKR 5,000 · Premium', icon: <Crown className="w-3.5 h-3.5" />, count: genderFilteredProducts.filter(p => p.price >= 5000 && p.brand !== 'Universe').length },
-    { id: 'UNIVERSE', name: 'UNIVERSE', subtitle: 'Collab Brand · Streetwear', icon: <Zap className="w-3.5 h-3.5" />, count: genderFilteredProducts.filter(p => p.brand === 'Universe').length },
-    { id: 'DELUX', name: 'DELUX', subtitle: '< LKR 5,000 · Accessible', icon: <Heart className="w-3.5 h-3.5" />, count: genderFilteredProducts.filter(p => p.price < 5000 && p.brand !== 'Universe').length },
+    { id: 'EXCLUSIVE', name: 'EXCLUSIVE', subtitle: '≥ LKR 5,000 · Premium', icon: <Crown className="w-3.5 h-3.5" />, count: genderFilteredProducts.filter(p => p.price >= 5000).length },
+    { id: 'DELUX', name: 'DELUX', subtitle: '< LKR 5,000 · Accessible', icon: <Heart className="w-3.5 h-3.5" />, count: genderFilteredProducts.filter(p => p.price < 5000).length },
   ];
 
   const navLinks = [

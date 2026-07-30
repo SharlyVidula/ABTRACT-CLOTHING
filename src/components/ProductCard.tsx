@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { Garment } from '@/lib/garments';
 import { useAtelier } from '@/context/AtelierContext';
-import { Eye, ShoppingCart, Sparkles, Crown, Zap, MonitorPlay } from 'lucide-react';
+import { Eye, ShoppingCart, Sparkles, Crown, MonitorPlay } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ProductGalleryModal from './ProductGalleryModal';
 import { useStore } from '@/context/StoreContext';
@@ -27,8 +27,7 @@ export default function ProductCard({ garment, onAddToCartClick, priority = fals
   };
 
   // Collection badge
-  const isUniverse = garment.brand === 'Universe';
-  const isExclusive = !isUniverse && garment.price >= 5000;
+  const isExclusive = garment.price >= 5000;
 
   return (
     <motion.div
@@ -96,25 +95,15 @@ export default function ProductCard({ garment, onAddToCartClick, priority = fals
       </div>
 
       {/* ── Collection badge (mid-left) ────────────────────────────────────── */}
-      {(isUniverse || isExclusive) && (
+      {isExclusive && (
         <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
-          {isUniverse ? (
-            <div
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-mono text-[8px] tracking-widest font-bold border"
-              style={{ background: 'rgba(0,229,255,0.10)', borderColor: 'rgba(0,229,255,0.3)', color: '#00e5ff' }}
-            >
-              <Zap className="w-2.5 h-2.5" />
-              UNIVERSE
-            </div>
-          ) : (
-            <div
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-mono text-[8px] tracking-widest font-bold border"
-              style={{ background: 'rgba(217,119,6,0.10)', borderColor: 'rgba(217,119,6,0.3)', color: '#d97706' }}
-            >
-              <Crown className="w-2.5 h-2.5" />
-              EXCLUSIVE
-            </div>
-          )}
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-mono text-[8px] tracking-widest font-bold border"
+            style={{ background: 'rgba(217,119,6,0.10)', borderColor: 'rgba(217,119,6,0.3)', color: '#d97706' }}
+          >
+            <Crown className="w-2.5 h-2.5" />
+            EXCLUSIVE
+          </div>
         </div>
       )}
 
