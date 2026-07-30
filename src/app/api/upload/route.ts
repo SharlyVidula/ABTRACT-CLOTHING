@@ -28,13 +28,23 @@ export async function POST(req: NextRequest) {
     const cleanFilename = `${baseName}_${uniqueSuffix}.${ext}`;
     
     // Save to the public directory
-    const publicPath = join(process.cwd(), 'public', cleanFilename);
-    await writeFile(publicPath, buffer);
+    try {
+      const publicPath = join(process.cwd(), 'public', cleanFilename);
+      await writeFile(publicPath, buffer);
 
-    return NextResponse.json({ 
-      success: true, 
-      path: `/${cleanFilename}` 
-    });
+      return NextResponse.json({ 
+        success: true, 
+        path: `/${cleanFilename}` 
+      });
+    } catch (fsError) {
+      console.warn('Local FS write unavailable (serverless environment), returning data URL:', fsError);
+      const mimeType = file.type || 'image/png';
+      const base64Data = buffer.toString('base64');
+      return NextResponse.json({ 
+        success: true, 
+        path: `data:${mimeType};base64,${base64Data}` 
+      });
+    }
   } catch (error) {
     console.error('File upload error:', error);
     return NextResponse.json(

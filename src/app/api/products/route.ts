@@ -60,15 +60,15 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: false, error: 'Product details required for update' }, { status: 400 });
       }
 
+      if (!product.image || product.image.trim() === '') {
+        product.image = '/logo.png';
+      }
+
       const updated = await Product.findOneAndUpdate(
         { id: product.id },
         { $set: product },
-        { new: true }
+        { new: true, upsert: true }
       );
-
-      if (!updated) {
-        return NextResponse.json({ success: false, error: 'Product to update not found' }, { status: 404 });
-      }
 
       return NextResponse.json({ success: true, product: updated }, { status: 200 });
     }

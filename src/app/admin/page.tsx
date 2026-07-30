@@ -510,6 +510,47 @@ export default function AdminPage() {
     );
   }
 
+  const compressClientImage = (file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.85): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const rawUrl = e.target?.result as string;
+        if (!file.type.startsWith('image/')) {
+          resolve(rawUrl);
+          return;
+        }
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+          if (width > maxWidth || height > maxHeight) {
+            if (width / height > maxWidth / maxHeight) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            } else {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(rawUrl);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/webp', quality));
+        };
+        img.onerror = () => resolve(rawUrl);
+        img.src = rawUrl;
+      };
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+    });
+  };
+
   // File Uploader & Drag and Drop event handlers
   const uploadImageFile = async (file: File, isEdit: boolean) => {
     const setError = isEdit ? setEditUploadError : setUploadError;
@@ -533,19 +574,24 @@ export default function AdminPage() {
 
       const data = await res.json();
       if (data.success && data.path) {
+        let finalPath = data.path;
+        if (finalPath.startsWith('data:image/') && file.type.startsWith('image/')) {
+          finalPath = await compressClientImage(file);
+        }
+
         if (file.type.startsWith('video/')) {
           if (isEdit) {
-            setEditVideo(data.path);
+            setEditVideo(finalPath);
           } else {
-            setVideo(data.path);
+            setVideo(finalPath);
           }
         } else {
           if (isEdit) {
-            setEditImages(prev => [...prev, data.path]);
-            if (!editImagePath) setEditImagePath(data.path);
+            setEditImages(prev => [...prev, finalPath]);
+            if (!editImagePath) setEditImagePath(finalPath);
           } else {
-            setImages(prev => [...prev, data.path]);
-            if (!imagePath) setImagePath(data.path);
+            setImages(prev => [...prev, finalPath]);
+            if (!imagePath) setImagePath(finalPath);
           }
         }
       } else {
@@ -553,27 +599,23 @@ export default function AdminPage() {
       }
     } catch (err: any) {
       console.error(err);
-      // Fallback: Read as base64 data URL
+      // Fallback: Read and compress as base64 WebP data URL
       try {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          if (e.target?.result) {
-            const dataUrl = e.target.result as string;
-            if (file.type.startsWith('video/')) {
-              if (isEdit) setEditVideo(dataUrl);
-              else setVideo(dataUrl);
+        const compressedDataUrl = await compressClientImage(file);
+        if (compressedDataUrl) {
+          if (file.type.startsWith('video/')) {
+            if (isEdit) setEditVideo(compressedDataUrl);
+            else setVideo(compressedDataUrl);
+          } else {
+            if (isEdit) {
+              setEditImages(prev => [...prev, compressedDataUrl]);
+              if (!editImagePath) setEditImagePath(compressedDataUrl);
             } else {
-              if (isEdit) {
-                setEditImages(prev => [...prev, dataUrl]);
-                if (!editImagePath) setEditImagePath(dataUrl);
-              } else {
-                setImages(prev => [...prev, dataUrl]);
-                if (!imagePath) setImagePath(dataUrl);
-              }
+              setImages(prev => [...prev, compressedDataUrl]);
+              if (!imagePath) setImagePath(compressedDataUrl);
             }
           }
-        };
-        reader.readAsDataURL(file);
+        }
       } catch (fallbackErr) {
         setError('Failed to upload asset. Please try again.');
       }

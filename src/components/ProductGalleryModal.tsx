@@ -86,7 +86,7 @@ export default function ProductGalleryModal({ isOpen, onClose, garment }: Produc
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative w-full max-w-5xl h-auto max-h-[90vh] md:max-h-none bg-[#0c0a10] border border-white/10 rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-y-auto md:overflow-hidden"
+            className="relative w-full max-w-5xl h-auto max-h-[90vh] md:h-[82vh] bg-[#0c0a10] border border-white/10 rounded-3xl shadow-2xl flex flex-col md:flex-row overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button */}
@@ -98,7 +98,7 @@ export default function ProductGalleryModal({ isOpen, onClose, garment }: Produc
             </button>
 
             {/* Media Section */}
-            <div className="w-full md:w-2/3 h-[45vh] md:h-[80vh] relative bg-black flex flex-col shrink-0">
+            <div className="w-full md:w-3/5 h-[40vh] md:h-full relative bg-black flex flex-col shrink-0">
               
               {/* Media Content with Arrows */}
               <div 
@@ -132,55 +132,79 @@ export default function ProductGalleryModal({ isOpen, onClose, garment }: Produc
                     ) : (
                       mediaItems[currentIndex].src ? (
                         <video 
-                          src={mediaItems[currentIndex].src}
-                          controls
-                          autoPlay
-                          muted
-                          loop
-                          className="max-w-full max-h-full object-contain rounded-xl"
+                          src={mediaItems[currentIndex].src} 
+                          controls 
+                          autoPlay 
+                          loop 
+                          className="max-w-full max-h-full rounded-xl object-contain" 
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center relative bg-[#050505] rounded-xl border border-white/5">
-                          <div className="absolute inset-0 flex flex-col items-center justify-center text-[var(--theme-primary)]">
-                            <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ repeat: Infinity, duration: 2 }}>
-                              <Play className="w-16 h-16 opacity-30 mb-4" />
-                            </motion.div>
-                            <span className="font-mono text-sm tracking-widest font-bold opacity-50">EXCLUSIVE RUNWAY FOOTAGE</span>
-                            <span className="font-mono text-[10px] text-white/30 mt-2">SIMULATED PLAYBACK</span>
-                          </div>
+                        /* Simulated Runway Video */
+                        <div className="relative w-full h-full rounded-xl overflow-hidden bg-gradient-to-tr from-purple-900/40 via-black to-blue-900/40 flex flex-col items-center justify-center p-6 text-center border border-white/10">
+                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(213,0,249,0.15)_0%,transparent_70%)] animate-pulse" />
+                          <Play className="w-16 h-16 text-[var(--theme-primary)] mb-4 animate-bounce" />
+                          <span className="font-mono text-xs text-white/80 font-bold tracking-widest uppercase">
+                            SIMULATED RUNWAY SHOWCASE
+                          </span>
+                          <span className="text-[10px] text-white/40 font-mono mt-1">
+                            4K Dynamic Telemetry Render
+                          </span>
                         </div>
                       )
                     )}
                   </motion.div>
                 </AnimatePresence>
 
-                {/* Left Arrow */}
-                <button 
-                  onClick={handlePrev} 
-                  className="absolute left-6 z-30 p-3 bg-black/40 hover:bg-black/80 rounded-full text-white/70 hover:text-white transition-all backdrop-blur-md border border-white/10 opacity-100 md:opacity-0 group-hover/carousel:opacity-100 hover:scale-110"
-                >
-                  <ChevronLeft className="w-6 h-6" />
-                </button>
-                
-                {/* Right Arrow */}
-                <button 
-                  onClick={handleNext} 
-                  className="absolute right-6 z-30 p-3 bg-black/40 hover:bg-black/80 rounded-full text-white/70 hover:text-white transition-all backdrop-blur-md border border-white/10 opacity-100 md:opacity-0 group-hover/carousel:opacity-100 hover:scale-110"
-                >
-                  <ChevronRight className="w-6 h-6" />
-                </button>
+                {/* Left/Right Arrows */}
+                {mediaItems.length > 1 && (
+                  <>
+                    <button
+                      onClick={handlePrev}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/60 hover:bg-black/90 text-white/70 hover:text-white transition-all border border-white/15 opacity-0 group-hover/carousel:opacity-100 cursor-pointer shadow-lg backdrop-blur-md"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={handleNext}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/60 hover:bg-black/90 text-white/70 hover:text-white transition-all border border-white/15 opacity-0 group-hover/carousel:opacity-100 cursor-pointer shadow-lg backdrop-blur-md"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </>
+                )}
+              </div>
 
-                <div className="absolute bottom-6 z-30 flex items-center justify-center gap-2 px-4 py-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-full">
-                  <span className="font-mono text-[10px] text-white/50 tracking-widest font-bold">
-                    {mediaItems[currentIndex].type === 'image' ? 'GALLERY' : 'RUNWAY'} {currentIndex + 1}/{mediaItems.length}
-                  </span>
-                </div>
+              {/* Bottom Thumbnail Strip */}
+              <div className="h-16 border-t border-white/10 bg-black/40 backdrop-blur-md flex items-center justify-center gap-2 px-4 shrink-0 overflow-x-auto">
+                {mediaItems.map((item, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentIndex(idx)}
+                    className={`relative w-10 h-10 rounded-lg overflow-hidden border transition-all shrink-0 cursor-pointer ${
+                      currentIndex === idx 
+                        ? 'border-[var(--theme-primary)] scale-105 shadow-[0_0_10px_var(--theme-glow)]' 
+                        : 'border-white/10 opacity-40 hover:opacity-80'
+                    }`}
+                  >
+                    {item.type === 'image' ? (
+                      item.src ? (
+                        <img src={item.src} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full bg-white/5 flex items-center justify-center text-[8px] font-mono">IMG</div>
+                      )
+                    ) : (
+                      <div className="w-full h-full bg-purple-900/50 flex items-center justify-center">
+                        <Play className="w-3 h-3 text-white" />
+                      </div>
+                    )}
+                  </button>
+                ))}
               </div>
             </div>
 
             {/* Info Section */}
-            <div className="w-full md:w-1/3 p-6 md:p-8 flex flex-col border-t md:border-t-0 md:border-l border-white/10 bg-gradient-to-b from-[#110e18] to-[#0c0a10]">
-              <div className="mb-auto space-y-6">
+            <div className="w-full md:w-2/5 p-6 md:p-8 flex flex-col border-t md:border-t-0 md:border-l border-white/10 bg-gradient-to-b from-[#110e18] to-[#0c0a10] overflow-y-auto max-h-[50vh] md:max-h-full shrink-0 md:shrink">
+              <div className="space-y-6 flex-1">
                 <div>
                   <span className="font-mono text-[10px] text-[var(--theme-primary)] tracking-widest font-bold uppercase mb-2 block">
                     {garment.category} · {garment.gender}
@@ -193,7 +217,7 @@ export default function ProductGalleryModal({ isOpen, onClose, garment }: Produc
                   </div>
                 </div>
 
-                <p className="text-sm text-white/60 font-sans leading-relaxed">
+                <p className="text-sm text-white/70 font-sans leading-relaxed whitespace-pre-line">
                   {garment.description}
                 </p>
 
@@ -223,7 +247,7 @@ export default function ProductGalleryModal({ isOpen, onClose, garment }: Produc
                 </div>
               </div>
 
-              <div className="pt-8">
+              <div className="pt-6 mt-auto">
                 <button
                   onClick={onClose}
                   className="w-full py-3 rounded-xl font-mono text-[11px] font-bold tracking-wider bg-white/10 text-white hover:bg-white/20 transition-all cursor-pointer border border-white/5"
