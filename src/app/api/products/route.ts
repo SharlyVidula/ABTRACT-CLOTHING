@@ -34,10 +34,20 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: false, error: 'Product details required for addition' }, { status: 400 });
       }
       
-      // Prevent duplicate IDs
+      // Ensure image fallback
+      if (!product.image || product.image.trim() === '') {
+        product.image = '/logo.png';
+      }
+
+      // Ensure valid ID
+      if (!product.id || product.id.trim() === '') {
+        product.id = `prod-${Date.now()}`;
+      }
+
+      // Check if product ID already exists and append unique suffix if needed
       const existing = await Product.findOne({ id: product.id });
       if (existing) {
-        return NextResponse.json({ success: false, error: 'Product with this ID already exists' }, { status: 409 });
+        product.id = `${product.id}-${Date.now().toString().slice(-4)}`;
       }
 
       const newProduct = new Product(product);

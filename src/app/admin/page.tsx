@@ -704,7 +704,7 @@ export default function AdminPage() {
         glowingLines: true,
       },
       gender,
-      image: imagePath || (images.length > 0 ? images[0] : ''),
+      image: imagePath || (images.length > 0 ? images[0] : '/logo.png'),
       images: images.length > 0 ? images : (imagePath ? [imagePath] : []),
       video: video || undefined,
       disabledSizes,

@@ -556,50 +556,63 @@ export function StoreProvider({ children, initialProducts }: StoreProviderProps)
 
   // ── Products ───────────────────────────────────────────────────────────────
   const addProduct = async (garment: Garment) => {
-    const updated = [garment, ...products];
-    setProducts(updated);
-
     try {
-      await fetch('/api/products', {
+      const res = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'add', product: garment }),
       });
-      showToast(`Product "${garment.name}" added successfully.`, 'success');
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        showToast(data.error || 'Failed to save product to database', 'error');
+        return;
+      }
+      const savedGarment = data.product || garment;
+      setProducts((prev) => [savedGarment, ...prev]);
+      showToast(`Product "${savedGarment.name}" added successfully.`, 'success');
     } catch (err) {
       console.error('Failed to save product to database:', err);
+      showToast('Network error while saving product.', 'error');
     }
   };
 
   const updateProduct = async (garment: Garment) => {
-    const updated = products.map((p) => (p.id === garment.id ? garment : p));
-    setProducts(updated);
-
     try {
-      await fetch('/api/products', {
+      const res = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'update', product: garment }),
       });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        showToast(data.error || 'Failed to update product in database', 'error');
+        return;
+      }
+      setProducts((prev) => prev.map((p) => (p.id === garment.id ? garment : p)));
       showToast(`Product "${garment.name}" updated successfully.`, 'success');
     } catch (err) {
       console.error('Failed to update product in database:', err);
+      showToast('Network error while updating product.', 'error');
     }
   };
 
   const deleteProduct = async (id: string) => {
-    const updated = products.filter((p) => p.id !== id);
-    setProducts(updated);
-
     try {
-      await fetch('/api/products', {
+      const res = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'delete', id }),
       });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        showToast(data.error || 'Failed to delete product from database', 'error');
+        return;
+      }
+      setProducts((prev) => prev.filter((p) => p.id !== id));
       showToast(`Product deleted successfully.`, 'info');
     } catch (err) {
       console.error('Failed to delete product from database:', err);
+      showToast('Network error while deleting product.', 'error');
     }
   };
 

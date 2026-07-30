@@ -68,7 +68,7 @@ const ProductSchema = new Schema({
   },
   gender: { type: String, required: true },
   brand: String,
-  image: { type: String, required: true },
+  image: { type: String, default: '/logo.png' },
   images: [{ type: String }],
   video: String,
   disabledSizes: [{ type: String }],
