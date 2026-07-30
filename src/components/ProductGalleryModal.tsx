@@ -200,7 +200,13 @@ export default function ProductGalleryModal({ isOpen, onClose, garment }: Produc
                 <div className="space-y-3 pt-6 border-t border-white/5">
                   <div className="flex justify-between items-center text-xs font-mono text-white/40 border-b border-white/5 pb-2">
                     <span>MATERIAL</span>
-                    <span className="text-white/80 text-right">Synthetic Cyber-Blend</span>
+                    <span className="text-emerald-400 font-semibold text-right">100% Sri Lankan Cotton</span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs font-mono text-white/40 border-b border-white/5 pb-2">
+                    <span>ORIGIN</span>
+                    <span className="text-white/90 font-bold text-right flex items-center gap-1 justify-end">
+                      🇱🇰 Made in Sri Lanka
+                    </span>
                   </div>
                   <div className="flex justify-between items-center text-xs font-mono text-white/40 border-b border-white/5 pb-2">
                     <span>FIT</span>

@@ -27,7 +27,7 @@ export default function AtelierModal() {
   const [paymentMethod, setPaymentMethod] = React.useState('Cash on Delivery');
   const [mobileTab, setMobileTab] = React.useState<'calibrator' | 'advisory'>('calibrator');
 
-  if (!isAtelierOpen) return null;
+  if (!isAtelierOpen || !selectedGarment) return null;
 
   return (
     <AnimatePresence>
@@ -39,7 +39,7 @@ export default function AtelierModal() {
         {/* Ambient Theme Glow */}
         <div 
           className="absolute w-[600px] h-[600px] rounded-full blur-[180px] opacity-10 transition-colors duration-1000 pointer-events-none"
-          style={{ backgroundColor: selectedGarment.colorTheme.primary }}
+          style={{ backgroundColor: selectedGarment?.colorTheme?.primary || '#d500f9' }}
         />
 
         <motion.div

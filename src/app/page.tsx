@@ -338,6 +338,11 @@ export default function Home() {
       <div className="absolute bottom-0 left-0 w-[50vw] h-[50vw] rounded-full bg-[rgba(var(--theme-glow-rgb),0.08)] blur-[140px] pointer-events-none z-0" />
 
 
+      {/* Top Sri Lanka Heritage Announcement Bar */}
+      <div className="relative z-30 w-full bg-gradient-to-r from-emerald-950/80 via-black to-emerald-950/80 border-b border-emerald-500/20 py-2 px-4 text-center font-mono text-[9px] sm:text-[10px] tracking-widest text-emerald-400 font-bold flex items-center justify-center gap-2">
+        <span>🇱🇰 100% PROUDLY MADE & MANUFACTURED IN SRI LANKA · LOCALLY SOURCED PURE SRI LANKAN COTTON</span>
+      </div>
+
       {/* Boutique Header Nav */}
       <header className="relative z-30 w-full px-4 md:px-10 lg:px-16 py-4 md:py-6 border-b border-white/5 bg-black/20 backdrop-blur-md flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center justify-between w-full md:w-auto gap-4">
@@ -508,7 +513,7 @@ export default function Home() {
                 COUTURE PARADISE
               </h1>
               <p className="text-xs md:text-sm text-rose-200/50 leading-relaxed font-light font-sans max-w-2xl">
-                Discover beautiful frocks, elegant office skirts, and smart casual wear tailored for everyday comfort. Designed with modern Sri Lankan styles in mind, select your favorite piece and calibrate your dimensions in our Fit-On Studio for a perfect, custom-tailored look.
+                Discover beautiful frocks, elegant office skirts, and smart casual wear tailored for everyday comfort. Crafted from 100% locally sourced Sri Lankan cotton and manufactured right here on the island.
               </p>
             </>
           ) : (
@@ -517,10 +522,43 @@ export default function Home() {
                 ESSENTIAL TAILORING
               </h1>
               <p className="text-xs md:text-sm text-white/50 leading-relaxed font-light font-sans max-w-2xl">
-                Upgrade your wardrobe with premium office shirts, smart trousers, sharp blazers, and trendy drop-shoulder tees designed for the Sri Lankan climate. Experience exceptional comfort and fit—slide the selectors to calibrate your sizing profile for a tailormade look.
+                Upgrade your wardrobe with premium office shirts, smart trousers, sharp blazers, and trendy drop-shoulder tees. Made from 100% pure Sri Lankan cotton fabrics and manufactured in Sri Lanka for maximum breathability.
               </p>
             </>
           )}
+
+          {/* Sri Lankan Craftsmanship & Cotton Guarantee Badge Bar */}
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-3xl">
+            <div className="flex items-center gap-3 p-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 backdrop-blur-md">
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center shrink-0 text-emerald-400 text-lg">
+                🇱🇰
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="font-mono text-[10px] font-bold tracking-wider text-emerald-300 uppercase">100% MADE IN SRI LANKA</span>
+                <span className="text-[10px] text-white/50 font-sans">Designed, cut & sewn on the island</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 rounded-2xl border border-amber-500/20 bg-amber-500/5 backdrop-blur-md">
+              <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center shrink-0 text-amber-400">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="font-mono text-[10px] font-bold tracking-wider text-amber-300 uppercase">SRI LANKAN COTTON</span>
+                <span className="text-[10px] text-white/50 font-sans">100% locally grown & milled fabric</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 backdrop-blur-md">
+              <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center shrink-0 text-cyan-400">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="font-mono text-[10px] font-bold tracking-wider text-cyan-300 uppercase">LOCAL ATELIER FIT</span>
+                <span className="text-[10px] text-white/50 font-sans">Stitched for tropical humidity & comfort</span>
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* Product Catalog Display with filter tabs */}
@@ -1468,9 +1506,9 @@ export default function Home() {
               <span className="text-[7.5px] text-white/30 tracking-widest uppercase">PREMIUM COUTURE STUDIO</span>
             </div>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 text-emerald-400 font-bold">
             <Check className="w-3.5 h-3.5 text-emerald-500" />
-            <span>Trusted & Secure Checkout · All Rights Protected</span>
+            <span>🇱🇰 100% Sourced, Designed & Manufactured in Sri Lanka · 100% Pure Sri Lankan Cotton</span>
           </div>
           <div className="flex flex-col items-center md:items-end gap-2.5">
             <div className="flex flex-wrap justify-center gap-3 text-white/40">

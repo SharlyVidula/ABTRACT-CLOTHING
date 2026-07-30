@@ -9,13 +9,6 @@ export async function GET() {
 
     let products = await Product.find({}).sort({ _id: -1 });
 
-    // Seed database if it is empty
-    if (products.length === 0) {
-      console.log('Product database is empty. Seeding defaults...');
-      await Product.insertMany(GARMENTS);
-      products = await Product.find({}).sort({ _id: -1 });
-    }
-
     return NextResponse.json({ success: true, products }, { status: 200 });
   } catch (error: any) {
     console.error('Fetch products API error:', error);

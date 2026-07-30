@@ -49,11 +49,7 @@ export default async function RootLayout({
     initialProducts = JSON.parse(JSON.stringify(rawProducts));
   } catch (error) {
     console.error("Failed to prefetch products in server layout:", error);
-    initialProducts = GARMENTS;
-  }
-
-  if (!initialProducts || initialProducts.length === 0) {
-    initialProducts = GARMENTS;
+    initialProducts = [];
   }
 
   return (

@@ -75,19 +75,19 @@ export default function OurStoryPage() {
 
           <div className="space-y-6 text-white/70 leading-relaxed font-light text-lg relative z-10">
             <p>
-              It began with a simple question: What if clothing wasn&apos;t just worn, but engineered? ABSTRACT was born out of a desire to bridge the gap between high-fashion aesthetics and futuristic utility.
+              ABSTRACT is proudly 100% Sri Lankan owned, designed, and operated. From our initial sketchpads to the finished garments on your hangers, every step of our process takes place right here in Sri Lanka.
             </p>
             <p>
-              In a small, dimly lit studio in the heart of the metropolis, a collective of avant-garde designers and material scientists came together. They saw a world saturated with fast fashion and disposable trends, and they decided to rewrite the code.
+              We exclusively use 100% pure Sri Lankan cotton fabrics sourced directly from local textile growers and mills. Naturally breathable and tailored specifically for Sri Lanka&apos;s tropical climate, our cotton delivers luxury feel, exceptional durability, and effortless everyday comfort.
             </p>
             <p className="text-white/90 font-medium pl-6 border-l-2 border-[var(--theme-primary)] py-2">
-              &quot;We don&apos;t design clothes. We engineer armor for the modern landscape.&quot;
+              &quot;100% Made in Sri Lanka — From Locally Sourced Sri Lankan Cotton to Master Tailoring.&quot;
             </p>
             <p>
-              Every garment in the ABSTRACT catalogue is a testament to this philosophy. From our signature heavy wool parkas to the drop-shoulder street cuts, each piece is meticulously crafted using advanced biometric telemetry data to ensure perfect clearances and unparalleled comfort.
+              In our local atelier, skilled Sri Lankan artisans and master tailors hand-craft each garment with meticulous precision. By keeping our supply chain 100% local, ABSTRACT supports local communities, empowers island talent, and ensures unmatched quality control in every single stitch.
             </p>
             <p>
-              Today, ABSTRACT isn&apos;t just a brand; it&apos;s a movement. A community of forward-thinkers, creators, and visionaries who demand more from their attire. We are constantly pushing the boundaries of what is possible, merging the digital and physical realms to create truly transcendent pieces.
+              Today, ABSTRACT stands as a symbol of modern Sri Lankan excellence. We fuse contemporary global style with authentic local craftsmanship, delivering premium couture engineered for the forward-thinking Sri Lankan consumer.
             </p>
           </div>
         </motion.div>
